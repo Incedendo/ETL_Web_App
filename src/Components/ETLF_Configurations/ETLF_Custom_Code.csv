@@ -1,0 +1,554 @@
+﻿ETLF_SYSTEM_CONFIG_ID,SYSTEM_CONFIG_TYPE,SYSTEM_CONFIG_DESCRIPTION,SYSTEM_CONFIG_JSON,CREATEDDT,LASTMODIFIEDDT
+6,ORC_SS_PROD,***SS PROD*** Connection For Oracle SS PROD DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""selfservice.valic.com"",
+    ""src_ora_password"": ""AxALoBe4uaL70jd/AX5ywA="",
+    ""src_ora_port"": ""1523"",
+    ""src_ora_service_name"": ""SSPRD.WORLD"",
+    ""src_ora_username"": ""HADOOP_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-06-28 00:00:00.000,2019-06-28 00:00:00.000
+3,SNF_DIH_DB_DEV,***GR DIH*** Snowflake-Lands extracts into DIH schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""BbOZytvNtLO52V1i6Sf6DA=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""DIH"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-06-28 00:00:00.000,2019-06-28 00:00:00.000
+22,SNF_DIH_DB_DEV,***GR DIH*** Snowflake-Lands extracts into DIH schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""SHARED_TOOLS_DEV"",
+    ""tgt_snf_password"": ""NrtFwjZOgi3ZSBxoN6l86C7Xhd4eEpuZsxt6hG9hKqk="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""ETL"",
+    ""tgt_snf_user_id"": ""USER_LIFE_DEV_LIFE_REPORTING_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_LIFE_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-06-28 00:00:00.000,2019-06-28 00:00:00.000
+5,RPI_DEV_DB,***RPI*** Connection for SalesForce RPI DEV DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""src_rpi_password"": ""30KFgQ88tastNE5nzgfbbg=="",
+    ""src_rpi_url"": ""https://test.salesforce.com/services/Soap/u/44.0"",
+    ""src_rpi_user_id"": ""rpi.data.support@aig.com.dev"",
+    ""type"": ""salesforce""
+  }
+}",2019-06-28 00:00:00.000,2019-06-28 00:00:00.000
+2,ORC_ALIP_PROD,***ALIP*** Connection For Oracle ALIP PROD DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""a2ec701c1-scan.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_password"": ""Xyg/LBs24GnwxY8MagrY6w=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SLRPPOLADM.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_username"": ""por_ldh_etl"",
+    ""type"": ""oracle""
+  }
+}",2019-07-08 00:00:00.000,2019-07-08 00:00:00.000
+10,ORA_SS_DEV,***SS DEV*** Connection For Oracle SS DEV DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yb4yR+4ihMX+eGf011IZ8w=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""HADOOP_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-07-24 00:00:00.000,2019-07-24 00:00:00.000
+1,SNF_DIH_DB_DEV,***LIFE_REPORTING*** Snowflake-Lands extracts into LIFE_REPORTING schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""LIFE_DEV"",
+    ""tgt_snf_password"": ""NrtFwjZOgi3ZSBxoN6l86C7Xhd4eEpuZsxt6hG9hKqk="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""LIFE_REPORTING"",
+    ""tgt_snf_user_id"": ""USER_LIFE_DEV_LIFE_REPORTING_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_LIFE_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-07-25 00:00:00.000,2019-07-25 00:00:00.000
+11,SNF_DIH_DB_DEV,***GR DIH LANDING*** Snowflake-Lands extracts into DIH schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""BbOZytvNtLO52V1i6Sf6DA=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""DIH_LANDING"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-07-26 00:00:00.000,2019-07-26 00:00:00.000
+26,ORA_LHODS_DEV,***LH DEV***Connection for Oracle LHODS,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yb4yR+4ihMX+eGf011IZ8w=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHODS"",
+    ""src_ora_service_name"": ""LHDEV.WORLD"",
+    ""src_ora_username"": ""HADOOP_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-07-29 00:00:00.000,2019-07-29 00:00:00.000
+25,ORA_PMPR10_PROD, Oracle PMPR10 PROD DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""lighthousebi.valic.com"",
+    ""src_ora_password"": ""AKQngY9rqw57kyNjlzg1vw=="",
+    ""src_ora_port"": ""1522"",
+    ""src_ora_service_name"": ""PMPR10.WORLD"",
+    ""src_ora_username"": ""bparanth"",
+    ""type"": ""oracle""
+  }
+}",2019-08-01 00:00:00.000,2019-08-01 00:00:00.000
+24,ORA_FPQT_UAT, Oracle PMQT UAT DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""tusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""AKQngY9rqw57kyNjlzg1vw=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""PMQT.WORLD"",
+    ""src_ora_username"": ""bparanth"",
+    ""type"": ""oracle""
+  }
+}",2019-08-01 00:00:00.000,2019-08-01 00:00:00.000
+23,ORA_FPQT_DEV, Oracle FPQT DEV DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""a2ec702c1-scan.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_password"": ""B1h9F5z725NPfmFTc3b1eg=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SLRFPQT.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_username"": ""bparanth"",
+    ""type"": ""oracle""
+  }
+}",2019-08-01 00:00:00.000,2019-08-01 00:00:00.000
+28,ORA_LHODS_DEV,***LH PQT*** Connection for Oracle LHPQT,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""tusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yb4yR+4ihMX+eGf011IZ8w=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""PMQT.WORLD"",
+    ""src_ora_username"": ""HADOOP_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-02 00:00:00.000,2019-08-02 00:00:00.000
+27,ORC_HAD_APP_P,***LH PROD *** Connection to LH Production,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""lighthouse.valic.com"",
+    ""src_ora_password"": ""AxALoBe4uaL70jd/AX5ywA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHODS"",
+    ""src_ora_service_name"": ""LHPRD.WORLD"",
+    ""src_ora_username"": ""HADOOP_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-12 00:00:00.000,2019-08-12 00:00:00.000
+30,ORA_LHODS_DAB,Do NOT USE***LH DAB***Connection for Oracle LHODS DANIEL,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""lighthouse.valic.com"",
+    ""src_ora_password"": ""a5SlcHKLkynKDRSbIveI3g=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHODS"",
+    ""src_ora_service_name"": ""LHPRD.WORLD"",
+    ""src_ora_username"": ""T54VSM6"",
+    ""type"": ""oracle""
+  }
+}",2019-08-19 00:00:00.000,2019-08-19 00:00:00.000
+31,LHODSDEV_SNFAPP,Ora snf app,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""Yv5ysn3Cy4gH5YRbUY/7jQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHODS"",
+    ""src_ora_service_name"": ""LHDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-22 00:00:00.000,2019-08-22 00:00:00.000
+32,Ora_GIADMIN,connection for Oracle GIADMIN,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""GIADMIN"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-23 00:00:00.000,2019-08-23 00:00:00.000
+33,Ora_PLADMIN,connection for Oracle PLADMIN,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""PLADMIN"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-23 00:00:00.000,2019-08-23 00:00:00.000
+34,Ora_SSADMIN,connection for Oracle SSADMIN,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""SSADMIN"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-23 00:00:00.000,2019-08-23 00:00:00.000
+99,ORA_SS_DEV_ME,connection for Oracle LHODS,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""9m6i6TyRF/HcE4QdvbiuOQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""meke"",
+    ""type"": ""oracle""
+  }
+}",2019-08-26 00:00:00.000,2019-08-26 00:00:00.000
+35,Ora_LHSTAGE,Connection for Ora lhstage for snowflakeapp,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""Yv5ysn3Cy4gH5YRbUY/7jQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHODS"",
+    ""src_ora_service_name"": ""LHDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-26 00:00:00.000,2019-08-26 00:00:00.000
+98,ORA_LH_P_JAY,connection for Oracle LHODS,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""lighthouse.valic.com"",
+    ""src_ora_password"": ""W/us4aPUtDlq+qMFyX/DMQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHODS"",
+    ""src_ora_service_name"": ""LHPRD.WORLD"",
+    ""src_ora_username"": ""jkaliyam"",
+    ""type"": ""oracle""
+  }
+}",2019-08-26 00:00:00.000,2019-08-26 00:00:00.000
+97,ORA_SS_P_BAL,connection for Oracle SS,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""selfservice.valic.com"",
+    ""src_ora_password"": ""A0u+DBWWB8mCyP+Y5ShqxQ=="",
+    ""src_ora_port"": ""1523"",
+    ""src_ora_service_name"": ""SSPRD.WORLD"",
+    ""src_ora_username"": ""bparanth"",
+    ""type"": ""oracle""
+  }
+}",2019-08-26 00:00:00.000,2019-08-26 00:00:00.000
+36,SNF_STAGE,Snowflake DIH Staging,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""BbOZytvNtLO52V1i6Sf6DA=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""DIH_STAGING"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-08-27 00:00:00.000,2019-08-27 00:00:00.000
+9,SNF_PII_DEV,***GR PII*** Snowflake-Lands extracts into PII schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""pii_target_schema"": ""DIH_LANDING"",
+    ""pii_tgt_password"": ""BbOZytvNtLO52V1i6Sf6DA=="",
+    ""pii_tgt_role"": ""RL_GR_DEV_DEVELOPER"",
+    ""pii_tgt_user_id"": ""USER_GR_DEV_DEVELOPER"",
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""DmjUSyIWtxDzR7ZD0Izurg=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""PII"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_PII_ETL"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""GR DEV PII User for PII extracts""
+  }
+}",2019-08-16 00:00:00.000,2019-08-16 00:00:00.000
+12,ORA_SS_D_BAL,***SS DEV*** Connection For Oracle SS DEV DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""B1h9F5z725NPfmFTc3b1eg=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""bparanth"",
+    ""type"": ""oracle""
+  }
+}",2019-07-24 00:00:00.000,2019-07-24 00:00:00.000
+111,SS_UAT_SNFAPP,Connection For Oracle SSADMIN,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""tusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""zAO4EofoA36AMZm9iUT9XQ=="",
+    ""src_ora_port"": ""1528"",
+    ""src_ora_schema"": ""SSADMIN"",
+    ""src_ora_service_name"": ""SSPQT.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-28 00:00:00.000,2019-08-28 00:00:00.000
+52,SNF_RPI_DB_DEV,***GR RPI*** Snowflake-Lands extracts into RPI schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""BbOZytvNtLO52V1i6Sf6DA=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""RPI"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-09-10 08:15:22.797,2019-10-10 13:08:09.722
+38,NAV_HOQA3_DB,***HOQA3*** Connection For Oracle HOQA3 DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 100000,
+    ""src_ora_host_url"": ""a2ec702c1-scan.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_password"": ""GdIFQF0wu/f0FjYLHou8DQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SLRHOQA3.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_username"": ""NV17_QA_ADW_CRDL"",
+    ""type"": ""oracle""
+  }
+}",2019-09-16 09:35:50.279,2019-09-16 09:35:50.279
+39,INST_MRKTS_DEV,***INST_MARKETS*** PII Connection For INST_MARKETS DEV database,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""pii_target_schema"": ""INST_MARKETS_STG"",
+    ""pii_tgt_password"": ""ynVieFg6S3UXEsOfhP+QGA=="",
+    ""pii_tgt_role"": ""RL_IR_DEV_DEVELOPER"",
+    ""pii_tgt_user_id"": ""USER_IR_DEV_DEVELOPER"",
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""IR_DEV"",
+    ""tgt_snf_password"": ""adVQj4RJX/F/c9ghbvq/rw=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""PII"",
+    ""tgt_snf_user_id"": ""USER_IR_DEV_PII_ETL"",
+    ""tgt_snf_warehouse"": ""WH_IR_GP_XS"",
+    ""type"": ""IR DEV PII User for PII extracts""
+  }
+}",2019-09-16 09:40:05.012,2019-09-16 09:40:05.012
+40,NAV_HOS1_DB,***HOS1*** Connection For Oracle HOS1 DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 100000,
+    ""src_ora_host_url"": ""a2ec702c1-scan.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_password"": ""4CvS3pHkC3bMw55a+wdQsQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SLRHOS1.us2.ocm.s7130945.oraclecloudatcustomer.com"",
+    ""src_ora_username"": ""NV17_STG_ADW_CRDL"",
+    ""type"": ""oracle""
+  }
+}",2019-09-16 09:40:27.092,2019-09-16 09:40:27.092
+41,SNF_C360_DB_DEV,***GR CUSTOMER_360*** Snowflake-Lands extracts into CUSTOMER_360 schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""htRjGjRHmJ5hW8iyXSma5A=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""CUSTOMER_360"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_CUSTOMER_360_ETL"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-09-17 10:01:07.068,2019-09-17 10:01:07.068
+42,Ora_LHSTAGE,connection for Oracle LHSTAGE,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""Yv5ysn3Cy4gH5YRbUY/7jQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHSTAGE"",
+    ""src_ora_service_name"": ""LHDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-09-23 17:46:16.053,2019-09-23 17:46:16.053
+43,INST_MARKETS,***INST_MARKETS*** Non-PII Connection For INST_MARKETS DEV database,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""IR_DEV"",
+    ""tgt_snf_password"": ""ynVieFg6S3UXEsOfhP+QGA=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""INST_MARKETS_STG"",
+    ""tgt_snf_user_id"": ""USER_IR_DEV_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_IR_GP_XS"",
+    ""type"": ""IR DEV User for Non-PII extracts""
+  }
+}",2019-09-24 09:20:01.882,2019-09-24 09:20:01.882
+44,SNF_NEXUS_DEV,***GR.DEV NEXUS*** Snowflake-Lands extracts into NEXUS schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""KN3B4u/hk8dRhj7ZitaZ/w=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""DIH_LANDING"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_NEXUS"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-09-30 08:59:26.024,2019-09-30 08:59:26.024
+51,SNF_C360_DB_PRD,***GR CUSTOMER_360*** Snowflake-Lands extracts into CUSTOMER_360 schema,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_PROD"",
+    ""tgt_snf_password"": ""KN3B4u/hk8dRhj7ZitaZ/w=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""CUSTOMER_360"",
+    ""tgt_snf_user_id"": ""USER_GR_PROD_CUSTOMER_360_ETL"",
+    ""tgt_snf_warehouse"": ""WH_GR_PROD_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-09-30 14:56:52.542,2019-09-30 14:56:52.542
+99,ORA_SS_P_VAI,connection for Oracle SS,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""selfservice.valic.com"",
+    ""src_ora_password"": ""h3j10QIxBMs9w/0qEW2dlw=="",
+    ""src_ora_port"": ""1523"",
+    ""src_ora_service_name"": ""SSPRD.WORLD"",
+    ""src_ora_username"": ""varavich"",
+    ""type"": ""oracle""
+  }
+}",2019-08-26 00:00:00.000,2019-08-26 00:00:00.000
+100,ORA_SS_D_KAN,***SS DEV*** Connection For Oracle SS DEV DB,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""XwwS5/vFTRlftxQFMJmNFw=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""kbalasub"",
+    ""type"": ""oracle""
+  }
+}",2019-07-24 00:00:00.000,2019-07-24 00:00:00.000
+101,ORA_SS_D_SA,***SS DEV SNOWFLAKE APP*** Connection For Oracle SS DEV DB SNOWFLAKE APP USER,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-07-24 00:00:00.000,2019-07-24 00:00:00.000
+102,ORA_LH_D_SA,***LH DEV SNOWFLAKE APP*** Connection For Oracle LH DEV DB SNOWFLAKE APP USER,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""Yv5ysn3Cy4gH5YRbUY/7jQ=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHODS"",
+    ""src_ora_service_name"": ""LHDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-08-22 00:00:00.000,2019-08-22 00:00:00.000
+75,SNF_SF_DEMOS,***SF_DEMOS**** Connection for SF_DEMOS,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""lV01UPWl74/vlY5yIUyy3Q=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""SF_DEMOS"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_SF_DEMOS_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-10-11 00:00:00.000,2019-10-11 00:00:00.000
+49,Ora_FEEADMIN,connection for Oracle for SnowflakeApp User,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""FEEADMIN"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-10-17 09:34:36.220,2019-10-17 09:34:36.220
+48,Ora_LHWEB,connection for Oracle for SnowflakeApp User,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""LHWEB"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-10-17 09:34:55.837,2019-10-17 09:34:55.837
+47,Ora_SSINQ,connection for Oracle for SnowflakeApp User,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""SSINQ"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-10-17 09:35:11.104,2019-10-17 09:35:11.104
+46,Ora_PRMRMI,connection for Oracle for SnowflakeApp User,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""PRMRMI"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-10-17 09:35:30.598,2019-10-17 09:35:30.598
+45,Ora_FPERFADMIN,connection for Oracle for SnowflakeApp User,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""cursor_size"": 10000,
+    ""src_ora_host_url"": ""dusadslh01.r1-core.r1.aig.net"",
+    ""src_ora_password"": ""yCI2enkED2l6DzSi533cvA=="",
+    ""src_ora_port"": ""1521"",
+    ""src_ora_schema"": ""FPERFADMIN"",
+    ""src_ora_service_name"": ""SSDEV.WORLD"",
+    ""src_ora_username"": ""SNOWFLAKE_APP"",
+    ""type"": ""oracle""
+  }
+}",2019-10-17 09:37:50.665,2019-10-17 09:37:50.665
+76,SNF_SF_D_test,***SF_DEMOS**** Connection for SF_DEMOS,"{
+  ""SOURCE_DATABASE_CONF"": {
+    ""tgt_snf_account"": ""aig.us-east-1"",
+    ""tgt_snf_database"": ""GR_DEV"",
+    ""tgt_snf_password"": ""BbOZytvNtLO52V1i6Sf6DA=="",
+    ""tgt_snf_region"": ""AWS US West"",
+    ""tgt_snf_schema"": ""SF_DEMOS"",
+    ""tgt_snf_user_id"": ""USER_GR_DEV_DEVELOPER"",
+    ""tgt_snf_warehouse"": ""WH_GR_GP_XS"",
+    ""type"": ""snowflake""
+  }
+}",2019-10-29 00:00:00.000,2019-10-29 00:00:00.000

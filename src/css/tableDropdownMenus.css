@@ -1,0 +1,39 @@
+.InlineDiv {
+  display: inline-block;
+  float: left;
+}
+
+.auto-complete-div-margin {
+  margin: 10px;
+  width: 400px;
+}
+
+.db-div {
+  margin-left: 0px;
+}
+
+.auto-complete-outerDiv {
+  width: 450px;
+}
+
+.label-text {
+  text-align: left;
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.db-text {
+  height: 28px;
+  /* padding-top: 10px; */
+  /* padding-bottom: 0px; */
+  margin-top: 9px;
+  margin-bottom: -6px;
+}
+
+.auto-suggest-box {
+  height: 40px;
+  padding: 5px 0px;
+  margin-left: 10px;
+}
+/*# sourceMappingURL=tableDropdownMenus.css.map */

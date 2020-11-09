@@ -1,0 +1,138 @@
+.base-height{
+    height: 400px;
+    padding: 10px;
+}
+
+.container{
+    max-width: 90vw !important;
+}
+
+.table-header{
+    color: white;
+    padding: 5px;
+    font-size: medium;
+}
+
+.expanded-height{
+    height: auto;
+    padding: 10px;
+    border: 1px dashed black;
+    .column{
+        height: auto;
+        text-align: left;
+        padding: 10px 0;
+        .primary-header{
+            display: block;
+            margin-bottom: 5px;
+            // padding-left: 10px;
+        }
+        .field{
+            display: inline-block;
+            margin-right: 10px;
+            border: 1px solid #6c757d;
+            border-radius: 3px;
+            height: 35px;
+            color: #6c757d;
+            // font-size: small;
+
+            p{
+                padding: 4px 10px;
+                height: 35px;
+            }
+            
+            .data{
+                display: inline-block;
+                height: 35px;
+            }
+
+            .remove{
+                cursor: pointer;
+                display: inline-block;
+                font-weight: bold;
+                height: 34px;
+                border-left: 1px black solid;
+
+                &:hover{
+                        background-color:#6c757d;
+                        color: white;
+                        border-radius: 0 3px 3px 0;
+                    }
+
+            }
+        }
+    }
+} 
+
+.primaryKeysInlineDiv{
+    display: inline-block;
+    text-align: center;
+}
+
+.inlineDiv{
+    display: inline-block;
+}
+
+.userInfo{
+    border-bottom: 1px solid black;
+    margin-bottom: 2rem;
+    padding: 0.8rem;
+}
+
+.tableName-SearchBox-Div{
+    position: relative;
+    margin-top: 5px;
+}
+
+.table-name{
+    position: absolute;
+    left: 0px;
+}
+
+.primary-key-div{
+    height: 55px;
+    display: flex;
+    align-items: center;
+}
+
+
+
+.header{
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.center-text{
+    text-align: center;
+}
+
+.left-text{
+    text-align: left;
+}
+
+.search-box{
+    position: absolute;
+    margin-left: -10px;
+}
+
+.toggle-button-group{
+    // float: left;
+    position: absolute;
+    padding: 10px;
+}
+
+.table-grid{
+    position: relative;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.reloadTable{
+    a:hover{
+        font-size: large;
+    }
+}

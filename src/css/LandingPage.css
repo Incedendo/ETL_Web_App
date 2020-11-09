@@ -1,0 +1,13 @@
+.centerPage{
+  margin-top: 200px;
+  text-align: center;
+}
+
+.landingPageDiv{
+  margin-bottom: 100px;
+}
+
+.credLayout{
+  width: 50%;
+  display: inline-block;
+}

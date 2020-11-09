@@ -1,0 +1,31 @@
+.npm__react-simple-code-editor__textarea {
+  border: 1px solid lightgrey !important;
+  border-radius: 4px !important;
+}
+
+.custom-is-invalid .npm__react-simple-code-editor__textarea {
+  border: red solid 0.5px !important;
+  border-radius: 5px !important;
+}
+
+.custom-is-invalid .npm__react-simple-code-editor__textarea :focus {
+  border: red solid 0.5px !important;
+  border-radius: 5px !important;
+}
+
+.custom-is-valid .npm__react-simple-code-editor__textarea {
+  border: green solid 0.5px !important;
+  border-radius: 5px !important;
+}
+
+.custom-is-valid .npm__react-simple-code-editor__textarea :focus {
+  border: green solid 0.5px !important;
+  border-radius: 5px !important;
+}
+
+.custom-invalid-feedback {
+  color: #dc3545;
+  font-size: 80%;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+}
+/*# sourceMappingURL=CodeEditor.css.map */

@@ -1,0 +1,56 @@
+.detailView-textOnly {
+  width: 350px;
+  margin-left: 45px;
+}
+
+.row-expansion-button-div {
+  display: block;
+  float: left;
+}
+
+.row-expansion-button-div .loadable-button {
+  display: block;
+  border-radius: 5px;
+  background-color: green;
+  color: white;
+  width: 100px;
+  height: 35px;
+  margin-bottom: 10px;
+}
+
+.row-expansion-button-div .job-modal {
+  display: block;
+  width: 100px;
+  border-radius: 5px;
+}
+
+.row-expansion-button-div .job-modal .button-margin {
+  background: #FF9900 !important;
+  margin: auto;
+  width: 110px;
+  font-size: 85%;
+  height: 35px;
+  padding-top: 4px;
+}
+
+.detail-div {
+  margin-left: 130px;
+}
+
+.readOnly {
+  border: 1px solid black;
+  margin-left: 5px;
+  padding-left: 5px;
+  width: auto;
+}
+
+.dropdown .dropdown-menu {
+  max-height: 300px;
+  overflow-y: scroll;
+}
+
+.popover-inner {
+  max-height: 400px;
+  overflow-y: scroll;
+}
+/*# sourceMappingURL=rowExpansion.css.map */

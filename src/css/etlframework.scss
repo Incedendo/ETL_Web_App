@@ -1,0 +1,41 @@
+.nav-tabs{
+    border-bottom: 1px solid black !important;
+    margin: 0.5rem 0 !important;
+}
+
+.nav-tabs .nav-link.active{
+    border: 1px black solid !important;
+    border-bottom:1px solid white !important;
+}
+
+.userInfo{
+    text-align: left;
+    span, h5, h6, button{
+        display: inline-block;
+    }
+    span{
+        margin-left: 5px;
+    }
+    button{
+        position: absolute;
+        // right: 70px;
+    }
+    .span-border{
+        border: 1px solid black;
+        padding: 1px 5px;
+        font-weight: bold;
+    }
+}
+
+.leftText{
+    text-align: left;
+}
+
+.table-responsive{
+    height: auto !important;
+    max-height: 1000px;
+}
+
+.dx-g-bs4-table-container{
+
+}

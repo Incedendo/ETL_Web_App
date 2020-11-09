@@ -1,0 +1,32 @@
+.form-group {
+  padding: 1.2rem;
+}
+
+.form-label {
+  text-align: left;
+}
+
+.nav .nav-link:hover {
+  background: #008cff;
+  color: white;
+}
+
+.central-spinning-div {
+  margin: auto;
+  width: 50%;
+  text-align: center;
+}
+
+.tab-content {
+  margin-top: 1rem;
+}
+
+.form-label {
+  font-size: small !important;
+}
+
+.errorSignal {
+  color: red !important;
+  font-weight: bold !important;
+}
+/*# sourceMappingURL=forms.css.map */

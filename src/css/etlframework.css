@@ -1,0 +1,41 @@
+.nav-tabs {
+  border-bottom: 1px solid black !important;
+  margin: 0.5rem 0 !important;
+}
+
+.nav-tabs .nav-link.active {
+  border: 1px black solid !important;
+  border-bottom: 1px solid white !important;
+}
+
+.userInfo {
+  text-align: left;
+}
+
+.userInfo span, .userInfo h5, .userInfo h6, .userInfo button {
+  display: inline-block;
+}
+
+.userInfo span {
+  margin-left: 5px;
+}
+
+.userInfo button {
+  position: absolute;
+}
+
+.userInfo .span-border {
+  border: 1px solid black;
+  padding: 1px 5px;
+  font-weight: bold;
+}
+
+.leftText {
+  text-align: left;
+}
+
+.table-responsive {
+  height: auto !important;
+  max-height: 1000px;
+}
+/*# sourceMappingURL=etlframework.css.map */

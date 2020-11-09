@@ -1,0 +1,70 @@
+.modal-150w{
+    width: 150%;
+}
+
+.body-height{
+    height: 300px !important;
+}
+
+.display-flex{
+    display: flex;
+    align-items: center;
+}
+
+.button-margin{
+    margin: 10px;
+}
+
+.plus-button{
+    height: 25px;
+    width: 25px;
+    text-align: center !important;
+    margin: 0 auto;
+    padding: 0 !important;
+}
+
+.remove-button{
+    border-radius: 15px;
+    background: red;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.search-button{
+    margin-left: 50%;
+}
+
+.mr-10{
+    margin-right: 10px;
+}
+
+.route-modal-width{
+    max-width: 1200px !important;
+    width: 1100px !important;
+}
+
+.field-div{
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.searchModal-div{
+    margin-top: 10px;
+    margin-left: 10px;
+    border-top: solid;
+    padding-top: 10px;
+}
+
+.search-count{
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.auto-suggest-box-modal{
+    height: 40px;
+    margin-left: 10px;
+}
