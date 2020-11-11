@@ -332,7 +332,7 @@ const ConfigurationGrid = () => {
                     grouping={grouping}
                     onGroupingChange={setGrouping}
                 />
-                <FilteringState defaultFilters={[]} />
+                
                 <SummaryState
                     totalItems={totalSummaryItems}
                 />
@@ -368,13 +368,14 @@ const ConfigurationGrid = () => {
                     onColumnWidthsChange={setColumnWidths}
                 />
                 <TableHeaderRow
-                    showSortingControls
-                    showGroupingControls
+                    // showSortingControls
+                    // showGroupingControls
                 />
 
-                <TableFilterRow
+                {/* <FilteringState defaultFilters={[]} /> */}
+                {/* <TableFilterRow
                     showFilterSelector
-                />
+                /> */}
 
                 <TableSummaryRow />
 

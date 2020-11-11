@@ -12,6 +12,7 @@ import '../../css/etlframework.scss';
 import { WorkspaceContext } from '../context/WorkspaceContext';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
+import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
@@ -94,16 +95,19 @@ const ETLFrameworkUseAuthOKTA = () => {
     const AccessControlInfo = () => (
         <div className="userInfo">
             <div>
-                <h5>Welcome - Upload to NonProd PaaS S3, {name.split(',')[1]} ({username}) </h5>
-                <button 
-                    style={{"background":"red"}}
+                <h5>Welcome, {name.split(',')[1]} ({username}) </h5>
+                <Button 
+                    style={{
+                        "position": "relative",
+                        "float": "right",
+                    }}
                     onClick={logout}>
-                    Log out...
-                </button>
+                    Log out
+                </Button>
                 {/* <button onClick={testCors}>Test CORS</button> */}
             </div>
 
-            <div>
+            {/* <div>
                 <h6>Read-Write Access:</h6>
                 { appIDs.length !== 0 
                 ? <span className="span-border">{appIDs.toString()}</span>
@@ -111,7 +115,7 @@ const ETLFrameworkUseAuthOKTA = () => {
                 }
             </div>
 
-            <h6>Authenticated: {authState.isAuthenticated ? 'true' : 'false'}</h6>
+            <h6>Authenticated: {authState.isAuthenticated ? 'true' : 'false'}</h6> */}
 
             {/* <AccessModal /> */}
         </div>

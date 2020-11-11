@@ -54,6 +54,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     const [validationSchema, setValidationSchema] = useState([]);
     const [fields, setFields] = useState([]);
     const [requiredFields, setRequiredFields] = useState({});
+    const [optionalFields, setOptionalFields] = useState({});
 
     let route_schema = yup.object().shape({
         route: yup.string().required(),
@@ -205,6 +206,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         let temp_fields = [];
         // let required_fields = [];
         let required_fields = {};
+        let optional_fields = {};
         etlRowConfigs.map(row => {
             let field_name = row.COLUMN_NAME;
 
@@ -222,12 +224,14 @@ const RouteDataLoader = ({ setActionModalShow }) => {
                 required_fields[field_name] = 'Y';
             }
             if (row[routeCode] === 'O') {
-                required_fields[field_name] = 'O';
+                // required_fields[field_name] = 'O';
+                optional_fields[field_name] = 'O';
             }
         });
 
         debug && console.log(required_fields);
         setRequiredFields(required_fields);
+        setOptionalFields(optional_fields);
         setFields(temp_fields);
         debug && console.log(required_Fields_Obj);
 
@@ -484,6 +488,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
                     extractConfigID={extractConfigID}
                     states={initialStates}
                     requiredFields={requiredFields}
+                    optionalFields={optionalFields}
                     fields={fields}
                     validationSchema={validationSchema}
                     helper_route={helper_route}

@@ -10,10 +10,11 @@ const Route_Action_Modal = (props) => {
 
     return (
         <>
-            <Button className="button-margin"
+            <Button 
+                // className="button-margin"
                 variant="primary"
                 onClick={() => setShow(true)}>
-                Configure Route
+                Configure New Job
             </Button>
 
             <Modal

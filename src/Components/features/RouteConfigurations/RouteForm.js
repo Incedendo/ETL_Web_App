@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Formik } from 'formik';
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button';
@@ -14,7 +14,7 @@ const TEST_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/tes
 
 const RouteForm = ({ 
     routeCode, extractConfigID, states,
-    requiredFields, validationSchema, 
+    requiredFields, optionalFields, validationSchema, 
     helper_route, 
     setShow,
     dropdownFields 
@@ -39,6 +39,7 @@ const RouteForm = ({
 
     const [validating, setValidating] = useState(false);
     const [insertMessage, setInsertMessage] = useState('');
+    const [showOptional, toggleOptional] = useState(false);
 
     function getMergeStatement(values) {
         debug && console.log(values);
@@ -131,81 +132,111 @@ const RouteForm = ({
                 ?
                 <div>Loading configurations...</div>
                 :
-                <Formik
-                    validationSchema={validationSchema}
+                <div>
+                    <Formik
+                        validationSchema={validationSchema}
 
-                    //destructure the action obj into {setSubmitting}
-                    onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
-                        //have to update the values manually here:
-                        setValidating(true);
-                        
-                        //merge values into states bc states has the latest updates
-                        const updatedValues = {
-                            ...states, ...values
-                        };
+                        //destructure the action obj into {setSubmitting}
+                        onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
+                            //have to update the values manually here:
+                            setValidating(true);
+                            
+                            //merge values into states bc states has the latest updates
+                            const updatedValues = {
+                                ...states, ...values
+                            };
 
-                        updatedValues["EXTRACT_CONFIG_ID"] = states["EXTRACT_CONFIG_ID"];
+                            updatedValues["EXTRACT_CONFIG_ID"] = states["EXTRACT_CONFIG_ID"];
 
-                        debug && console.log('updatedValues: ', updatedValues);
-                        test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
-                    }}
-                    initialValues={states}
-                >
-                    {({
-                        handleSubmit, isSubmitting,
-                        handleChange,
-                        handleBlur,
-                        values,
-                        touched,
-                        errors,
-                    }) => (
-                            <Form
-                                noValidate
-                                onSubmit={handleSubmit}>
+                            debug && console.log('updatedValues: ', updatedValues);
+                            test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
+                        }}
+                        initialValues={states}
+                    >
+                        {({
+                            handleSubmit, isSubmitting,
+                            handleChange,
+                            handleBlur,
+                            values,
+                            touched,
+                            errors,
+                        }) => (
+                                <Form
+                                    noValidate
+                                    onSubmit={handleSubmit}>
 
-                                {Object.keys(requiredFields).map(field =>
-                                    <FormField
-                                        routeCode={routeCode}
-                                        key={field}
-                                        field={field}
-                                        required={requiredFields[field]}
-                                        values={values}
-                                        dataTypes={columnDataTypes}
-                                        handleChange={handleChange}
-                                        handleBlur={handleBlur}
-                                        touched={touched}
-                                        errors={errors}
-                                        disabled={validating}
-                                        codeFields={codeFields}
-                                        dropdownFields={dropdownFields}
-                                    />
-                                )}
-                                <div className="central-spinning-div">
-                                    <Button
-                                        // variant="primary"
-                                        type="submit" disabled={isSubmitting}
-                                        disabled={validating}
-                                    >
-                                        {validating &&
-                                            <Spinner
-                                                as="span"
-                                                animation="border"
-                                                size="sm"
-                                                role="status"
-                                                aria-hidden="true"
-                                            />
-                                        }
+                                    {Object.keys(requiredFields).map(field =>
+                                        <FormField
+                                            routeCode={routeCode}
+                                            key={field}
+                                            field={field}
+                                            required={requiredFields[field]}
+                                            values={values}
+                                            dataTypes={columnDataTypes}
+                                            handleChange={handleChange}
+                                            handleBlur={handleBlur}
+                                            touched={touched}
+                                            errors={errors}
+                                            disabled={validating}
+                                            codeFields={codeFields}
+                                            dropdownFields={dropdownFields}
+                                        />
+                                    )}
 
-                                        {!validating
-                                            ? <span style={{ 'marginLeft': '5px' }}>Add Configuration</span>
-                                            : <span style={{ 'marginLeft': '5px' }}>Validating Configuration...</span>
-                                        }
-                                    </Button>
-                                </div>
+                                    <Form.Group controlId="formBasicCheckbox">
+                                        <Form.Check 
+                                            type="checkbox" 
+                                            label="Optional Fields" 
+                                            onChange={()=>toggleOptional(!showOptional)}
+                                        />
+                                    </Form.Group>
 
-                            </Form>
-                        )}
-                </Formik>
+                                    {showOptional && Object.keys(optionalFields).map(field =>
+                                        <FormField
+                                            routeCode={routeCode}
+                                            key={field}
+                                            field={field}
+                                            required={requiredFields[field]}
+                                            values={values}
+                                            dataTypes={columnDataTypes}
+                                            handleChange={handleChange}
+                                            handleBlur={handleBlur}
+                                            touched={touched}
+                                            errors={errors}
+                                            disabled={validating}
+                                            codeFields={codeFields}
+                                            dropdownFields={dropdownFields}
+                                        />
+                                    )}
+
+                                    <div className="central-spinning-div">
+                                        <Button
+                                            // variant="primary"
+                                            type="submit" disabled={isSubmitting}
+                                            disabled={validating}
+                                        >
+                                            {validating &&
+                                                <Spinner
+                                                    as="span"
+                                                    animation="border"
+                                                    size="sm"
+                                                    role="status"
+                                                    aria-hidden="true"
+                                                />
+                                            }
+
+                                            {!validating
+                                                ? <span style={{ 'marginLeft': '5px' }}>Save Configuration</span>
+                                                : <span style={{ 'marginLeft': '5px' }}>Validating Configuration...</span>
+                                            }
+                                        </Button>
+                                    </div>
+
+                                </Form>
+                            )}
+                    </Formik>
+                </div>
+                
             }
         </div>
     )

@@ -40,36 +40,48 @@ const WorkTab = () => {
     // }, [table]);
 
     const TableConfigPanel = () => (
-        <div className={"card expanded-height"}>
-            <PrimaryKeysPanel />
-
-            {table === "ETLF_EXTRACT_CONFIG" && <ModalPanels />}
-            {table === "ETLFCALL" && 
-                <JobModal
-                    data={{}}
-                    //for later check when insert or update row
-                    uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
-                    dataTypes={columnDataTypes}
-                />
-            }
+        // <div className={"card expanded-height"}>
+       
+        <div style={{
+            "margin-bottom":"30px",
+        }}>
+            <div style={{
+                "display": "inline-block",
+                "float": "left"
+            }}>
+                {/* <PrimaryKeysPanel /> */}
+                {table === "ETLF_EXTRACT_CONFIG" && <ModalPanels />}
+                {table === "ETLFCALL" && 
+                    <JobModal
+                        data={{}}
+                        //for later check when insert or update row
+                        uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
+                        dataTypes={columnDataTypes}
+                    />
+                } 
+            </div>
+            
         </div>
+        
     )
 
     const ModalPanels = () => (
-        <div className="modal-button">
-            <div className="left-float-div">
-                {
-                    // system_configs && 
-                    // routeConfigs  && 
-                    (Object.keys(system_configs).length !== 0 && system_configs.constructor === Object) &&
-                    (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
-                    <Route_Action_Modal />
-                }
-                {/* <SearchModal 
+        // <div className="modal-button">
+        <div>
+            {
+                // system_configs && 
+                // routeConfigs  && 
+                (Object.keys(system_configs).length !== 0 && system_configs.constructor === Object) &&
+                (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
+                <Route_Action_Modal />
+            }
+            {/* <div className="left-float-div">
+                
+                <SearchModal 
                     searchObj={searchObj}
                     setSearchObj={setSearchObj}
-                /> */}
-            </div>
+                /> 
+            </div> */}
         </div>
     )
 
@@ -132,7 +144,10 @@ const WorkTab = () => {
     )
 
     return (
-        <div>
+        <div style={{
+            "display": "flex",
+            "flex-direction": "column"
+        }}> 
             <TableConfigPanel />
 
             <InsertStatus />
@@ -142,7 +157,11 @@ const WorkTab = () => {
 
             {
                 !tableLoaded ?
-                <div>
+                <div style={{
+                    "position":"relative",
+                    "display": "inline-block",
+                    "align-items": "center",
+                }}>
                     <Spinner
                         as="span"
                         animation="border"
