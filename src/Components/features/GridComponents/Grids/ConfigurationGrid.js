@@ -9,6 +9,7 @@ import {
     SearchState, 
     SortingState, IntegratedSorting, 
     FilteringState, IntegratedFiltering, DataTypeProvider,
+    PagingState, IntegratedPaging,
     GroupingState, IntegratedGrouping, 
     SummaryState, IntegratedSummary,
     RowDetailState, EditingState,
@@ -20,7 +21,7 @@ import {
     TableColumnResizing, TableColumnReordering, TableColumnVisibility,
     Toolbar, ColumnChooser,
     SearchPanel,GroupingPanel,
-    
+    PagingPanel
 } from '@devexpress/dx-react-grid-bootstrap4';
 
 
@@ -323,6 +324,14 @@ const ConfigurationGrid = () => {
                     availableFilterOperations={numberFilterOperations}
                     editorComponent={NumberEditor}
                 />
+                
+                {/* Toolbar required for Display Search Box and Column Chooser Box */}
+                <Toolbar />
+
+                {/* <PagingState
+                    defaultCurrentPage={0}
+                    pageSize={20}
+                /> */}
 
                 <SearchState defaultValue={''} />
                 <SortingState
@@ -332,10 +341,11 @@ const ConfigurationGrid = () => {
                     grouping={grouping}
                     onGroupingChange={setGrouping}
                 />
+                <FilteringState defaultFilters={[]} />
                 
-                <SummaryState
+                {/* <SummaryState
                     totalItems={totalSummaryItems}
-                />
+                /> */}
 
                 {/* <EditingState
                     // onAddedRowsChange={activateAddingEditRow}
@@ -346,47 +356,56 @@ const ConfigurationGrid = () => {
                     // onAddedRowsChange={changeAddedRows}
                 /> */}
 
+                {/* <IntegratedPaging /> */}
                 <IntegratedSorting />
                 <IntegratedGrouping />
-                <IntegratedFiltering />
-                <IntegratedSummary />
+                <IntegratedFiltering /> {/* need for searching */}
+                {/* <IntegratedSummary /> */}
                 {/* <IntegratedSelection /> */}
 
-                <RowDetailState
-                    defaultExpandedRowIds={[]}
-                />
+                
+
                 {/* <Table
-                columnExtensions={tableColumnExtensions}
-                cellComponent={Cell}
-            /> */}
+                    columnExtensions={tableColumnExtensions}
+                    cellComponent={Cell}
+                /> */}
                 <VirtualTable
                     columnExtensions={tableColumnExtensions}
                     cellComponent={Cell}
                 />
-                <TableColumnResizing
-                    columnWidths={columnWidths}
-                    onColumnWidthsChange={setColumnWidths}
-                />
-                <TableHeaderRow
-                    // showSortingControls
-                    // showGroupingControls
-                />
 
-                {/* <FilteringState defaultFilters={[]} /> */}
+                {/* display the filter header for each column */}
                 {/* <TableFilterRow
                     showFilterSelector
                 /> */}
 
-                <TableSummaryRow />
+                {/* <TableSummaryRow /> */}
+                
+                <TableColumnResizing
+                    columnWidths={columnWidths}
+                    onColumnWidthsChange={setColumnWidths}
+                />
 
+                {/* Show the button to choose which columns to display on the table */}
                 <TableColumnVisibility
                     defaultHiddenColumnNames={defaultHiddenColumnNames}
                 />
+                <ColumnChooser />
+                
+                <TableColumnReordering 
+                    defaultOrder={columns.map(column => column.name)} 
+                />
 
-                <TableColumnReordering defaultOrder={columns.map(column => column.name)} />
+                <TableHeaderRow
+                    showSortingControls
+                    // showGroupingControls
+                />
 
                 <TableGroupRow />
 
+                <RowDetailState
+                    defaultExpandedRowIds={[]}
+                />
                 <TableRowDetail
                     contentComponent={RowExpansion}
                 />
@@ -405,14 +424,16 @@ const ConfigurationGrid = () => {
                 commandComponent={Command}
             /> */}
 
-                <Toolbar />
+                
                 <SearchPanel />
+
                 <GroupingPanel 
                     showGroupingControls
                     showSortingControls
                 />
+                {/* <PagingPanel /> */}
 
-                <ColumnChooser />
+                
             </Grid> 
         </div>
     );

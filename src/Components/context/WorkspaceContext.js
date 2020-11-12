@@ -169,7 +169,7 @@ export const WorkspaceProvider = (props) => {
             })
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
-                    debug && console.log("App IDs from ETLF_ACCESS_AUTHORIZATION:", response.data);
+                    debug && console.log("Group IDs from ETLF_ACCESS_AUTHORIZATION:", response.data);
                     setAppIDs(response.data.map(item => item.APP_ID))
                 })
                 .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))

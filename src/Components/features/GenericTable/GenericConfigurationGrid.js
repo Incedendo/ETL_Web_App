@@ -61,10 +61,10 @@ const GenericConfigurationGrid = ({
             <DragDropProvider />
 
             <DataTypeProvider
-                    for={numberColumns}
-                    availableFilterOperations={numberFilterOperations}
-                    editorComponent={NumberEditor}
-                />
+                for={numberColumns}
+                availableFilterOperations={numberFilterOperations}
+                editorComponent={NumberEditor}
+            />
 
             <PagingState
                 defaultCurrentPage={0}
@@ -81,7 +81,7 @@ const GenericConfigurationGrid = ({
                 onGroupingChange={setGrouping}
             />
 
-            <FilteringState defaultFilters={[]} />
+            {/* <FilteringState defaultFilters={[]} /> */}
 
             {/* <EditingState
                 onCommitChanges={commitChanges}
@@ -106,13 +106,13 @@ const GenericConfigurationGrid = ({
                 onColumnWidthsChange={setColumnWidths}
             />
             <TableHeaderRow 
-                showSortingControls 
-                showGroupingControls
+                // showSortingControls 
+                // showGroupingControls
             />
 
-            <TableFilterRow
+            {/* <TableFilterRow
                 showFilterSelector
-            />
+            /> */}
 
             <TableColumnVisibility
                 defaultHiddenColumnNames={defaultHiddenColumnNames}
