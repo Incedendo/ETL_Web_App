@@ -81,7 +81,7 @@ const ConfigurationGrid = () => {
 
     const [defaultHiddenColumnNames] = useState([]);
     const [totalSummaryItems] = useState([
-        { columnName: 'PRIVILEGE', type: 'count' },
+        { columnName: 'EXTRACT_CONFIG_ID', type: 'count' },
     ]);
 
     const [numberFilterOperations] = useState([
@@ -328,11 +328,6 @@ const ConfigurationGrid = () => {
                 {/* Toolbar required for Display Search Box and Column Chooser Box */}
                 <Toolbar />
 
-                {/* <PagingState
-                    defaultCurrentPage={0}
-                    pageSize={20}
-                /> */}
-
                 <SearchState defaultValue={''} />
                 <SortingState
                     defaultSorting={sortingStates}
@@ -343,9 +338,9 @@ const ConfigurationGrid = () => {
                 />
                 <FilteringState defaultFilters={[]} />
                 
-                {/* <SummaryState
+                <SummaryState
                     totalItems={totalSummaryItems}
-                /> */}
+                />
 
                 {/* <EditingState
                     // onAddedRowsChange={activateAddingEditRow}
@@ -356,12 +351,10 @@ const ConfigurationGrid = () => {
                     // onAddedRowsChange={changeAddedRows}
                 /> */}
 
-                {/* <IntegratedPaging /> */}
                 <IntegratedSorting />
                 <IntegratedGrouping />
                 <IntegratedFiltering /> {/* need for searching */}
-                {/* <IntegratedSummary /> */}
-                {/* <IntegratedSelection /> */}
+                <IntegratedSummary />
 
                 
 
@@ -379,7 +372,6 @@ const ConfigurationGrid = () => {
                     showFilterSelector
                 /> */}
 
-                {/* <TableSummaryRow /> */}
                 
                 <TableColumnResizing
                     columnWidths={columnWidths}
@@ -400,8 +392,10 @@ const ConfigurationGrid = () => {
                     showSortingControls
                     // showGroupingControls
                 />
-
-                <TableGroupRow />
+                <TableSummaryRow />
+                
+                {/* show the groups header in the grid, must have this if want to group by header */}
+                <TableGroupRow /> 
 
                 <RowDetailState
                     defaultExpandedRowIds={[]}
@@ -431,7 +425,6 @@ const ConfigurationGrid = () => {
                     showGroupingControls
                     showSortingControls
                 />
-                {/* <PagingPanel /> */}
 
                 
             </Grid> 
