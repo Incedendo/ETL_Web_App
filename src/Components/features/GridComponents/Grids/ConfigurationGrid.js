@@ -328,15 +328,19 @@ const ConfigurationGrid = () => {
                 {/* Toolbar required for Display Search Box and Column Chooser Box */}
                 <Toolbar />
 
-                <SearchState defaultValue={''} />
-                <SortingState
-                    defaultSorting={sortingStates}
+                <SearchState 
+                    defaultValue={''} 
                 />
+
+                {/* <SortingState
+                    defaultSorting={sortingStates}
+                /> */}
+
                 <GroupingState
                     grouping={grouping}
                     onGroupingChange={setGrouping}
                 />
-                <FilteringState defaultFilters={[]} />
+                {/* <FilteringState defaultFilters={[]} /> */}
                 
                 <SummaryState
                     totalItems={totalSummaryItems}
@@ -351,7 +355,7 @@ const ConfigurationGrid = () => {
                     // onAddedRowsChange={changeAddedRows}
                 /> */}
 
-                <IntegratedSorting />
+                {/* <IntegratedSorting /> */}
                 <IntegratedGrouping />
                 <IntegratedFiltering /> {/* need for searching */}
                 <IntegratedSummary />
@@ -389,7 +393,7 @@ const ConfigurationGrid = () => {
                 />
 
                 <TableHeaderRow
-                    showSortingControls
+                    // showSortingControls
                     // showGroupingControls
                 />
                 <TableSummaryRow />
@@ -405,28 +409,27 @@ const ConfigurationGrid = () => {
                 />
 
                 {/* <TableEditRow
-                cellComponent={EditCell}
-            /> */}
+                    cellComponent={EditCell}
+                /> */}
 
                 {/* <TableEditColumn
-                width={60}
-                showEditCommand={true}
-                showDeleteCommand={true}
-                cellComponent={CommandColumnCell}
-                
-                //the actual add/edit/delete/save/cancel buttons
-                commandComponent={Command}
-            /> */}
-
+                    width={60}
+                    showEditCommand={true}
+                    showDeleteCommand={true}
+                    cellComponent={CommandColumnCell}
+                    
+                    //the actual add/edit/delete/save/cancel buttons
+                    commandComponent={Command}
+                /> */}
                 
                 <SearchPanel />
 
-                <GroupingPanel 
-                    showGroupingControls
-                    showSortingControls
-                />
-
-                
+                {/* Grouping panel display the panel in the top left corner 
+                to drag and drop headers for grouping  */}
+                {/* <GroupingPanel 
+                    // showGroupingControls
+                    // showSortingControls
+                /> */}
             </Grid> 
         </div>
     );

@@ -81,7 +81,7 @@ const GenericConfigurationGrid = ({
                 onGroupingChange={setGrouping}
             />
 
-            {/* <FilteringState defaultFilters={[]} /> */}
+            <FilteringState defaultFilters={[]} />
 
             {/* <EditingState
                 onCommitChanges={commitChanges}

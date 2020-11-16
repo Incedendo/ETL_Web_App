@@ -85,7 +85,7 @@ export const WorkspaceProvider = (props) => {
     const [editingStateColumnExtensions, setEditingStateColumnExtensions] = useState([]);
 
     const [tableColumnExtensions, setTableColumnExtensions] = useState([]);
-    const [sortingStates, setSortingStates] = useState([]);
+    const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);
     const [columnDataTypes, setColumnDataTypes] = useState({});
     const [columnWidths, setColumnWidths] = useState([]);
     
@@ -173,7 +173,6 @@ export const WorkspaceProvider = (props) => {
                     setAppIDs(response.data.map(item => item.APP_ID))
                 })
                 .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
-        
         }
         
     }, [username, authState]);
@@ -268,7 +267,7 @@ export const WorkspaceProvider = (props) => {
             setColumns(gridConfigs[table]["columns"]);
             setColumnWidths(gridConfigs[table]["columnWidths"]);
             setTableColumnExtensions(gridConfigs[table]["tableColumnExtensions"]);
-            setSortingStates(gridConfigs[table]["sortingStates"]);
+            // setSortingStates(gridConfigs[table]["sortingStates"]);
             setNumberColumns(gridConfigs[table]["numericColumns"]);
             setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
         }
@@ -280,7 +279,7 @@ export const WorkspaceProvider = (props) => {
             setColumns(gridConfigs[table]["columns"]);
             setColumnWidths(gridConfigs[table]["columnWidths"]);
             setTableColumnExtensions(gridConfigs[table]["tableColumnExtensions"]);
-            setSortingStates(gridConfigs[table]["sortingStates"]);
+            // setSortingStates(gridConfigs[table]["sortingStates"]);
             setNumberColumns(gridConfigs[table]["numericColumns"]);
             setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
         }

@@ -18,13 +18,10 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import CustomAutoCompleteComp from '../features/GridComponents/CustomAutoCompleteComp';
 import WorkTab from '../features/Tabs/WorkTab';
-import ConfigTab from '../features/Tabs/ConfigTab';
-import JobTab from '../features/Tabs/JobTab';
-import PlaygroundTab from '../features/Tabs/PlaygroundTab';
-import PlaygroundTab2 from '../features/Tabs/PlaygroundTab2';
-import axios from 'axios';
 
 const ETLFrameworkUseAuthOKTA = () => {
+    const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
+    const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
     const { authState, authService } = useOktaAuth();
 
@@ -35,7 +32,13 @@ const ETLFrameworkUseAuthOKTA = () => {
 
     const logout = async () => {
         // Redirect to '/' after logout
-        authService.logout('/');
+        // authService.logout('/');
+
+        const idToken = authState.idToken;
+        await authService.logout('/');
+
+        // Clear remote session
+        window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
     }
 
     const [loadingAppIDs, setLoadingAppIDs] = useState(false);
