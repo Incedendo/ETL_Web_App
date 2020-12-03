@@ -190,7 +190,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
         if (test_result.data[0]['ETLF_ID'] === 0 && test_result.data[0]['COMBI'] === 0) {
             debug && console.log('Proceed to Insert');
-            insertUsingMergeStatement(getMergeStatement(values), values, setValidating);
+            insertUsingMergeStatement(getMergeStatement(values), values, setValidating, true);
             setInsertError("");
         }else{
             if (test_result.data[0]['ETLF_ID'] === 1){

@@ -102,7 +102,7 @@ const RouteForm = ({
         debug && console.log(values);
         if (test_result.data[0]['COMBI'] === 0) {
             debug && console.log('Proceed to Insert');
-            insertUsingMergeStatement(getMergeStatement(values), values, setValidating);
+            insertUsingMergeStatement(getMergeStatement(values), values, setValidating, true);
             setInsertMessage("");
             setShow(false);
         } else {

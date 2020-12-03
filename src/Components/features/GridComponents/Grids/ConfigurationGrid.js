@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import '../../../../css/etlframework.scss';
 import RowExpansion from '../RowExpansion';
-
+import classNames from 'clsx';
 import {WorkspaceContext} from '../../../context/WorkspaceContext';
 
 import {
@@ -24,13 +24,11 @@ import {
     PagingPanel
 } from '@devexpress/dx-react-grid-bootstrap4';
 
-
 import {
     getRowId,
     getCellValue, Cell, LookupEditCell,
     NumberEditor,
 } from './GridHelperClass';
-
 
 import { generateUpdateSQLStatement } from '../../../SQL_Operations/Edit';
 import { 
@@ -38,6 +36,10 @@ import {
     validatedDatatypesNewRow,
     generateMergeStatement,
 } from '../../../SQL_Operations/Insert';
+
+import DetailEditCell from '../DetailsRow/DetailEditCell';
+import DetailCell from '../DetailsRow/DetailCell';
+import ToggleCell from '../DetailsRow/ToggleCell';
 
 const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
 
@@ -406,7 +408,10 @@ const ConfigurationGrid = () => {
                 />
                 <TableRowDetail
                     contentComponent={RowExpansion}
+                    cellComponent={DetailCell} 
+                    toggleCellComponent={ToggleCell}
                 />
+                {/* <DetailEditCell /> */}
 
                 {/* <TableEditRow
                     cellComponent={EditCell}

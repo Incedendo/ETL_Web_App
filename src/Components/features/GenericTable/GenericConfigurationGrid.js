@@ -25,6 +25,10 @@ import {
     getCellValue, Cell, NumberEditor
 } from '../GridComponents/Grids/GridHelperClass';
 import GenericRowExpansion from './GenericRowExpansion';
+  
+import DetailCell from '../GridComponents/DetailsRow/DetailCell';
+import ToggleCell from  '../GridComponents/DetailsRow/ToggleCell';
+
 
 const GenericConfigurationGrid = ({
    
@@ -63,44 +67,30 @@ const GenericConfigurationGrid = ({
             <DataTypeProvider
                 for={numberColumns}
                 availableFilterOperations={numberFilterOperations}
-                editorComponent={NumberEditor}
-            />
+                editorComponent={NumberEditor} />
 
-            <PagingState
-                defaultCurrentPage={0}
-                pageSize={10}
-            />
-            
+            <Toolbar />
             <SearchState defaultValue={''} />
-            <SortingState
+            <SearchPanel />
+            {/* <SortingState
                 defaultSorting={sortingStates}
-            />
-
-            <GroupingState
-                grouping={grouping}
-                onGroupingChange={setGrouping}
-            />
+            /> */}
+            {/* <IntegratedSorting /> */}
 
             <FilteringState defaultFilters={[]} />
+            <IntegratedFiltering />
 
             {/* <EditingState
                 onCommitChanges={commitChanges}
                 columnExtensions={editingStateColumnExtensions}
                 onAddedRowsChange={changeAddedRows}
             /> */}
-
-            <IntegratedPaging />
-            <IntegratedSorting />
-            <IntegratedGrouping />
-            <IntegratedFiltering />
-
+            
             <RowDetailState
-                defaultExpandedRowIds={[]}
-            />
+                defaultExpandedRowIds={[]} />
             <Table
                 columnExtensions={tableColumnExtensions}
-                cellComponent={Cell}
-            />
+                cellComponent={Cell} />
             <TableColumnResizing
                 columnWidths={columnWidths}
                 onColumnWidthsChange={setColumnWidths}
@@ -115,37 +105,30 @@ const GenericConfigurationGrid = ({
             /> */}
 
             <TableColumnVisibility
-                defaultHiddenColumnNames={defaultHiddenColumnNames}
-            />
-
-            <TableColumnReordering defaultOrder={columns.map(column => column.name)} />
-            
-            <TableGroupRow />
-            
+                defaultHiddenColumnNames={defaultHiddenColumnNames}/>
+            <TableColumnReordering 
+                defaultOrder={columns.map(column => column.name)} />
             <TableRowDetail
                 contentComponent={GenericRowExpansion}
+                cellComponent={DetailCell} 
+                toggleCellComponent={ToggleCell}
             />
-
-            {/* <TableEditRow
-                cellComponent={EditCell}
+            
+            {/* <GroupingState
+                grouping={grouping}
+                onGroupingChange={setGrouping}
+            />
+            <IntegratedGrouping />
+            <TableGroupRow />
+            <GroupingPanel 
+                // showGroupingControls 
             /> */}
 
-            {/* <TableEditColumn
-                width={60}
-                // showAddCommand={!addedRows.length && insertMode}
-                // showEditCommand={editMode && enabledEdit}
-                // showDeleteCommand={rows.length && deleteMode}
-                showEditCommand={true}
-                showDeleteCommand={true}
-                cellComponent={CommandColumnCell}
-                
-                //the actual add/edit/delete/save/cancel buttons
-                commandComponent={Command}
-            /> */}
-
-            <Toolbar />
-            <SearchPanel />
-            <GroupingPanel showGroupingControls />
+            {/* need to place at the end */}
+            <PagingState
+                defaultCurrentPage={0}
+                pageSize={10} />
+            <IntegratedPaging />
             <PagingPanel />
 
             <ColumnChooser />

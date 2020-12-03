@@ -7,8 +7,8 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 
 const DisplayField = ({ 
     setState, setChanged, row, primaryKeys, fieldArray, columnDataTypes, setEditMessage,
-    codeFields, 
-    dropdownFields, route
+    codeFields, dropdownFields, route, 
+    ...rest
 }) => {
 
     const {
@@ -45,6 +45,7 @@ const DisplayField = ({
                             setChanged={setChanged}
                             setState={setState}
                             route={route}
+                            {...rest}
                         />
                     : <CodeField key={field}
                         setState={setState}
@@ -53,6 +54,7 @@ const DisplayField = ({
                         columnDataTypes={columnDataTypes}
                         disabled={false}
                         setEditMessage={setEditMessage}
+                        {...rest}
                     />
             }
             else{
@@ -63,6 +65,7 @@ const DisplayField = ({
                     columnDataTypes={columnDataTypes}
                     disabled={true}
                     setEditMessage={setEditMessage}
+                    {...rest}
                 />
             }
             

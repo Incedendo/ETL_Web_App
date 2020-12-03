@@ -4,8 +4,10 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
 
 const DropdownField = ({ 
-    privilege, field, value, dropdownFields, setChanged, setState, route 
+    privilege, field, value, dropdownFields, setChanged, setState, route,
+    processValueChange
 }) => {
+
     
     const {
         debug,
@@ -26,7 +28,9 @@ const DropdownField = ({
 
     return (
         <div>
-            <div style={{ "fontWeight": "bold" }}>
+            <div style={{ 
+                "fontWeight": "bold"
+            }}>
                 {field}:
             </div>
             {/* {privilege !== 'READ ONLY' && */}
@@ -43,6 +47,8 @@ const DropdownField = ({
                     {updated_dropdownFields[field].map(val =>
                         <Dropdown.Item as="button" key={val}
                             onClick={() => {
+                                processValueChange();
+                                
                                 if (currentVal === null || val.toString() !== currentVal.toString()) {
                                     debug && console.log(routeConfigs);
                                     setCurrentVal(val);

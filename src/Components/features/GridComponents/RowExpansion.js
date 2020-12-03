@@ -19,7 +19,14 @@ const options = {
     },
 }
 
-const RowExpansion = ({ row }) => {
+const RowExpansion = ({ row, ...rest }) => {
+
+    const {
+        processValueChange,
+        applyChanges,
+        cancelChanges,
+      } = rest;
+
     const { authState } = useOktaAuth();
 
     const {
@@ -305,7 +312,10 @@ const RowExpansion = ({ row }) => {
     const LoadableUpdateButton = () => (
         <button className="loadable-button"
             disabled={isLoading}
-            onClick={!isLoading ? () => setLoading(true) : null} 
+            onClick={!isLoading ? () => {
+                // setLoading(true);
+                applyChanges();
+            } : null} 
         >
             {isLoading ? 'Updating...' : 'Update'}
         </button>
@@ -357,6 +367,8 @@ const RowExpansion = ({ row }) => {
                             setEditMessage={setEditError}
                             codeFields={codeFields}
                             dropdownFields={dropdownFields}
+                            route={route}
+                            processValueChange={processValueChange}
                         />)
                 }
             </div>

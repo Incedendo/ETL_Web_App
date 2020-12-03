@@ -126,7 +126,6 @@ export const WorkspaceProvider = (props) => {
         debug && console.log(authState);
         if(authState.isAuthenticated)
             load_ETFL_System_Config_Using_TableSnowflakeAPI();
-        
     }, [authState]);
 
     useEffect(()=>{
@@ -826,9 +825,9 @@ export const WorkspaceProvider = (props) => {
         insertNewAuditRecord(generateAuditStmt(auditObj));
     }
 
-    const insertUsingMergeStatement = (sqlMergeStatement, values, setValidating) => {
+    const insertUsingMergeStatement = (sqlMergeStatement, values, setValidating, performReload) => {
 
-        const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/insert';
+        // const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/insert';
 
         // Can't use performEditOperation in Context
         // bc need to ASYNCHRONOUSLY setLoading to false
@@ -858,7 +857,7 @@ export const WorkspaceProvider = (props) => {
                         if (response.data[0]['number of rows inserted'] > 0) {
                             setInsertSuccess(true);
                             setInsertError('');
-                            setReloadTable(true);
+                            if(performReload) setReloadTable(true);
                             insert_status = "SUCCESS";
                         }
                         else if (response.data[0]['number of rows inserted'] === 0 && table !=='ETLF_CUSTOM_CODE') {
@@ -881,7 +880,7 @@ export const WorkspaceProvider = (props) => {
         }
     }
 
-    const performEditOperation = (sqlUpdateStatement) => {
+    const performEditOperation = (sqlUpdateStatement, performReload) => {
         // const url = "https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/update"
 
         const data = {
@@ -903,6 +902,7 @@ export const WorkspaceProvider = (props) => {
                     debug && console.log(response.data)
                     setEditSuccess(true)
                     setEditError('')
+                    if(performReload) setReloadTable(true);
                 }
             })
             .catch(err => {

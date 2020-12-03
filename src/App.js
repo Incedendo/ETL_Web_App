@@ -11,6 +11,7 @@ import ETLFramework from './Components/pages/ETLFramework';
 import ETLFrameworkUseAuthOKTA from './Components/pages/ETLFrameworkUseAuthOKTA';
 import Login from './Components/auth/Login';
 import Login1 from './Components/auth/Login1';
+import Logout from './Components/pages/Logout';
 import './App.css';
 
 //--------------------------AIG OKTA------------------------------
@@ -56,38 +57,17 @@ const App = () => {
           <div className="App">
             <Navbar />
             <Switch>
-              {/* <Route exact={true} path="/" component={Home} />  */}
               <Route exact={true} path="/" component={HomeNew} />
-              {/* <SecureRoute exact path="/etlframework" component={ETLFramework} /> */}
               <SecureRoute exact path = "/etlframework" component = {ETLFrameworkUseAuthOKTA} />
               <Route path='/login' render={() => <Login baseUrl='https://devaigtech.oktapreview.com' />} />
-              {/* <Route path='/login' render={() => <Login1 baseUrl='https://devaigtech.oktapreview.com' />} /> */}
+              <Route path='/logged_out' component={Logout} />
               <Route path='/implicit/callback' component={LoginCallback} />
-              {/* <Route path={CALLBACK_PATH} component={ImplicitCallback} /> */}
             </Switch> 
           </div>
         </WorkspaceProvider>
       </Security>
     </Router>
   );
-
-  // return (
-  //   <Router>
-  //     <Security
-        // issuer={ISSUER}
-        // clientId={CLIENT_ID}
-        // pkce={true}
-        // redirectUri={REDIRECT_URI}
-  //     >
-        
-  //       <Route exact={true} path="/" component={HomeNew} />
-  //       <SecureRoute exact path="/etlframework" component={ETLFrameworkUseAuthOKTA} />
-
-  //       <Route path='/implicit/callback' component={LoginCallback} />
-            
-  //     </Security>
-  //   </Router>
-  // );
 }
 
 export default App;

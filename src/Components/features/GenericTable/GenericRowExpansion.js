@@ -20,13 +20,19 @@ const options = {
     },
 }
 
-const GenericRowExpansion = ({ row }) => {
+const GenericRowExpansion = ({ row, ...rest }) => {
 
     const {
         debug,
         genericTableDataTypeObj,
         performAuditOperation
     } = useContext(WorkspaceContext);
+
+    const {
+        processValueChange,
+        applyChanges,
+        cancelChanges,
+      } = rest;
 
     debug && console.log(row);
 
@@ -83,6 +89,7 @@ const GenericRowExpansion = ({ row }) => {
                 setLoading(false);
                 return;
             } else {
+                testLocalUpdate();
                 performUpdate(isSubscribed);
             }
         }
@@ -94,7 +101,14 @@ const GenericRowExpansion = ({ row }) => {
 
     debug && console.log(state);
 
+    const testLocalUpdate = () => {
+
+    }
+
     const performUpdate = (isSubscribed) =>{
+
+        applyChanges();
+
         let update_status = "FAILURE";
         const sqlMergeStatement = generateMergeStatement(
             row['metaData'].database, 

@@ -12,7 +12,16 @@ const HomeNew = () => {
   debug && console.log(authState);
 
   const login = async () => { authService.login('/'); };
-  const logout = async () => { authService.logout('/'); };
+  const logout = async () => {
+    const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
+    const REDIRECT_URI = `${window.location.origin}/logged_out`;
+    const idToken = authState.idToken;
+    
+    await authService.logout('/');
+
+    // Clear remote session
+    window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
+  }
 
   if(authState.isPending) { 
     return <div>Loading...</div>;

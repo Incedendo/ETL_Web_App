@@ -31,8 +31,6 @@ const ETLFrameworkUseAuthOKTA = () => {
     }
 
     const logout = async () => {
-        // Redirect to '/' after logout
-        // authService.logout('/');
 
         const idToken = authState.idToken;
         await authService.logout('/');

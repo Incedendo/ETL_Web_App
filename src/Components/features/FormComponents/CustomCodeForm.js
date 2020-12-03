@@ -137,7 +137,7 @@ const CustomCodeForm = ({ table, data,  routeCode }) => {
         
         debug && console.log(sqlInsertStatement);
 
-        insertUsingMergeStatement(sqlInsertStatement, { GROUP_ID: 'Not Applicable' }, setValidating);
+        insertUsingMergeStatement(sqlInsertStatement, { GROUP_ID: 'Not Applicable' }, setValidating, false);
     }
 
     return (
