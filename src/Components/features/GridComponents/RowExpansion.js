@@ -19,19 +19,14 @@ const options = {
     },
 }
 
-const RowExpansion = ({ row, ...rest }) => {
-
-    const {
-        processValueChange,
-        applyChanges,
-        cancelChanges,
-      } = rest;
+const RowExpansion = ({ row }) => {
 
     const { authState } = useOktaAuth();
 
     const {
         debug,
-        database, schema, table, appIDs,
+        database, schema, table, appIDs, 
+        rows, setRows,
         primaryKeys, searchCriteria, columnDataTypes,
         setEditSuccess, setEditError,
         setReloadTable,
@@ -223,10 +218,18 @@ const RowExpansion = ({ row, ...rest }) => {
         const diffCols = Object.keys(diff);
         const sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
         
-        console.log(database);
-        console.log(schema);
-        console.log(table);
-        console.log(primaryKeys);
+        // console.log(database);
+        // console.log(schema);
+        // console.log(table);
+        // console.log(primaryKeys);
+        console.log("EXTRACT_CONFIG_ID: "+ row['EXTRACT_CONFIG_ID']);
+
+        console.log(row);
+        console.log(state);
+
+        let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
+        setRows(newRows);
+
         console.log(diffCols);
         console.log(diff);
 
@@ -273,7 +276,8 @@ const RowExpansion = ({ row, ...rest }) => {
                 })
                 .finally(() => {
                     if (isSubscribed) {
-                        setReloadTable(true);
+                        // setReloadTable(true);
+                        
                         setLoading(false);
                         setChanged(false);
 
@@ -285,6 +289,7 @@ const RowExpansion = ({ row, ...rest }) => {
         } else {
             setLoading(false);
         }
+
     }
 
     //make api call to UPDATE everytime isLoading changes
@@ -313,8 +318,8 @@ const RowExpansion = ({ row, ...rest }) => {
         <button className="loadable-button"
             disabled={isLoading}
             onClick={!isLoading ? () => {
-                // setLoading(true);
-                applyChanges();
+                setLoading(true);
+                // applyChanges();
             } : null} 
         >
             {isLoading ? 'Updating...' : 'Update'}
@@ -341,8 +346,6 @@ const RowExpansion = ({ row, ...rest }) => {
                 {(changed && row['PRIVILEGE'] !=='READ ONLY') ? <LoadableUpdateButton /> : ""}
             </div>
 
-            
-
             <div className="detail-div">
                 {table === 'ETLF_EXTRACT_CONFIG' &&
                     <>
@@ -368,7 +371,6 @@ const RowExpansion = ({ row, ...rest }) => {
                             codeFields={codeFields}
                             dropdownFields={dropdownFields}
                             route={route}
-                            processValueChange={processValueChange}
                         />)
                 }
             </div>

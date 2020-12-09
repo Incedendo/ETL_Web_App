@@ -5,10 +5,8 @@ import Dropdown from 'react-bootstrap/Dropdown';
 
 const DropdownField = ({ 
     privilege, field, value, dropdownFields, setChanged, setState, route,
-    processValueChange
 }) => {
 
-    
     const {
         debug,
         routeConfigs,
@@ -47,8 +45,7 @@ const DropdownField = ({
                     {updated_dropdownFields[field].map(val =>
                         <Dropdown.Item as="button" key={val}
                             onClick={() => {
-                                processValueChange();
-                                
+
                                 if (currentVal === null || val.toString() !== currentVal.toString()) {
                                     debug && console.log(routeConfigs);
                                     setCurrentVal(val);

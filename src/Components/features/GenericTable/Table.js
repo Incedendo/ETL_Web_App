@@ -3,12 +3,14 @@ import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import axios from 'axios';
 import Spinner from 'react-bootstrap/Spinner';
+import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownButton from 'react-bootstrap/DropdownButton';
 import GenericConfigurationGrid from './GenericConfigurationGrid';
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
 
-const Table = ({ propData, tableName, route }) => {
+const Table = ({ privilege, getStatement, tableName, route }) => {
 
     const { authState } = useOktaAuth();
 
@@ -16,13 +18,15 @@ const Table = ({ propData, tableName, route }) => {
         debug
     } = useContext(WorkspaceContext);
 
-    debug && console.log("%c prop data: ", "color: red; font-weight: bold");
-    debug && console.log(propData.PRIVILEGE);
 
+    // debug && console.log("%c prop data: ", "color: red; font-weight: bold");
+    // debug && console.log(privilege);
+    
     const [database, setDatabase] = useState('SHARED_TOOLS_DEV');
     const [schema, setSchema] = useState('ETL');
     const [table, setTable] = useState(tableName);
     const [reloadTable, setReloadTable] = useState(false)
+    const [sqlStatement, setSqlStatement] = useState('SELECT * FROM ' + table + ';');
     
     const [tableLoading, setTableLoading] = useState(false)
     const [tableLoaded, setTableLoaded] = useState(false)
@@ -90,7 +94,7 @@ const Table = ({ propData, tableName, route }) => {
 
         debug && console.log('Current Table: ', table);
         if (table !== '') {
-            axiosCallToGetTable();
+            axiosCallToGetTable(sqlStatement);
         } else {
             setTableLoaded(false);
             setColumns([]);
@@ -108,7 +112,7 @@ const Table = ({ propData, tableName, route }) => {
         const abortController = new AbortController();
         if (reloadTable) {
             debug && console.log('Current Table: ', table)
-            axiosCallToGetTable()
+            axiosCallToGetTable(sqlStatement)
             setReloadTable(false);
         }
 
@@ -146,7 +150,64 @@ const Table = ({ propData, tableName, route }) => {
         return result;
     }
 
-    const axiosCallToGetTable = () => {
+    const DropDown = ({ target, currentVal, menus, setState }) => {
+        return (
+            <div className="InlineDiv">
+                <DropdownButton
+                    id="dropdown-item-button"
+                    title={!currentVal ? 'Select a ' + target : currentVal}
+                    // disabled={tableSearching || tableLoading}
+                >
+                    {menus.map(item => (
+                        <Dropdown.Item as="button" key={item}
+                            onSelect={() => {
+                                if (item !== table) {
+                                    setState(item)
+                                }
+                            }}
+                        >
+                            {item}
+                        </Dropdown.Item>
+
+                    )
+                    )}
+                </DropdownButton>
+            </div>
+        )
+    }
+
+    const TableOptions = () => (
+        <div style={{ 'height': '90px' }}>
+            <div className="InlineDiv db-div">
+                <div className="label-text db-text">Catalog table:</div>
+                <DropDown 
+                    target='Database' 
+                    currentVal={table} 
+                    menus={[ 
+                        'DATA_STEWARD', 
+                        'DATA_DOMAIN',
+                        'DATA_STEWARD_DOMAIN',
+                        'CATALOG_ENTITY_DOMAIN',
+                        'CATALOG_ENTITIES',
+                        'CATALOG_ITEMS',
+                        'CATALOG_ENTITY_LINEAGE'
+                    ]} 
+                    setState={setTable} />
+            </div>
+
+            {/* <div className="InlineDiv auto-complete-outerDiv">
+                <div className="auto-complete-div-margin">
+                    <div className="label-text">Table:</div>
+                    <CustomAutoCompleteComp
+                        list={tableList}
+                        setTarget={setTable}
+                        autoSuggestModalClassName="auto-suggest-box" />
+                </div>
+            </div> */}
+        </div>
+    )
+
+    const axiosCallToGetTable = (sqlStatement) => {
         const { accessToken } = authState;
         // const getURL = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 
@@ -163,9 +224,9 @@ const Table = ({ propData, tableName, route }) => {
 
         // Use Username to generate Get Statement Inner Join
         // with Authorization table.
-        let proposed_get_statenent = 'SELECT * FROM SHARED_TOOLS_DEV.ETL.ETLF_CUSTOM_CODE WHERE EXTRACT_CONFIG_ID = '
-            + propData[ID] + ';'; 
-        debug && console.log('Propose GET sql statement: ', proposed_get_statenent)
+        // let proposed_get_statenent = 'SELECT * FROM SHARED_TOOLS_DEV.ETL.ETLF_CUSTOM_CODE WHERE EXTRACT_CONFIG_ID = '
+        //     + propData[ID] + ';'; 
+        debug && console.log('Propose GET sql statement: ', sqlStatement)
 
         debug && console.log('Table name:', table);
         debug && console.time("Pulling config for generic table");
@@ -176,7 +237,7 @@ const Table = ({ propData, tableName, route }) => {
             //     'authorizorToken': accessToken
             // },
             params: { //params maps to event.queryStringParameters
-                sql_statement: proposed_get_statenent,
+                sql_statement: sqlStatement,
                 database: database,
                 schema: schema,
                 tableName: table,
@@ -260,7 +321,7 @@ const Table = ({ propData, tableName, route }) => {
                             schema: 'ETL',
                             table: tableName,
                             primaryKeys: primaryKeys,
-                            PRIVILEGE: propData['PRIVILEGE'] === 'READ ONLY'
+                            PRIVILEGE: privilege === 'READ ONLY'
                                 ? row.PRIVILEGE = "READ ONLY"
                                 : row.PRIVILEGE = "READ/WRITE",
                             route: route
@@ -298,6 +359,7 @@ const Table = ({ propData, tableName, route }) => {
     const TableWrapper = () => (
         <div>
             {/* {primaryKeys.map(key=> <h1 key={key}>{key}</h1>)} */}
+            <TableOptions/>
             <GenericConfigurationGrid
                 rows={rows}
                 columns={columns}
@@ -330,7 +392,7 @@ const Table = ({ propData, tableName, route }) => {
                         role="status"
                         aria-hidden="true"
                     />
-                    <span style={{ 'marginLeft': '5px' }}>loading Table {tableName}...</span>
+                    <span style={{ 'marginLeft': '5px' }}>loading Table {table}...</span>
                 </div>
             }
         </>

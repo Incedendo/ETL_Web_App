@@ -15,8 +15,12 @@ const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, 
     const [show, setShow] = useState(false);
     debug && console.log("route code: ", routeCode);
     debug && console.log("route: ", route);
+    debug && console.log("data: ", data);
     
     const ID = 'EXTRACT_CONFIG_ID';
+
+    let proposed_get_statenent = 'SELECT * FROM SHARED_TOOLS_DEV.ETL.ETLF_CUSTOM_CODE WHERE EXTRACT_CONFIG_ID = '
+            + data['ID'] + ';'; 
 
     return (
         <div className="job-modal">
@@ -50,7 +54,9 @@ const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, 
 
                     {data !== undefined &&
                         <Table
-                            propData={data}
+                            // propData={data}
+                            privilege={data['PRIVILEGE']}
+                            getStatement={proposed_get_statenent}
                             tableName={tableName}
                             route={route}
                         />

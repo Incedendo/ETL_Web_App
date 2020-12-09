@@ -40,7 +40,7 @@ const GenericConfigurationGrid = ({
 
     const {debug} = useContext(WorkspaceContext);
     
-    debug && console.log(rows);
+    // debug && console.log(rows);
 
 
     // const [grouping, setGrouping] = useState([{ columnName: 'ACTIVE' }]);

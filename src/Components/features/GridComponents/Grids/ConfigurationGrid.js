@@ -63,7 +63,6 @@ const ConfigurationGrid = () => {
         searchCriteria,
         columns, numberColumns,
         rows, setAddedRows,
-
    
         editMode,setEnabledEdit,
         primaryKeys, 

@@ -23,16 +23,17 @@ const NavbarComponent = (props) => {
                                 Home
                             </Link>
                         </li>
-                        {/* <li className="nav-item">
-                            <Link className="nav-link" to="/workspace">
-                                Workspace
-                            </Link>
-                        </li> */}
                         <li className="nav-item">
                             <Link className="nav-link" to="/etlframework">
                                 ETL Framework
                             </Link>
                         </li>
+                        <li className="nav-item">
+                            <Link className="nav-link" to="/datacatalog">
+                                Data Catalog
+                            </Link>
+                        </li>
+                        
                     </ul>
                 </div>
             </div>

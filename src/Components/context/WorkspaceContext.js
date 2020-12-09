@@ -857,7 +857,14 @@ export const WorkspaceProvider = (props) => {
                         if (response.data[0]['number of rows inserted'] > 0) {
                             setInsertSuccess(true);
                             setInsertError('');
-                            if(performReload) setReloadTable(true);
+                            // if(performReload) setReloadTable(true);
+                            console.log(values);
+                            values['PRIVILEGE'] = 'READ/WRITE';
+                            
+                            let newRows = [...rows];
+                            newRows.push(values);
+                            setRows(newRows);
+
                             insert_status = "SUCCESS";
                         }
                         else if (response.data[0]['number of rows inserted'] === 0 && table !=='ETLF_CUSTOM_CODE') {
