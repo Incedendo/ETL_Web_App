@@ -25,7 +25,7 @@ const WorkTab = () => {
 
     // debug && console.log("Calling WorkTab with table ", table);
 
-    // const [searchObj, setSearchObj] = useState({});
+    const [searchObj, setSearchObj] = useState({});
 
     // useEffect(() => {
     //     const abortController = new AbortController();
@@ -52,17 +52,20 @@ const WorkTab = () => {
                 {/* <PrimaryKeysPanel /> */}
                 {table === "ETLF_EXTRACT_CONFIG" && <ModalPanels />}
                 {table === "ETLFCALL" && 
-                    <JobModal
-                        data={{}}
-                        //for later check when insert or update row
-                        uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
-                        dataTypes={columnDataTypes}
-                    />
+                    <div>
+                        <SearchModal />
+
+                        <JobModal
+                            data={{}}
+                            //for later check when insert or update row
+                            uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
+                            dataTypes={columnDataTypes}
+                        />
+                    </div>
+                    
                 } 
             </div>
-            
         </div>
-        
     )
 
     const ModalPanels = () => (
@@ -75,13 +78,9 @@ const WorkTab = () => {
                 (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
                 <Route_Action_Modal />
             }
-            {/* <div className="left-float-div">
-                
-                <SearchModal 
-                    searchObj={searchObj}
-                    setSearchObj={setSearchObj}
-                /> 
-            </div> */}
+            <div className="left-float-div">
+                <SearchModal /> 
+            </div>
         </div>
     )
 
@@ -155,8 +154,7 @@ const WorkTab = () => {
 
             {tableSearching && <div>seaching...</div>}
 
-            {
-                !tableLoaded ?
+            {tableSearching &&
                 <div style={{
                     "position":"relative",
                     "display": "inline-block",
@@ -171,11 +169,12 @@ const WorkTab = () => {
                     />
                     <span style={{ 'marginLeft': '5px' }}>loading Table {table}...</span>
                 </div>
-                :
-                <ConfigurationGrid/> 
             }
+
+            { tableLoaded && <ConfigurationGrid/> }
         </div>
     )
 }
 
 export default WorkTab;
+

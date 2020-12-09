@@ -21,6 +21,8 @@ const getSuggestions = (list, value) => {
     const inputValue = value.trim().toLowerCase();
     const inputLength = inputValue.length;
 
+    console.log(list);
+
     const suggestions = inputLength === 0 ? [] : list.filter(table =>
         RegExp(inputValue).test(table.toLowerCase())
     );

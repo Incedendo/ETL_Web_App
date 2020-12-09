@@ -176,6 +176,44 @@ export const WorkspaceProvider = (props) => {
         
     }, [username, authState]);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        debug && console.log('Current Table: ', table)
+        // if (accessToken !== '' && table !== '' && username !== '') {
+        if (authState.isAuthenticated && table !== '' && username !== '') {
+            // Use Username to generate Get Statement Inner Join
+            // with Authorization table.
+            let sqlGetColumnsStmt =
+                    "SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM " + database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + schema + "' AND TABLE_NAME = '"
+                    + table + "';";
+            
+            axios.get(SELECT_URL, {
+                headers: {
+                    'type': 'TOKEN',
+                    'methodArn': ARN_APIGW_GET_SELECT,
+                    // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                    'authorizorToken': accessToken
+                },
+                //params maps to event.queryStringParameters in lambda
+                params: {
+                    sqlStatement: sqlGetColumnsStmt,
+                }
+            })
+                //have to setState in .then() due to asynchronous opetaions
+                .then(response => {
+                    debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
+                    prepareGridConfig(response.data);
+                })
+                .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
+        } 
+
+        return () => {
+            isMounted = false;
+        };
+
+    }, [authState, username, table]);
+
     //get the Data Type of each columns in the row for Route Configuration in ETL Framework Job Configuration
     //
     //      for JOB TAB => dropdown
@@ -201,75 +239,76 @@ export const WorkspaceProvider = (props) => {
     // }
 
 
-    useEffect(() => {
-        let isMounted = true;
+    // useEffect(() => {
+    //     let isMounted = true;
 
-        debug && console.log('Current Table: ', table)
-        // if (accessToken !== '' && table !== '' && username !== '') {
-        if (authState.isAuthenticated && table !== '' && username !== '') {
-            // Use Username to generate Get Statement Inner Join
-            // with Authorization table.
-            let proposed_get_statenent = get_custom_table(
-                database, schema,
-                table,
-                username,
-                0, 100
-            )
-            axiosCallToGetTable(isMounted, proposed_get_statenent);
+    //     debug && console.log('Current Table: ', table)
+    //     // if (accessToken !== '' && table !== '' && username !== '') {
+    //     if (authState.isAuthenticated && table !== '' && username !== '') {
+    //         // Use Username to generate Get Statement Inner Join
+    //         // with Authorization table.
+    //         let proposed_get_statenent = get_custom_table(
+    //             database, schema,
+    //             table,
+    //             username,
+    //             0, 100
+    //         )
+    //         axiosCallToGetTable(isMounted, proposed_get_statenent);
             
-        } else {
-            setTableLoaded(false);
-            setColumns([]);
-            setRows([]);
-            setSearchCriteria([]);
-        }
+    //     } else {
+    //         setTableLoaded(false);
+    //         setColumns([]);
+    //         setRows([]);
+    //         setSearchCriteria([]);
+    //     }
 
-        return () => {
-            isMounted = false;
-        };
+    //     return () => {
+    //         isMounted = false;
+    //     };
 
-    }, [authState, username, table]);
+    // }, [authState, username, table]);
 
     useEffect(() => {
         debug && console.log("Primary keys: ", primaryKeys);
     }, [primaryKeys])
 
-    useEffect(() => {
-        let isMounted = true;
-        if (reloadTable) {
-            debug && console.log('Current Table: ', table)
-            if (table !== '') {
-                // Use Username to generate Get Statement Inner Join
-                // with Authorization table.
-                let proposed_get_statenent = get_custom_table(
-                    database, schema,
-                    table,
-                    username,
-                    0, 100
-                )
+    // useEffect(() => {
+    //     let isMounted = true;
+    //     if (reloadTable) {
+    //         debug && console.log('Current Table: ', table)
+    //         if (table !== '') {
+    //             // Use Username to generate Get Statement Inner Join
+    //             // with Authorization table.
+    //             let proposed_get_statenent = get_custom_table(
+    //                 database, schema,
+    //                 table,
+    //                 username,
+    //                 0, 100
+    //             )
                 
-                // axiosCallToReloadTable(isMounted, proposed_get_statenent);
-                axiosCallToGetTable(isMounted, proposed_get_statenent);
-            }
-            setReloadTable(false);
-        }
+    //             // axiosCallToReloadTable(isMounted, proposed_get_statenent);
+    //             axiosCallToGetTable(isMounted, proposed_get_statenent);
+    //         }
+    //         setReloadTable(false);
+    //     }
 
-        return () => {
-            isMounted = false;
-        };
-    }, [reloadTable]);
+    //     return () => {
+    //         isMounted = false;
+    //     };
+    // }, [reloadTable]);
 
     useEffect(() => {
         console.log("Current Gridconfigs: ", gridConfigs);
-        if (gridConfigs[table]) {
-            setHeaders(gridConfigs[table]["headers"]);
-            setColumns(gridConfigs[table]["columns"]);
-            setColumnWidths(gridConfigs[table]["columnWidths"]);
-            setTableColumnExtensions(gridConfigs[table]["tableColumnExtensions"]);
-            // setSortingStates(gridConfigs[table]["sortingStates"]);
-            setNumberColumns(gridConfigs[table]["numericColumns"]);
-            setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
-        }
+        reloadGridConfig();
+        // if (gridConfigs[table]) {
+        //     setHeaders(gridConfigs[table]["headers"]);
+        //     setColumns(gridConfigs[table]["columns"]);
+        //     setColumnWidths(gridConfigs[table]["columnWidths"]);
+        //     setTableColumnExtensions(gridConfigs[table]["tableColumnExtensions"]);
+        //     // setSortingStates(gridConfigs[table]["sortingStates"]);
+        //     setNumberColumns(gridConfigs[table]["numericColumns"]);
+        //     setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
+        // }
     }, [gridConfigs]);
 
     const reloadGridConfig = () => {
@@ -285,19 +324,22 @@ export const WorkspaceProvider = (props) => {
     }
 
     const loadTableRows = (dbTableRows) => {
+
         setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
+        setRows([]);
         setRows(
             dbTableRows.map((row, index) => ({
-                id: row['ID'],
+                id: row['EXTRACT_CONFIG_ID'],
                 ...row
-            })));
+            }))
+        );
     }
 
     useEffect(() => {
         setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
         setRows(
             dbTableRows.map(row => ({
-                id: row['ID'],
+                id: row['EXTRACT_CONFIG_ID'],
                 ...row
             })));
         
@@ -697,6 +739,65 @@ export const WorkspaceProvider = (props) => {
     //         });
     // }
 
+    const axiosCallToGetTableRows = (get_statenent) => {
+        setPrimaryKeys(table_primaryKeys[table]);
+        setCodeFields(fieldTypesConfigs[table]['codeFields']);
+
+        console.log(gridConfigs);
+
+        debug && console.log(headers);
+
+        debug && console.log("%c SQL AxiosCallToGetTable", "color: red; font-weight:bold");
+        debug && console.log(get_statenent);
+        setTableLoaded(false);
+        setTableLoading(true);
+
+        setTableSeaching(true);
+        setColumnID('');
+        setSearchValue('');
+
+        setEditMode(false);
+        setInsertMode(false);
+
+        setEditError('');
+        setInsertError('');
+
+        debug && console.log('Table name:', table);
+        
+        debug && console.log('%c Counting time axios call:', 'color: orange; font-weight: bold');
+        debug && console.time("calling API to load table");
+        axios.get(SELECT_URL, {
+            headers: {
+                'type': 'TOKEN',
+                'methodArn': ARN_APIGW_GET_SELECT,
+                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                'authorizorToken': accessToken
+            },
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: get_statenent,
+            }
+        })//have to setState in .then() due to asynchronous opetaions
+            .then(response => {
+                // returning the data here allows the caller to get it through another .then(...)
+                // console.log('---------GET RESPONSE-----------');
+                debug && console.log(response.data);
+                loadTableRows(response.data); 
+            })
+            .catch(error => {
+                debug && console.log(error);
+                setRows([]);
+                setSearchCriteria([]);
+                setTable('');
+            })
+            .finally(() => {
+                setTableLoaded(true);
+                setTableLoading(false);
+                setTableSeaching(false);
+                debug && console.timeEnd("calling API to load table");
+            });
+    }
+
     const axiosCallToGetTable = (isMounted, proposed_get_statenent) => {
 
         setPrimaryKeys(table_primaryKeys[table]);
@@ -978,7 +1079,12 @@ export const WorkspaceProvider = (props) => {
         columnDataTypes, setColumnDataTypes,
         columnWidths, setColumnWidths,
 
+        //functions
+        
+
         //API calls
+        axiosCallToGetTable,
+        axiosCallToGetTableRows,
         loadTableNamesInAdvance, 
         insertUsingMergeStatement,
         performAuditOperation,

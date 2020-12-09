@@ -3,8 +3,7 @@ import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import axios from 'axios';
 import Spinner from 'react-bootstrap/Spinner';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
+
 import GenericConfigurationGrid from './GenericConfigurationGrid';
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
@@ -26,7 +25,8 @@ const Table = ({ privilege, getStatement, tableName, route }) => {
     const [schema, setSchema] = useState('ETL');
     const [table, setTable] = useState(tableName);
     const [reloadTable, setReloadTable] = useState(false)
-    const [sqlStatement, setSqlStatement] = useState('SELECT * FROM ' + table + ';');
+    
+    const [sqlStatement, setSqlStatement] = useState(getStatement);
     
     const [tableLoading, setTableLoading] = useState(false)
     const [tableLoaded, setTableLoaded] = useState(false)
@@ -149,63 +149,6 @@ const Table = ({ privilege, getStatement, tableName, route }) => {
 
         return result;
     }
-
-    const DropDown = ({ target, currentVal, menus, setState }) => {
-        return (
-            <div className="InlineDiv">
-                <DropdownButton
-                    id="dropdown-item-button"
-                    title={!currentVal ? 'Select a ' + target : currentVal}
-                    // disabled={tableSearching || tableLoading}
-                >
-                    {menus.map(item => (
-                        <Dropdown.Item as="button" key={item}
-                            onSelect={() => {
-                                if (item !== table) {
-                                    setState(item)
-                                }
-                            }}
-                        >
-                            {item}
-                        </Dropdown.Item>
-
-                    )
-                    )}
-                </DropdownButton>
-            </div>
-        )
-    }
-
-    const TableOptions = () => (
-        <div style={{ 'height': '90px' }}>
-            <div className="InlineDiv db-div">
-                <div className="label-text db-text">Catalog table:</div>
-                <DropDown 
-                    target='Database' 
-                    currentVal={table} 
-                    menus={[ 
-                        'DATA_STEWARD', 
-                        'DATA_DOMAIN',
-                        'DATA_STEWARD_DOMAIN',
-                        'CATALOG_ENTITY_DOMAIN',
-                        'CATALOG_ENTITIES',
-                        'CATALOG_ITEMS',
-                        'CATALOG_ENTITY_LINEAGE'
-                    ]} 
-                    setState={setTable} />
-            </div>
-
-            {/* <div className="InlineDiv auto-complete-outerDiv">
-                <div className="auto-complete-div-margin">
-                    <div className="label-text">Table:</div>
-                    <CustomAutoCompleteComp
-                        list={tableList}
-                        setTarget={setTable}
-                        autoSuggestModalClassName="auto-suggest-box" />
-                </div>
-            </div> */}
-        </div>
-    )
 
     const axiosCallToGetTable = (sqlStatement) => {
         const { accessToken } = authState;
@@ -359,7 +302,7 @@ const Table = ({ privilege, getStatement, tableName, route }) => {
     const TableWrapper = () => (
         <div>
             {/* {primaryKeys.map(key=> <h1 key={key}>{key}</h1>)} */}
-            <TableOptions/>
+          
             <GenericConfigurationGrid
                 rows={rows}
                 columns={columns}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useOktaAuth } from '@okta/okta-react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
@@ -7,21 +8,26 @@ import { search_multi_field } from '../../sql_statements';
 import '../../../css/mymodal.scss';
 import axios from 'axios';
 
+const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
+
 const SearchModal = () => {
+
+    const { authState, authService } = useOktaAuth();
+    
     const {
         debug,
         database, schema, table, username,
-        searchCriteria,
-        setTableSeaching,
-        setRows,
+        columns,
+        // axiosCallToGetTable,
+        axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
     const [show, setShow] = useState(false);
 
-    const temp_arr = [...searchCriteria]
-    const [remainingColumns, setRemainingColumns] = useState(temp_arr)
-    const [currentSearchObj, setCurrentSearchObj] = useState({})
-    const [errors, setErrors] = useState({})
+    const temp_arr = columns.map(column => column.name);
+    const [remainingColumns, setRemainingColumns] = useState(temp_arr);
+    const [currentSearchObj, setCurrentSearchObj] = useState({});
+    const [errors, setErrors] = useState({});
 
     const handleAddSearchField = value => {
         //remove a primary keys fron the list of remaining columns
@@ -50,38 +56,11 @@ const SearchModal = () => {
     const multiSearch = () => {
         let start = 0;
         let end = 100;
+        const searchTable = 'ETLF_SYSTEM_CONFIG';
         if (verifySearchObj()) {
             const multiSearchSqlStatement = search_multi_field(username, database, schema, table, currentSearchObj, start, end)
-            debug && console.log(multiSearchSqlStatement)
-
-            setTableSeaching(true);
-
-            const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/search';
-
-            return axios.get(url, {
-                params: {
-                    sql_statement: multiSearchSqlStatement,
-                }
-            })
-                .then(response => {
-                    // returning the data here allows the caller to get it through another .then(...)
-                    debug && console.log('--------MULTI-FIELD SEARCH-------------');
-                    debug && console.log(response.data);
-
-                    const data = response.data.rows ? response.data.rows : response.data;
-                    data.map(row => row.PRIVILEGE === 'rw' ? row.PRIVILEGE = "READ/WRITE" : row.PRIVILEGE = "READ ONLY")
-                    setRows(data.map((row, index) => ({
-                        id: index,
-                        ...row
-                    })
-                    ));
-                })
-                .catch(err => {
-                    debug && console.log(err);
-                })
-                .finally(()=>{
-                    setTableSeaching(false);
-                })
+            debug && console.log(multiSearchSqlStatement);
+            axiosCallToGetTableRows( multiSearchSqlStatement );
         }
     }
 

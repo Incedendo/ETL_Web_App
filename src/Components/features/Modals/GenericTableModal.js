@@ -20,7 +20,7 @@ const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, 
     const ID = 'EXTRACT_CONFIG_ID';
 
     let proposed_get_statenent = 'SELECT * FROM SHARED_TOOLS_DEV.ETL.ETLF_CUSTOM_CODE WHERE EXTRACT_CONFIG_ID = '
-            + data['ID'] + ';'; 
+            + data['EXTRACT_CONFIG_ID'] + ';'; 
 
     return (
         <div className="job-modal">
