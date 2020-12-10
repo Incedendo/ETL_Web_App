@@ -4,27 +4,35 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
-import { search_multi_field } from '../../sql_statements';
+import { search_multi_field, search_multi_field_catalog } from '../../sql_statements';
 import '../../../css/mymodal.scss';
 import axios from 'axios';
 
+import { ETLF_tables } from '../../context/FieldTypesConfig';
+
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 
-const SearchModal = () => {
+const SearchModal = ({database, schema, table, groupIDColumn, username, columns}) => {
 
     const { authState, authService } = useOktaAuth();
     
     const {
         debug,
-        database, schema, table, username,
-        columns,
+        // database, schema, table, username,
+        // columns,
         // axiosCallToGetTable,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
+
+    // console.log(groupIDColumn);
+
     const [show, setShow] = useState(false);
 
-    const temp_arr = columns.map(column => column.name);
+    let temp_arr = columns.map(column => column.name);
+    // delete temp_arr["PRIVILEGE"];
+
+    temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1)
     const [remainingColumns, setRemainingColumns] = useState(temp_arr);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [errors, setErrors] = useState({});
@@ -56,17 +64,28 @@ const SearchModal = () => {
     const multiSearch = () => {
         let start = 0;
         let end = 100;
-        const searchTable = 'ETLF_SYSTEM_CONFIG';
+        // const searchTable = 'ETLF_SYSTEM_CONFIG';
+        console.log(table);
         if (verifySearchObj()) {
-            const multiSearchSqlStatement = search_multi_field(username, database, schema, table, currentSearchObj, start, end)
+            let multiSearchSqlStatement = '';
+            if(ETLF_tables.indexOf(table) >= 0){
+                // console.log("table is in ETLF Framework");
+                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
+            }
+            else{
+                // console.log("table NOTTTTTT in ETLF Framework");
+                multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
+            }
+                
             debug && console.log(multiSearchSqlStatement);
             axiosCallToGetTableRows( multiSearchSqlStatement );
         }
     }
 
     useEffect(() => {
-        debug && console.log(currentSearchObj);
-    }, [currentSearchObj])
+        // debug && console.log(currentSearchObj);
+        debug && console.log(remainingColumns);
+    }, [remainingColumns]);
 
     return (
         <>

@@ -50,11 +50,11 @@ const ETLFrameworkUseAuthOKTA = () => {
         appIDs,
 
         setTable, 
-        tableLoading,
+        setTableLoaded, tableLoading,
         tableLoaded, 
         tableSearching,
 
-        editMode, 
+        editMode
     } = useContext(WorkspaceContext);
 
     useEffect(() => {
@@ -142,6 +142,8 @@ const ETLFrameworkUseAuthOKTA = () => {
                                 debug && console.log("Configuration Tab");
                                 setTable("ETLFCALL");
                             } 
+
+                            setTableLoaded(false);
                         }}
                     >
                         < Tab eventKey = "Configuration" title = "Configuration" disabled = {tableLoading}>

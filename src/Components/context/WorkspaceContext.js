@@ -10,6 +10,13 @@ export const WorkspaceContext = createContext();
 const table_primaryKeys = {
     "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID"],
     "ETLFCALL": ["ETLFCALL_ID"],
+    "DATA_STEWARD": ["DATA_STEWARD_ID"],
+    "DATA_DOMAIN": ["DATA_DOMAIN_ID"],
+    "DATA_STEWARD_DOMAIN": [],
+    "CATALOG_ENTITY_DOMAIN": [],
+    "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID"],
+    "CATALOG_ENTITY_LINEAGE": ["CATALOG_ENTITY_LINEAGE_ID"],
+    "CATALOG_ITEMS": ["CATALOG_ITEMS_ID"]
 }
 
 const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
@@ -79,6 +86,7 @@ export const WorkspaceProvider = (props) => {
     //React Xtreme dev Grid
     const [headers, setHeaders] = useState([]);
     const [columns, setColumns] = useState([]);
+    const [columnsLoaded, setColumnsLoaded] = useState(false);
     const [rows, setRows] = useState([]);
     const [addedRows, setAddedRows] = useState([]);
     const [privilege, setPrivilege] = useState([]);
@@ -182,6 +190,8 @@ export const WorkspaceProvider = (props) => {
         debug && console.log('Current Table: ', table)
         // if (accessToken !== '' && table !== '' && username !== '') {
         if (authState.isAuthenticated && table !== '' && username !== '') {
+            setTableLoaded(false);
+            setColumnsLoaded(false);
             // Use Username to generate Get Statement Inner Join
             // with Authorization table.
             let sqlGetColumnsStmt =
@@ -204,8 +214,10 @@ export const WorkspaceProvider = (props) => {
                 .then(response => {
                     debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
                     prepareGridConfig(response.data);
+                    setColumnsLoaded(true);
                 })
                 .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
+                
         } 
 
         return () => {
@@ -740,7 +752,8 @@ export const WorkspaceProvider = (props) => {
     // }
 
     const axiosCallToGetTableRows = (get_statenent) => {
-        setPrimaryKeys(table_primaryKeys[table]);
+        if(Object.keys(table_primaryKeys).indexOf(table) > 0)
+            setPrimaryKeys(table_primaryKeys[table]);
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
         console.log(gridConfigs);
@@ -799,8 +812,8 @@ export const WorkspaceProvider = (props) => {
     }
 
     const axiosCallToGetTable = (isMounted, proposed_get_statenent) => {
-
-        setPrimaryKeys(table_primaryKeys[table]);
+        if(Object.keys(table_primaryKeys).indexOf(table) > 0)
+            setPrimaryKeys(table_primaryKeys[table]);
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
         console.log(gridConfigs);
@@ -1069,6 +1082,7 @@ export const WorkspaceProvider = (props) => {
 
         headers, setHeaders,
         columns, setColumns,
+        columnsLoaded,
         rows, setRows,
         addedRows, setAddedRows,
         privilege, setPrivilege,

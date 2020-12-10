@@ -14,10 +14,11 @@ import '../../../css/workspace.scss';
 
 const WorkTab = () => {
     const {
-        debug,
-        table, columnDataTypes, 
+        debug, username,
+        database, schema, table, 
+        columnDataTypes, 
         tableLoaded, tableLoading, tableSearching, setReloadTable,
-        primaryKeys, setPrimaryKeys, columns,
+        primaryKeys, setPrimaryKeys, columns, columnsLoaded,
         insertError, editError,
         system_configs,
         routeConfigs
@@ -50,25 +51,24 @@ const WorkTab = () => {
                 "float": "left"
             }}>
                 {/* <PrimaryKeysPanel /> */}
-                {table === "ETLF_EXTRACT_CONFIG" && <ModalPanels />}
+                {table === "ETLF_EXTRACT_CONFIG" && <ETLF_EXTRACT_CONFIG_ModalPanels />}
                 {table === "ETLFCALL" && 
-                    <div>
-                        <SearchModal />
-
+                    <>
                         <JobModal
                             data={{}}
                             //for later check when insert or update row
                             uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
                             dataTypes={columnDataTypes}
                         />
-                    </div>
-                    
+
+                        <LoadableSearchModal groupIDColumn={'WORK_GROUP_ID'} /> 
+                    </>
                 } 
             </div>
         </div>
     )
 
-    const ModalPanels = () => (
+    const ETLF_EXTRACT_CONFIG_ModalPanels = () => (
         // <div className="modal-button">
         <div>
             {
@@ -78,10 +78,35 @@ const WorkTab = () => {
                 (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
                 <Route_Action_Modal />
             }
-            <div className="left-float-div">
-                <SearchModal /> 
-            </div>
+
+            <LoadableSearchModal groupIDColumn={'GROUP_ID'} /> 
         </div>
+    )
+
+    const LoadableSearchModal = ({ groupIDColumn }) => (
+        <>
+            { !columnsLoaded ? 
+                <div className="central-spinning-div">
+                    <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                    />
+                    <span style={{ 'marginLeft': '5px' }}>loading...</span>
+                </div>
+                :
+                <SearchModal 
+                    database={database} 
+                    schema={schema} 
+                    table={table} 
+                    groupIDColumn={groupIDColumn}
+                    username={username} 
+                    columns={columns}
+                /> 
+            }
+        </>
     )
 
     const handleRemovePK = value => {

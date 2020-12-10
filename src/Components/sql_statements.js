@@ -35,22 +35,36 @@ export const get_custom_table = (db, schema, table, username, start, end) => {
     return sql_statement
 }
 
-export const search_multi_field = (username, db, schema, table, currentSearchObj, start, end) => {
+export const search_multi_field = (username, db, schema, table, groupIDColumn, currentSearchObj, start, end) => {
     let sql_statement = `SELECT * FROM(
     SELECT ec.*, auth.PRIVILEGE,
-    row_number() OVER(ORDER BY ec.GROUP_ID ASC) rn,
+    row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn,
     COUNT(*) OVER() total_num_rows
     FROM "`+
         db + `"."` +
         schema + `"."` +
         table + `" ec
     JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-    ON ec.GROUP_ID = auth.APP_ID AND auth.USERNAME = '`
+    ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
             + username.toLowerCase() + `'
     WHERE ` + getSearchFieldValue(currentSearchObj) + `
     )
 WHERE rn BETWEEN `+ start + ` AND ` + end;
-    return sql_statement
+
+    return sql_statement;
+}
+
+export const search_multi_field_catalog = (db, schema, table, currentSearchObj, start, end) => {
+    let sql_statement = `SELECT * FROM(
+    SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+    FROM "`+
+        db + `"."` +
+        schema + `"."` +
+        table + `" ec
+    WHERE ` + getSearchFieldValue(currentSearchObj) + `
+    );`;
+    
+return sql_statement;
 }
 
 function getSearchFieldValue(currentSearchObj){

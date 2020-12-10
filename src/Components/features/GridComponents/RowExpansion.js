@@ -44,6 +44,7 @@ const RowExpansion = ({ row }) => {
 
     debug && console.log(row);
     // debug && console.log(fieldTypesConfigs);
+    debug && console.log(table);
     const [state, setState] = useState(row);
     const [oldtates, setOldStates] = useState({});
     const [updatedStates, setUpdatedStates] = useState({});

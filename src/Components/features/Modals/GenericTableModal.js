@@ -5,7 +5,7 @@ import '../../../css/mymodal.scss';
 import '../../../css/rowExpansion.scss';
 import CustomCodeModal from './CustomCodeModal';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
-import Table from '../GenericTable/Table';
+import SecondaryTableNotSharingContext from '../GenericTable/SecondaryTableNotSharingContext';
 
 const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, route }) => {
     const {
@@ -13,6 +13,7 @@ const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, 
     } = useContext(WorkspaceContext);
     
     const [show, setShow] = useState(false);
+    debug && console.log("route code: ", tableName);
     debug && console.log("route code: ", routeCode);
     debug && console.log("route: ", route);
     debug && console.log("data: ", data);
@@ -53,12 +54,21 @@ const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, 
                     />
 
                     {data !== undefined &&
-                        <Table
+                        // <Table
+                        //     // propData={data}
+                        //     privilege={data['PRIVILEGE']}
+                        //     getStatement={proposed_get_statenent}
+                        //     tableName={tableName}
+                        //     route={route}
+                        //     isDataCatalog={false}
+                        // />
+                        <SecondaryTableNotSharingContext
                             // propData={data}
                             privilege={data['PRIVILEGE']}
                             getStatement={proposed_get_statenent}
                             tableName={tableName}
                             route={route}
+                            isDataCatalog={false}
                         />
                     }
                     
