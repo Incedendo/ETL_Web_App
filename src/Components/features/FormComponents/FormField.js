@@ -10,17 +10,27 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 const sm_left = "2";
 const sm_right = "10";
 
-const FormField = ({  field, required, requiredFields, values, dataTypes, handleChange, handleBlur, touched, errors, disabled, codeFields, dropdownFields }) => {
+const FormField = ({  
+    field, required, requiredFields, values, dataTypes, 
+    handleChange, handleBlur, touched, errors, disabled, 
+    codeFields, dropdownFields 
+}) => {
 
     //get the field type to determine what Component of Field to render
     let fieldType = getFieldType(field, codeFields, dropdownFields);
 
+    console.log("Field type for " + field + ": " + fieldType);
+    // console.log(codeFields);
+    // console.log(dropdownFields);
     // if (field === 'ROUTE_ID' || field === 'ACTION_ID') console.log("RouteID: ", values[field])
 
     return (
         <Form.Group key={field} as={Row} controlId={"formGroup" + field}>
             {/* <Form.Label column sm={sm_left}>{field}{required === 'Y' ? "*" : ""} </Form.Label> */}
-            <Form.Label column sm={sm_left}>{field}{requiredFields.indexOf(field) >= 0 ? "*" : ""} </Form.Label>
+            <Form.Label column sm={sm_left}>
+                {field}
+                {/* {requiredFields.indexOf(field) >= 0 ? "*" : ""}  */}
+            </Form.Label>
             <Col sm={sm_right}>
 
                 {(fieldType === "text") &&

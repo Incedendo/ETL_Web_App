@@ -14,43 +14,61 @@ const DataStewardEditor = ({ table }) => {
     const [validating, setValidating] = useState(false);
     const [initialStates, setInitialStates] = useState({});
 
-    const dataTypes = {
-        'FNAME': 'text',
-        'LNAME': 'text',
-        'EMAIL': 'text',
-    }
+    const [codeFields, setCodeFields] = useState({});
+    const [dropdownFields, setDropdownFields] = useState({});
+    const [fields, setFields] = useState([]);
 
     // console.log(table);
 
-    const fields = Object.keys(fieldTypesConfigs[table]["codeFields"]);
-    console.log(fields);
+    useEffect(()=>{
+        //check if table has code fields
+        setCodeFields(fieldTypesConfigs[table]["codeFields"]);
+
+        //check if table has dropdown fields
+        setDropdownFields(fieldTypesConfigs[table]["dropdownFields"]);
+    }, []);
+
+    useEffect(() => {
+        setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
+    }, []);
+
+
+    // console.log(codeFields);
+    // console.log(dropdownFields);
+    // console.log(fields);
 
     useEffect(()=>{
         let formValidationsInfo = [];
-        fields.map(col => {
-            let custom_config = {};
-            custom_config.id = col;
-            custom_config.placeholder = "this field is required";
-            custom_config.validationType = 'text';
-            custom_config.validations = [{
-                type: "required",
-                params: ["this field is required"]
-            }];
-            formValidationsInfo.push(custom_config);
-        });
 
-        let temp_schema = formValidationsInfo.reduce(createYupSchema, {});
-        let yup_schema = yup.object().shape(temp_schema);
-
-        //have to use setState here to FORCE UPDATE the object in the form
-        setSchema(yup_schema);
-    }, []);
+        if(fields.length > 0){
+            console.log(fields);
+            fields.map(col => {
+                let custom_config = {};
+                custom_config.id = col;
+                custom_config.placeholder = "this field is required";
+                custom_config.validationType = 'text';
+                custom_config.validations = [{
+                    type: "required",
+                    params: ["this field is required"]
+                }];
+                formValidationsInfo.push(custom_config);
+            });
+    
+            let temp_schema = formValidationsInfo.reduce(createYupSchema, {});
+            let yup_schema = yup.object().shape(temp_schema);
+    
+            //have to use setState here to FORCE UPDATE the object in the form
+            setSchema(yup_schema);
+        }
+        
+    }, [fields]);
 
     useEffect(() => {
         console.log("submit pressed....validating.....");
     }, [validating])
 
     return (
+        fields.length > 0 ? 
         <Formik
             validationSchema={schema}
             // validationSchema={yup_schema}
@@ -88,14 +106,14 @@ const DataStewardEditor = ({ table }) => {
                                 // required={requiredFields[field]}
                                 requiredFields={fields}
                                 values={values}
-                                dataTypes={dataTypes}
+                                dataTypes={fieldTypesConfigs[table]["dataTypes"]}
                                 handleChange={handleChange}
                                 handleBlur={handleBlur}
                                 touched={touched}
                                 errors={errors}
                                 disabled={false}
-                                codeFields={fields}
-                                dropdownFields={[]}
+                                codeFields={codeFields}
+                                dropdownFields={dropdownFields}
                             />
                         )}
 
@@ -124,7 +142,9 @@ const DataStewardEditor = ({ table }) => {
                     </Form>
                 )}
         </Formik>
+        : <div> loading fields...</div>
     )
+        
 }
 
 export default DataStewardEditor;

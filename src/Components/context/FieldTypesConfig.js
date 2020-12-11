@@ -39,73 +39,119 @@ export const fieldTypesConfigs = {
     },
 
     DATA_STEWARD: {
-        codeFields: {
-            'FNAME': 'Enter your info here...',
-            'LNAME': 'Enter your info here...',
-            'EMAIL': 'Enter your info here...',
+        dataTypes: {
+            'FNAME': 'text',
+            'LNAME': 'text',
+            'EMAIL': 'text',
         },
+        codeFields: {
+            // 'FNAME': 'Enter your info here...',
+            // 'LNAME': 'Enter your info here...',
+            // 'EMAIL': 'Enter your info here...',
+        },
+        dropdownFields: {}
     },
 
     DATA_DOMAIN: {
+        dataTypes:{
+            'DOMAIN': 'text',
+            'DOMAIN_DESCRIPTIONS': 'text',
+        },
         codeFields: {
-            'DOMAIN': 'Enter your info here...',
-            'DOMAIN_DESCRIPTIONS': 'Enter your info here...'
-        }
+            // 'DOMAIN': 'Enter your info here...',
+            // 'DOMAIN_DESCRIPTIONS': 'Enter your info here...'
+        },
+        dropdownFields: {}
     },
 
     //composite table
     DATA_STEWARD_DOMAIN: {
+        dataTypes:{
+            'DATA_DOMAIN_ID': 'number',
+            'DATA_STEWARD_ID': 'number',
+        },
+        codeFields: {},
         dropdownFields: {
-            DATA_DOMAIN_ID: [],
-            DATA_STEWARD_ID: []
+            'DATA_DOMAIN_ID': [],
+            'DATA_STEWARD_ID': []
         }
     },
 
     //composite table
     CATALOG_ENTITY_DOMAIN: {
+        dataTypes:{
+            'DATA_DOMAIN_ID': 'number',
+            'CATALOG_ENTITIES_ID': 'number',
+        },
+        codeFields: {},
         dropdownFields: {
-            DATA_DOMAIN_ID: [],
-            CATALOG_ENTITIES_ID: []
+            'DATA_DOMAIN_ID': [],
+            'CATALOG_ENTITIES_ID': []
         }
     },
 
     CATALOG_ENTITIES: {
+        dataTypes:{
+            'COMMENTS': 'text',
+            'TARGET_DATABASE': 'text',
+            'TARGET_SCHEMA': 'text',
+            'TARGET_TABLE': 'text',
+        },
         codeFields: {
-            'CATALOG_ENTITIES_HASH': 'Enter your code here...',
-            'COMMENTS': 'Enter your code here...',
+            // 'CATALOG_ENTITIES_HASH': 'Enter your code here...',
+            // 'COMMENTS': 'Enter your code here...',
         },
         dropdownFields: {
-            TARGET_DATABASE: [],
-            TARGET_SCHEMA: [],
-            TARGET_TABLE: []
+            'TARGET_DATABASE': [],
+            'TARGET_SCHEMA': [],
+            'TARGET_TABLE': []
         }
     },
 
     CATALOG_ITEMS: {
+        dataTypes:{
+            'COLUMN_NAME': 'text',
+            'DATA_TYPE': 'text',
+            'PII': 'text',
+            'SEARCH_KEY': 'text',
+            'COMMENTS': 'text',
+            'DENSITY': 'number',
+        },
         codeFields: {
-            'CATALOG_ENTITIES_HASH': 'Enter your code here...',
-            'COLUMN_NAME': 'Enter your code here...',
-            'DATA_TYPE': 'Enter your code here...',
-            'PII': 'Enter your code here...',
-            'DENSITY': 'Enter your code here...',
-            'SEARCH_KEY': 'Enter your code here...',
-            'COMMENTS': 'Enter your code here...',
+            // 'CATALOG_ENTITIES_HASH': 'Enter your code here...',
+            // 'COLUMN_NAME': 'Enter your code here...',
+            // 'DATA_TYPE': 'Enter your code here...',
+            // 'PII': 'Enter your code here...',
+            // 'DENSITY': 'Enter your code here...',
+            // 'SEARCH_KEY': 'Enter your code here...',
+            // 'COMMENTS': 'Enter your code here...',
         },
         dropdownFields: {}
     },
 
     CATALOG_ENTITY_LINEAGE: {
+        dataTypes:{
+            'ORIGIN_INFORMATION': 'text',
+            'CONFIG_NAME': 'text',
+            'SOURCE_TABLE': 'text',
+            'EXTRACT_SCHEMA': 'text',
+            'SYSTEM_CONFIG_TYPE': 'text',
+            'LINEAGE': 'text',
+            'NOTIFICATIONEMAILS': 'text',
+            'REFRESH_INTERVAL': 'text',
+            'EXTRACT_CONFIG_ID': 'number',
+        },
         codeFields: {
-            'CATALOG_ENTITIES_HASH': 'Enter your code here...',
-            'ORIGIN_INFORMATION': 'Enter your code here...',
-            'CONFIG_NAME': 'Enter your code here...',
-            'EXTRACT_CONFIG_ID': 'Enter your code here...',
-            'SOURCE_TABLE': 'Enter your code here...',
-            'EXTRACT_SCHEMA': 'Enter your code here...',
-            'SYSTEM_CONFIG_TYPE': 'Enter your code here...',
-            'LINEAGE': 'Enter your code here...',
-            'NOTIFICATIONEMAILS': 'Enter your code here...',
-            'REFRESH_INTERVAL': 'Enter your code here...',
+            // 'CATALOG_ENTITIES_HASH': 'Enter your code here...',
+            // 'ORIGIN_INFORMATION': 'Enter your code here...',
+            // 'CONFIG_NAME': 'Enter your code here...',
+            // 'EXTRACT_CONFIG_ID': 'Enter your code here...',
+            // 'SOURCE_TABLE': 'Enter your code here...',
+            // 'EXTRACT_SCHEMA': 'Enter your code here...',
+            // 'SYSTEM_CONFIG_TYPE': 'Enter your code here...',
+            // 'LINEAGE': 'Enter your code here...',
+            // 'NOTIFICATIONEMAILS': 'Enter your code here...',
+            // 'REFRESH_INTERVAL': 'Enter your code here...',
         },
         dropdownFields: {}
     }
@@ -119,3 +165,5 @@ export const autofilledFields = {
 };
 
 export const ETLF_tables = ['ETLF_EXTRACT_CONFIG', 'ETLFCALL', 'ETLF_CUSTOM_CODE']
+
+export const CatalogTableConfigs = {};

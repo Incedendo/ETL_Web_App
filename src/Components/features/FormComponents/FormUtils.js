@@ -21,6 +21,8 @@ function getDataType(type){
 // and return the type to display a Code Field or DropDown field in the Form
 const getFieldType = (field, codeFields, dropdownFields) => {
     let type = 'text';
+    console.log(codeFields);
+    console.log(dropdownFields);
 
     // if (codeFields.indexOf(field) > -1) {
     //     type = 'code';
