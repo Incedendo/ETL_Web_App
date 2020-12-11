@@ -68,7 +68,8 @@ const CustomAutoCompleteComp = ({ list, setTarget, isLoading, autoSuggestModalCl
     };
 
     const inputProps = {
-        placeholder: list.length === 0 ? 'Search' : list.length + ' items',
+        // placeholder: list.length === 0 ? 'Search' : list.length + ' items',
+        placeholder: 'Type in column name to filter',
         disabled: tableLoading || tableSearching,
         value,
         onChange

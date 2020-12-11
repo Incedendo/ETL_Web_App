@@ -26,12 +26,15 @@ const DropdownField = ({
 
     return (
         <div>
-            <div style={{ 
+            <div style={{
+                "marginTop": "20px",
                 "fontWeight": "bold"
             }}>
                 {field}:
             </div>
-            {/* {privilege !== 'READ ONLY' && */}
+            <div style={{
+                "margin": "-10px"
+            }}>
                 <DropdownButton
                     id="dropdown-basic-button"
                     size="sm"
@@ -68,7 +71,7 @@ const DropdownField = ({
                     )}
 
                 </DropdownButton>
-            {/* } */}
+            </div>
 
             {/* {privilege === 'READ ONLY'
                 && <p className="readOnly">{value}</p>

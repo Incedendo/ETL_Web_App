@@ -10,7 +10,7 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 const sm_left = "2";
 const sm_right = "10";
 
-const FormField = ({  field, required, values, dataTypes, handleChange, handleBlur, touched, errors, disabled, codeFields, dropdownFields }) => {
+const FormField = ({  field, required, requiredFields, values, dataTypes, handleChange, handleBlur, touched, errors, disabled, codeFields, dropdownFields }) => {
 
     //get the field type to determine what Component of Field to render
     let fieldType = getFieldType(field, codeFields, dropdownFields);
@@ -19,7 +19,8 @@ const FormField = ({  field, required, values, dataTypes, handleChange, handleBl
 
     return (
         <Form.Group key={field} as={Row} controlId={"formGroup" + field}>
-            <Form.Label column sm={sm_left}>{field}{required === 'Y' ? "*" : ""} </Form.Label>
+            {/* <Form.Label column sm={sm_left}>{field}{required === 'Y' ? "*" : ""} </Form.Label> */}
+            <Form.Label column sm={sm_left}>{field}{requiredFields.indexOf(field) >= 0 ? "*" : ""} </Form.Label>
             <Col sm={sm_right}>
 
                 {(fieldType === "text") &&
@@ -32,7 +33,8 @@ const FormField = ({  field, required, values, dataTypes, handleChange, handleBl
                             handleChange(e);
                         }}
                         onBlur={handleBlur}
-                        placeholder={required === 'Y' ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
+                        // placeholder={required === 'Y' ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
+                        placeholder={requiredFields.indexOf(field) >= 0 ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
                         disabled={disabled}
                         isValid={touched[field] && !errors[field]}
                         isInvalid={errors[field]}

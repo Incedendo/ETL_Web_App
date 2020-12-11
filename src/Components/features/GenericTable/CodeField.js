@@ -74,9 +74,8 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
                 "textAlign": "left"
             }}>
 
-            <div style={{ "fontWeight": "bold" }}>
+            <div style={{ "marginTop": "20px", "fontWeight": "bold" }}>
                 {fieldArray[0]}:
-
             </div>
 
             <Editor
@@ -89,7 +88,7 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
                 padding={10}
                 style={{
                     fontFamily: '"Fira code", "Fira Mono", monospace',
-                    fontSize: 12,
+                    fontSize: 15,
                 }}
             />
 

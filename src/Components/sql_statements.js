@@ -36,20 +36,18 @@ export const get_custom_table = (db, schema, table, username, start, end) => {
 }
 
 export const search_multi_field = (username, db, schema, table, groupIDColumn, currentSearchObj, start, end) => {
-    let sql_statement = `SELECT * FROM(
-    SELECT ec.*, auth.PRIVILEGE,
+    let sql_statement = 
+    // `SELECT * FROM(
+    `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
     row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn,
     COUNT(*) OVER() total_num_rows
-    FROM "`+
-        db + `"."` +
-        schema + `"."` +
-        table + `" ec
+    FROM "`+  db + `"."` + schema + `"."` +  table + `" ec
     JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
     ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
             + username.toLowerCase() + `'
     WHERE ` + getSearchFieldValue(currentSearchObj) + `
-    )
-WHERE rn BETWEEN `+ start + ` AND ` + end;
+    ;`;
+// WHERE rn BETWEEN `+ start + ` AND ` + end;
 
     return sql_statement;
 }
@@ -71,11 +69,15 @@ function getSearchFieldValue(currentSearchObj){
     let res = ''
     for (let item in currentSearchObj){
         if(Object.keys(currentSearchObj).indexOf(item) > 0){
-            res += 'AND ' + 'ec.' + item + '=' + surroundWithQuotesIfString(currentSearchObj[item]) + `
+            res += `AND UPPER(TRIM(ec.` + item + `)) LIKE UPPER('%` + currentSearchObj[item] + `%')
             `;
+            // res += 'AND ' + 'ec.' + item + '=' + surroundWithQuotesIfString(currentSearchObj[item]) + `
+            // `;
         }else{
-            res += 'ec.' + item + '=' + surroundWithQuotesIfString(currentSearchObj[item]) + `
+            res += `UPPER(TRIM(ec.` + item + `)) LIKE UPPER('%` + currentSearchObj[item] + `%')
             `;
+            // res += 'ec.' + item + '=' + surroundWithQuotesIfString(currentSearchObj[item]) + `
+            // `;
         }
     }
     return res;

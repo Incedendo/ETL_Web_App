@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
-import axios from 'axios';
-import Spinner from 'react-bootstrap/Spinner';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
 import ConfigurationGrid from '../GridComponents/Grids/ConfigurationGrid';
-import GenericConfigurationGrid from './GenericConfigurationGrid';
-import SearchModal from '../Modals/SearchModal';
+import DatCat_ControlPanel from '../DataCatalog/DatCat_ControlPanel';
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
@@ -17,20 +12,14 @@ const Table = ({ privilege, getStatement, tableName, route, isDataCatalog }) => 
     const { authState } = useOktaAuth();
 
     const {
-        debug,
-        username,
-        database, schema,
-        table, setTable,
-        columns, columnsLoaded,
+        setTable,
         tableLoaded,setTableLoaded,
-        
     } = useContext(WorkspaceContext);
 
     // console.log(tableName);
     // console.log(isDataCatalog);
 
     useEffect(()=> {
-        
         setTable('CATALOG_ENTITY_LINEAGE');
     }, []);
 
@@ -327,89 +316,11 @@ const Table = ({ privilege, getStatement, tableName, route, isDataCatalog }) => 
     //         });
     // }
 
-    const DropDown = ({ target, currentVal, menus, setState }) => {
-        return (
-            <div className="InlineDiv">
-                <DropdownButton
-                    id="dropdown-item-button"
-                    title={!currentVal ? 'Select a ' + target : currentVal}
-                    // disabled={tableSearching || tableLoading}
-                >
-                    {menus.map(item => (
-                        <Dropdown.Item as="button" key={item}
-                            onSelect={() => {
-                                if (item !== table) {
-                                    setState(item)
-                                }
-                            }}
-                        >
-                            {item}
-                        </Dropdown.Item>
-
-                    )
-                    )}
-                </DropdownButton>
-            </div>
-        )
-    }
-
-    const TableOptions = () => (
-        <div style={{ 'height': '90px' }}>
-            <div className="InlineDiv db-div">
-                <div className="label-text db-text">Catalog table:</div>
-                <DropDown 
-                    target='Table' 
-                    currentVal={table} 
-                    menus={[ 
-                        'DATA_STEWARD', 
-                        'DATA_DOMAIN',
-                        'DATA_STEWARD_DOMAIN',
-                        'CATALOG_ENTITY_DOMAIN',
-                        'CATALOG_ENTITIES',
-                        'CATALOG_ITEMS',
-                        'CATALOG_ENTITY_LINEAGE'
-                    ]} 
-                    setState={setTable} />
-            </div>
-
-            {/* <div className="InlineDiv auto-complete-outerDiv">
-                <div className="auto-complete-div-margin">
-                    <div className="label-text">Table:</div>
-                    <CustomAutoCompleteComp
-                        list={tableList}
-                        setTarget={setTable}
-                        autoSuggestModalClassName="auto-suggest-box" />
-                </div>
-            </div> */}
-        </div>
-    )
-    
     const TableWrapper = () => (
         <div>
             {/* {primaryKeys.map(key=> <h1 key={key}>{key}</h1>)} */}
-            { isDataCatalog && <TableOptions/> }
-            { isDataCatalog && !columnsLoaded && 
-                <div className="central-spinning-div">
-                    <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                    />
-                    <span style={{ 'marginLeft': '5px' }}>loading...</span>
-                </div>
-            }
-            { isDataCatalog && columnsLoaded &&
-                <SearchModal
-                    database={database} 
-                    schema={schema} 
-                    table={table} 
-                    groupIDColumn={'GroupID Not applicable for Catalog'}
-                    username={username} 
-                    columns={columns}
-                /> 
-            }
+            
+            { isDataCatalog && <DatCat_ControlPanel/> }
 
             { tableLoaded && <ConfigurationGrid/> }
 

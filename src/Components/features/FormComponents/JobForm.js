@@ -20,7 +20,8 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
     const {
         debug,
-        appIDs, table, tableLoaded, columnDataTypes, sourceTableList,
+        appIDs, table, tableLoaded, columnsLoaded,
+        columnDataTypes, sourceTableList,
         setInsertError,
         insertUsingMergeStatement,
         codeFields,
@@ -45,7 +46,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
         "CREATED_DATE", "LAST_UPDATE_DATE", "INGESTION_STATUS"
     ]
 
-    const requiredFields = {
+    const requiredFieldsObj = {
         "RUN_MODE": "Y",
         "ETLFCALL_ID": "Y",
         "JSON_PARAM": "N",
@@ -54,9 +55,17 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
         "SOURCE_TABLE": "N"
     }
 
+    const requiredFields = [
+        "RUN_MODE",
+        "ETLFCALL_ID",
+        "WORK_GROUP_ID",
+        "WAREHOUSE"
+    ]
+
     useEffect(() => {
         debug && console.log(codeFields);
         debug && console.log(dropdownFields);
+        debug && console.log(columnDataTypes);
     }, [])
 
     useEffect(() => {
@@ -76,7 +85,8 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
     // set up the validation object for YupSchema for Form Validation.
     useEffect(() => {
-        if (tableLoaded) {
+        // if (tableLoaded) {
+        if (columnsLoaded) {
             debug && console.log(columnDataTypes);
             let all_fields = Object.keys(columnDataTypes);
             let fields = all_fields.filter(col => excludedFields.indexOf(col) < 0);
@@ -127,7 +137,8 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
             // set Initial States for App IDs
             // setInitialStates({ ...setInitialStates, ['APP_ID']: appIDs['Read-Write'] });
         }
-    }, [tableLoaded]);
+    }, [columnsLoaded]);
+    // }, [ tableLoaded]);
 
     //have to Account for field that were intentionally leave out of the form
     function getMergeStatement(values) {
@@ -246,7 +257,8 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                     <FormField
                                         key={field}
                                         field={field}
-                                        required = {requiredFields[field]}
+                                        required = {requiredFieldsObj[field]}
+                                        requiredFields = {requiredFields}
                                         values={values}
                                         dataTypes={dataTypes}
                                         handleChange={handleChange}

@@ -752,7 +752,7 @@ export const WorkspaceProvider = (props) => {
     // }
 
     const axiosCallToGetTableRows = (get_statenent) => {
-        if(Object.keys(table_primaryKeys).indexOf(table) > 0)
+        if(Object.keys(table_primaryKeys).indexOf(table) >= 0)
             setPrimaryKeys(table_primaryKeys[table]);
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 

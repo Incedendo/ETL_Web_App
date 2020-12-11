@@ -5,6 +5,7 @@ import ConfigurationGrid from '../GridComponents/Grids/ConfigurationGrid';
 import GenericConfigurationGrid from '../GenericTable/GenericConfigurationGrid';
 import PkEditModal from '../Modals/PkEditModal';
 import SearchModal from '../Modals/SearchModal';
+import SearchModal_CustomCode from '../Modals/SearchModal_CustomCode';
 import JobModal from '../Modals/JobModal';
 import Route_Action_Modal from '../Modals/Route_Action_Modal';
 
@@ -70,23 +71,23 @@ const WorkTab = () => {
 
     const ETLF_EXTRACT_CONFIG_ModalPanels = () => (
         // <div className="modal-button">
-        <div>
+        <>
             {
-                // system_configs && 
-                // routeConfigs  && 
                 (Object.keys(system_configs).length !== 0 && system_configs.constructor === Object) &&
                 (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
-                <Route_Action_Modal />
+                <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
+                    <Route_Action_Modal />
+                </div>
             }
 
             <LoadableSearchModal groupIDColumn={'GROUP_ID'} /> 
-        </div>
+        </>
     )
 
     const LoadableSearchModal = ({ groupIDColumn }) => (
         <>
             { !columnsLoaded ? 
-                <div className="central-spinning-div">
+                <div style={{ 'float': 'left' }} className="central-spinning-div">
                     <Spinner
                         as="span"
                         animation="border"
@@ -97,14 +98,20 @@ const WorkTab = () => {
                     <span style={{ 'marginLeft': '5px' }}>loading...</span>
                 </div>
                 :
-                <SearchModal 
-                    database={database} 
-                    schema={schema} 
-                    table={table} 
-                    groupIDColumn={groupIDColumn}
-                    username={username} 
-                    columns={columns}
-                /> 
+                <>
+                    {/* ETLF_EXTRACT_CONFIG SEARCH */}
+                    <SearchModal 
+                        database={database} 
+                        schema={schema} 
+                        table={table} 
+                        groupIDColumn={groupIDColumn}
+                        username={username} 
+                        columns={columns}
+                    />
+
+                    {/* CUSTOMcODE CATALOG */}
+                    <SearchModal_CustomCode /> 
+                </>
             }
         </>
     )

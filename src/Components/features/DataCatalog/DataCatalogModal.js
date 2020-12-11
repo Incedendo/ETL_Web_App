@@ -4,20 +4,19 @@ import Button from 'react-bootstrap/Button';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import '../../../css/mymodal.scss';
 import '../../../css/rowExpansion.scss';
-import JobForm from '../FormComponents/JobForm';
+import DataStewardEditor from './DataStewardEditor';
 
-const JobModal = ({ data, uniqueCols, dataTypes }) => {
+const DataCatalogModal = ({ table }) => {
     const [show, setShow] = useState(false);
 
-    // console.log(dataTypes);
+    console.log(table);
 
     return (
-        <div style={{ 'float': 'left' }} className="job-modal">
-            <Button 
-                // className="button-margin"
+        <div className="job-modal">
+            <Button className="button-margin"
                 variant="primary"
                 onClick={() => setShow(true)}>
-                Create Job
+                Add
             </Button>
 
             <Modal
@@ -30,14 +29,12 @@ const JobModal = ({ data, uniqueCols, dataTypes }) => {
             >
                 <Modal.Header closeButton>
                     <Modal.Title id="example-custom-modal-styling-title">
-                        Schedule a Job
+                        Add new Data Steward
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <JobForm 
-                        data={data}
-                        uniqueCols={uniqueCols}
-                        dataTypes={dataTypes}
+                    <DataStewardEditor 
+                        table={table}
                         setShow={setShow}
                     />
                 </Modal.Body>
@@ -46,4 +43,4 @@ const JobModal = ({ data, uniqueCols, dataTypes }) => {
     )
 }
 
-export default JobModal;
+export default DataCatalogModal;

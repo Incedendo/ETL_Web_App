@@ -14,7 +14,7 @@ const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.c
 
 const SearchModal = ({database, schema, table, groupIDColumn, username, columns}) => {
 
-    const { authState, authService } = useOktaAuth();
+    // const { authState, authService } = useOktaAuth();
     
     const {
         debug,
@@ -88,14 +88,14 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
     }, [remainingColumns]);
 
     return (
-        <>
+        <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
             <Button className=""
                 variant="primary"
                 onClick={() => {
                     setShow(true);
 
                 }}>
-                Advance Search
+                Search
             </Button>
 
             <Modal
@@ -121,7 +121,8 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                             />
 
                             <div className="search-count">
-                                Search Criteria ({Object.keys(currentSearchObj).length} items)
+                                {/* Search Criteria ({Object.keys(currentSearchObj).length} items) */}
+                                Total columns remaining: ({remainingColumns.length} items)
                             </div>
                         </div>
 
@@ -149,8 +150,11 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                     </div>
                 </Modal.Body>
             </Modal>
-        </>
+        </div>
     );
 }
 
 export default SearchModal;
+
+
+// res += `AND UPPER(TRIM(' + 'ec.` + item + `)) LIKE UPPER('%` + surroundWithQuotesIfString(currentSearchObj[item]) + `%'`;
