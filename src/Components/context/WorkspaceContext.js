@@ -335,13 +335,14 @@ export const WorkspaceProvider = (props) => {
         }
     }
 
-    const loadTableRows = (dbTableRows) => {
+    //'EXTRACT_CONFIG_ID'
+    const loadTableRows = (dbTableRows, primaryKey) => {
 
         setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
         setRows([]);
         setRows(
             dbTableRows.map((row, index) => ({
-                id: row['EXTRACT_CONFIG_ID'],
+                id: row[primaryKey],
                 ...row
             }))
         );
@@ -751,7 +752,7 @@ export const WorkspaceProvider = (props) => {
     //         });
     // }
 
-    const axiosCallToGetTableRows = (get_statenent) => {
+    const axiosCallToGetTableRows = (get_statenent, primaryKey) => {
         if(Object.keys(table_primaryKeys).indexOf(table) >= 0)
             setPrimaryKeys(table_primaryKeys[table]);
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
@@ -795,7 +796,7 @@ export const WorkspaceProvider = (props) => {
                 // returning the data here allows the caller to get it through another .then(...)
                 // console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
-                loadTableRows(response.data); 
+                loadTableRows(response.data, primaryKey); 
             })
             .catch(error => {
                 debug && console.log(error);
@@ -811,7 +812,7 @@ export const WorkspaceProvider = (props) => {
             });
     }
 
-    const axiosCallToGetTable = (isMounted, proposed_get_statenent) => {
+    const axiosCallToGetTable = (isMounted, proposed_get_statenent, primaryKey) => {
         if(Object.keys(table_primaryKeys).indexOf(table) > 0)
             setPrimaryKeys(table_primaryKeys[table]);
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
@@ -877,11 +878,11 @@ export const WorkspaceProvider = (props) => {
                     debug && console.log("saving new config for Table ", table);
                     debug && console.log(`%c Loading talbe with : ${response.data.columns.length} columns and ${response.data.rows.length} rows`, 'color: orange; font-weight: bold');
                     prepareGridConfig(response.data.columns);
-                    loadTableRows(response.data.rows);
+                    loadTableRows(response.data.rows, primaryKey);
                 }else{
                     // !reloadTable && setDBTableColumns(response.data.columns);
                     reloadGridConfig();
-                    loadTableRows(response.data);
+                    loadTableRows(response.data, primaryKey);
                     debug && console.log(`%c Loading talbe with : ${response.data.length} rows`, 'color: orange; font-weight: bold');
                 }                
             })

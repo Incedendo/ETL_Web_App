@@ -65,7 +65,7 @@ export const search_multi_field_catalog = (db, schema, table, currentSearchObj, 
 return sql_statement;
 }
 
-function getSearchFieldValue(currentSearchObj){
+export const getSearchFieldValue = (currentSearchObj) => {
     let res = ''
     for (let item in currentSearchObj){
         if(Object.keys(currentSearchObj).indexOf(item) > 0){

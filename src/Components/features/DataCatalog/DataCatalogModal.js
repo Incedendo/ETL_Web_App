@@ -6,17 +6,21 @@ import '../../../css/mymodal.scss';
 import '../../../css/rowExpansion.scss';
 import DataStewardEditor from './DataStewardEditor';
 
-const DataCatalogModal = ({ table }) => {
+
+const DataCatalogModal = ({ 
+    table, fields, schema, loadedConfig, 
+    codeFields, dropdownFields, dropdownObject, setInsertError 
+}) => {
     const [show, setShow] = useState(false);
 
     console.log(table);
 
     return (
-        <div className="job-modal">
+        <div style={{ 'float': 'left' }}>
             <Button className="button-margin"
                 variant="primary"
                 onClick={() => setShow(true)}>
-                Add
+                Add item
             </Button>
 
             <Modal
@@ -29,13 +33,20 @@ const DataCatalogModal = ({ table }) => {
             >
                 <Modal.Header closeButton>
                     <Modal.Title id="example-custom-modal-styling-title">
-                        Add new Data Steward
+                        {table} item
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <DataStewardEditor 
                         table={table}
+                        fields={fields}
+                        schema={schema}
+                        loadedConfig={loadedConfig}
+                        codeFields={codeFields}
+                        dropdownFields={dropdownFields}
+                        dropdownObject={dropdownObject}
                         setShow={setShow}
+                        setInsertError={setInsertError}
                     />
                 </Modal.Body>
             </Modal>

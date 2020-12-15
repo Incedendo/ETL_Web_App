@@ -1,15 +1,20 @@
 export const fieldTypesConfigs = {
     ETLFCALL: {
+        primaryKeys: ['ETLFCALL_ID'],
         codeFields: {
             JSON_PARAM: 'Enter your code here...',
         },
         dropdownFields: {
             WORK_GROUP_ID: [],
             INGESTION_STATUS: ['PENDING'],
+        },
+        'links':{
+            
         }
     },
 
     ETLF_EXTRACT_CONFIG: {
+        primaryKeys: ['EXTRACT_CONFIG_ID'],
         codeFields: {
 
         },
@@ -25,77 +30,103 @@ export const fieldTypesConfigs = {
             PX_PARALLELEXECNUM: Array.from({length: 20}, (v, k) => k+1),
             PX_SPLITNUM: Array.from({ length: 20 }, (v, k) => k + 1),
             SOURCE_FILE_TYPE: ['CSV', 'XLSX', 'XLS']
+        },
+        'links':{
+
         }
+
     }, 
 
     ETLF_CUSTOM_CODE: {
+        primaryKeys: ['CUSTOM_CODE_ID'],
         codeFields: {
             'CODE': 'Enter your code here...',
         },
         dropdownFields: {
             ACTIVE: ['Y', 'N'],
             CODE_TYPE: ['ADHOC_QUERY', 'BLOCK_FORMATION']
+        },
+        'links':{
+            
         }
     },
 
     DATA_STEWARD: {
+        primaryKeys: ['EMAIL'],
         dataTypes: {
-            'FNAME': 'text',
-            'LNAME': 'text',
-            'EMAIL': 'text',
+            'FNAME': 'string',
+            'LNAME': 'string',
+            'EMAIL': 'string',
         },
         codeFields: {
             // 'FNAME': 'Enter your info here...',
             // 'LNAME': 'Enter your info here...',
             // 'EMAIL': 'Enter your info here...',
         },
-        dropdownFields: {}
+        dropdownFields: {},
+        'links':{
+            
+        }
     },
 
     DATA_DOMAIN: {
+        primaryKeys: ['DOMAIN'],
         dataTypes:{
-            'DOMAIN': 'text',
-            'DOMAIN_DESCRIPTIONS': 'text',
+            'DOMAIN': 'string',
+            'DOMAIN_DESCRIPTIONS': 'string',
         },
         codeFields: {
             // 'DOMAIN': 'Enter your info here...',
             // 'DOMAIN_DESCRIPTIONS': 'Enter your info here...'
         },
-        dropdownFields: {}
+        dropdownFields: {},
+        'links':{
+            
+        }
     },
 
     //composite table
     DATA_STEWARD_DOMAIN: {
+        // primaryKeys: ['DATA_STEWARD_ID'],
+
         dataTypes:{
-            'DATA_DOMAIN_ID': 'number',
-            'DATA_STEWARD_ID': 'number',
+            'DATA_DOMAIN': 'string',
+            'DATA_STEWARD': 'string',
         },
         codeFields: {},
         dropdownFields: {
-            'DATA_DOMAIN_ID': [],
-            'DATA_STEWARD_ID': []
+            'DATA_DOMAIN': [], //SHOW DATA DOMAIN BUT GET DATA_DOMAIN_ID
+            'DATA_STEWARD': [] // SHOW DATA_STEWARD BUT GET DATA_STEWARD_ID 
+        },
+        'links':{
+            
         }
     },
 
     //composite table
     CATALOG_ENTITY_DOMAIN: {
+        // primaryKeys: ['CATALOG_ENTITIES_HASH'],
         dataTypes:{
-            'DATA_DOMAIN_ID': 'number',
-            'CATALOG_ENTITIES_ID': 'number',
+            'DATA_DOMAIN': 'string',
+            'CATALOG_ENTITIES': 'string',
         },
         codeFields: {},
         dropdownFields: {
-            'DATA_DOMAIN_ID': [],
-            'CATALOG_ENTITIES_ID': []
+            'DATA_DOMAIN': [],
+            'CATALOG_ENTITIES': []
+        },
+        'links':{
+            
         }
     },
 
     CATALOG_ENTITIES: {
+        primaryKeys: ['CATALOG_ENTITIES_ID'],
         dataTypes:{
-            'COMMENTS': 'text',
-            'TARGET_DATABASE': 'text',
-            'TARGET_SCHEMA': 'text',
-            'TARGET_TABLE': 'text',
+            'COMMENTS': 'string',
+            'TARGET_DATABASE': 'string',
+            'TARGET_SCHEMA': 'string',
+            'TARGET_TABLE': 'string',
         },
         codeFields: {
             // 'CATALOG_ENTITIES_HASH': 'Enter your code here...',
@@ -105,16 +136,20 @@ export const fieldTypesConfigs = {
             'TARGET_DATABASE': [],
             'TARGET_SCHEMA': [],
             'TARGET_TABLE': []
+        },
+        'links':{
+            
         }
     },
 
     CATALOG_ITEMS: {
+        primaryKeys: ['CATALOG_ITEMS_ID'],
         dataTypes:{
-            'COLUMN_NAME': 'text',
-            'DATA_TYPE': 'text',
-            'PII': 'text',
-            'SEARCH_KEY': 'text',
-            'COMMENTS': 'text',
+            'COLUMN_NAME': 'string',
+            'DATA_TYPE': 'string',
+            'PII': 'string',
+            'SEARCH_KEY': 'string',
+            'COMMENTS': 'string',
             'DENSITY': 'number',
         },
         codeFields: {
@@ -126,19 +161,24 @@ export const fieldTypesConfigs = {
             // 'SEARCH_KEY': 'Enter your code here...',
             // 'COMMENTS': 'Enter your code here...',
         },
-        dropdownFields: {}
+        dropdownFields: {},
+        'links':{
+            
+        }
     },
 
     CATALOG_ENTITY_LINEAGE: {
+        primaryKeys: ['CATALOG_ENTITY_LINEAGE_ID'],
         dataTypes:{
-            'ORIGIN_INFORMATION': 'text',
-            'CONFIG_NAME': 'text',
-            'SOURCE_TABLE': 'text',
-            'EXTRACT_SCHEMA': 'text',
-            'SYSTEM_CONFIG_TYPE': 'text',
-            'LINEAGE': 'text',
-            'NOTIFICATIONEMAILS': 'text',
-            'REFRESH_INTERVAL': 'text',
+            'CATALOG_ENTITIES': 'string',
+            'ORIGIN_INFORMATION': 'string',
+            'CONFIG_NAME': 'string',
+            'SOURCE_TABLE': 'string',
+            'EXTRACT_SCHEMA': 'string',
+            'SYSTEM_CONFIG_TYPE': 'string',
+            'LINEAGE': 'string',
+            'NOTIFICATIONEMAILS': 'string',
+            'REFRESH_INTERVAL': 'string',
             'EXTRACT_CONFIG_ID': 'number',
         },
         codeFields: {
@@ -153,7 +193,27 @@ export const fieldTypesConfigs = {
             // 'NOTIFICATIONEMAILS': 'Enter your code here...',
             // 'REFRESH_INTERVAL': 'Enter your code here...',
         },
-        dropdownFields: {}
+        dropdownFields: {
+            'CATALOG_ENTITIES': [],
+        },
+        'links': {
+            'EXTRACT_CONFIG_ID': {
+                'TABLE': 'ETLF_EXTRACT_CONFIG',
+                'LINK': '/etlframework'
+            },
+            // 'CONFIG_NAME': {
+            //     'TABLE': 'ETLF_EXTRACT_CONFIG',
+            //     'LINK': '/etlframework'
+            // },
+            'SOURCE_TABLE': {
+                'TABLE': 'ETLF_EXTRACT_CONFIG',
+                'LINK': '/etlframework'
+            },
+            'EXTRACT_SCHEMA': {
+                'TABLE': 'ETLF_EXTRACT_CONFIG',
+                'LINK': '/etlframework'
+            }
+        }
     }
 }
 

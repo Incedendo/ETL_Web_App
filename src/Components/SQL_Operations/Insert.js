@@ -141,7 +141,41 @@ export const generateMergeStatement = (database, schema, table, primaryKeys, col
     console.log('SQL merge Statement: ', sqlMergeStmt)
 
     return sqlMergeStmt
-} 
+}
+
+// export const generateMergeStatementDataCatalog = (database, schema, table, columns, rowOjb) => {
+//     const selectClause = getSelectClause(rowOjb, columns);
+//     const updateClause = getUpdateClause(columns);
+
+//     const insertCols = getInsertCols(columns);
+//     const insertValues = getInsertValues(columns);
+//     const primarykeyClause = getPrimaryKeysClause(primaryKeys);
+
+//     const sqlMergeStmt = `
+//     merge into ` + database + '.' + schema + '.' + table + ` tt
+//     using (
+//         select ` + selectClause
+//     +    
+//     `
+//        from dual
+//     ) st on (` + primarykeyClause + `)
+//     when matched then
+//     update set ` + updateClause
+//     + 
+//     ` 
+//     when not matched then
+//     insert (
+//     ` + insertCols + `
+//     ) 
+//     values 
+//     (
+//         ` + insertValues + `
+//     );`
+
+//     console.log('SQL merge Statement: ', sqlMergeStmt)
+
+//     return sqlMergeStmt
+// }
 
 const getPrimaryKeysClause = (primaryKeys) => {
     let primarykeyClause = ''

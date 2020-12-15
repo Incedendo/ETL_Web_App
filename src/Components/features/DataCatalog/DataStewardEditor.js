@@ -1,89 +1,107 @@
 import React, { useState, useEffect, useContext } from 'react';
+// import { useOktaAuth } from '@okta/okta-react';
+import {WorkspaceContext} from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { Formik, Field } from 'formik';
 import * as yup from 'yup'; // for everything
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
-import axios from 'axios';
+import { generateMergeStatement } from '../../SQL_Operations/Insert';
+// import axios from 'axios';
 import Form from 'react-bootstrap/Form';
 import FormField from '../FormComponents/FormField';
 import Button from 'react-bootstrap/Button';
 
-const DataStewardEditor = ({ table }) => {
+// const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
+// const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
 
-    const [schema, setSchema] = useState([]);
+
+const DataStewardEditor = ({ 
+    table, fields, schema, loadedConfig, 
+    codeFields, dropdownFields, dropdownObject, 
+    setShow, setInsertError }) => {
+
+    // const { authState, authService } = useOktaAuth();
+
+    const {
+        debug, username,
+        insertUsingMergeStatement
+    } = useContext(WorkspaceContext);
+
     const [validating, setValidating] = useState(false);
     const [initialStates, setInitialStates] = useState({});
 
-    const [codeFields, setCodeFields] = useState({});
-    const [dropdownFields, setDropdownFields] = useState({});
-    const [fields, setFields] = useState([]);
-
-    // console.log(table);
-
-    useEffect(()=>{
-        //check if table has code fields
-        setCodeFields(fieldTypesConfigs[table]["codeFields"]);
-
-        //check if table has dropdown fields
-        setDropdownFields(fieldTypesConfigs[table]["dropdownFields"]);
-    }, []);
-
     useEffect(() => {
-        setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
-    }, []);
+        debug && console.log("submit pressed....validating.....");
+    }, [validating]);
 
-
-    // console.log(codeFields);
-    // console.log(dropdownFields);
-    // console.log(fields);
-
-    useEffect(()=>{
-        let formValidationsInfo = [];
-
-        if(fields.length > 0){
-            console.log(fields);
-            fields.map(col => {
-                let custom_config = {};
-                custom_config.id = col;
-                custom_config.placeholder = "this field is required";
-                custom_config.validationType = 'text';
-                custom_config.validations = [{
-                    type: "required",
-                    params: ["this field is required"]
-                }];
-                formValidationsInfo.push(custom_config);
-            });
-    
-            let temp_schema = formValidationsInfo.reduce(createYupSchema, {});
-            let yup_schema = yup.object().shape(temp_schema);
-    
-            //have to use setState here to FORCE UPDATE the object in the form
-            setSchema(yup_schema);
-        }
+    function getMergeStatement(values) {
+        // debug && console.log(values);
+        values['CREATEDDATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
+        values['LASTMODIFIEDDATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         
-    }, [fields]);
+        const primaryKeys = fieldTypesConfigs[table]["primaryKeys"];
+        // console.log(primaryKeys);
+        const columns = Object.keys(values);
+        const sqlInsertStatement = generateMergeStatement(
+            'SHARED_TOOLS_DEV',
+            'ETL',
+            table,
+            primaryKeys,
+            columns,
+            values);
 
-    useEffect(() => {
-        console.log("submit pressed....validating.....");
-    }, [validating])
+        // debug && console.log(sqlInsertStatement);
+        return sqlInsertStatement;
+    }
 
     return (
-        fields.length > 0 ? 
+        fields.length > 0 && loadedConfig ? 
         <Formik
             validationSchema={schema}
-            // validationSchema={yup_schema}
 
             //destructure the action obj into {setSubmitting}
             onSubmit={(values, touched ) => {
-                debug && console.log('values: ', values);
-                debug && console.log('Touched Object: ', touched);
-                setValidating(true);
+                console.log('values: ', values);
+                console.log(dropdownObject);
+                // debug && 
+                console.log('Touched Object: ', touched);
+                // setValidating(true);
                 
                 //all fields in values obj will be inserted to DB
-                // test_UniqueKeys_For_Insert_JobForm(values);
+                // test_UniqueKeys_For_Insert(values);
+                if(table === 'DATA_STEWARD_DOMAIN'){
+                    let submitedValues = {
+                        'DATA_DOMAIN_ID': dropdownObject['DATA_DOMAIN'][values['DATA_DOMAIN']],
+                        'DATA_STEWARD_ID': dropdownObject['DATA_STEWARD'][values['DATA_STEWARD']]
+                    }
+                    console.log(submitedValues);
+
+                    const mergeStmt = getMergeStatement(submitedValues);
+                }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+                    
+                    let submitedValues = {
+                        'DATA_DOMAIN_ID': dropdownObject['DATA_DOMAIN'][values['DATA_DOMAIN']],
+                        'CATALOG_ENTITIES_ID': dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']]
+                    }
+                    console.log(submitedValues);
+
+                    const mergeStmt = getMergeStatement(submitedValues);
+                }else if(table === 'CATALOG_ENTITY_LINEAGE'){
+
+                    let submitedValues = {...values};
+                    
+                    submitedValues['CATALOG_ENTITIES_HASH'] = dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']]
+                    delete submitedValues['CATALOG_ENTITIES'];
+                    console.log(submitedValues);
+
+                    const mergeStmt = getMergeStatement(submitedValues);
+                }else{
+                    const mergeStmt = getMergeStatement(values);
+                }
+
+                // setShow(false);
             }}
             initialValues={initialStates}
-        // validate={validate_R1A1}
         >
             {({
                 handleSubmit, isSubmitting,
@@ -115,7 +133,7 @@ const DataStewardEditor = ({ table }) => {
                                 codeFields={codeFields}
                                 dropdownFields={dropdownFields}
                             />
-                        )}
+                        )}  
 
                         <Button
                             // variant="primary"
@@ -134,7 +152,7 @@ const DataStewardEditor = ({ table }) => {
                             }
 
                             {!validating
-                                ? <span style={{ 'marginLeft': '5px' }}>Adding Data Steward</span>
+                                ? <span style={{ 'marginLeft': '5px' }}>Add {table} item</span>
                                 : <span style={{ 'marginLeft': '5px' }}>Validating Data...</span>
                             }
                         </Button>

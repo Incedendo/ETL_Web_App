@@ -7,7 +7,7 @@ import DatCat_ControlPanel from '../DataCatalog/DatCat_ControlPanel';
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
 
-const Table = ({ privilege, getStatement, tableName, route, isDataCatalog }) => {
+const Table = ({ privilege, tableName, route, isDataCatalog }) => {
 
     const { authState } = useOktaAuth();
 
@@ -344,7 +344,12 @@ const Table = ({ privilege, getStatement, tableName, route, isDataCatalog }) => 
         </div>
     )
 
-    return <TableWrapper />
+    return (
+        <div>
+            { isDataCatalog && <DatCat_ControlPanel/> }
+            { tableLoaded && <ConfigurationGrid/> }
+        </div>
+    )
 }
 
 export default Table;

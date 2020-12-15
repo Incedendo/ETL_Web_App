@@ -13,7 +13,7 @@ const DataCatalog = () => {
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
     const { authState, authService } = useOktaAuth();
-    const [table, setTable] = useState('CATALOG_ENTITY_LINEAGE');
+    // const [table, setTable] = useState('CATALOG_ENTITY_LINEAGE');
     // const [tableList, setTableList] = useState([]);
 
     const login = async () => {
@@ -30,21 +30,20 @@ const DataCatalog = () => {
         window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
     }
 
-    const proposed_get_statenent = 'SELECT * FROM ' + table + ';';
-
     return authState.isAuthenticated ?
         <div className="App container">
            
             <Table
                 privilege={"READ ONLY"}
-                getStatement={proposed_get_statenent}
-                tableName={table}
+                tableName={'CATALOG_ENTITY_LINEAGE'}
                 route={"Test"}
                 isDataCatalog={true}
             />
+
+            {/* <button onClick={logout}>Log Out</button> */}
         </div>
         :
-        <button onClick={login}>Login</button>;
+        <button onClick={login}>Log In</button>;
 }
 
 export default DataCatalog;

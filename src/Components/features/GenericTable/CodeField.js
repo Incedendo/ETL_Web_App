@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { Link } from "react-router-dom";
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
+
+import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 
 const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled, setEditMessage }) => {
 
     const {
         debug,
         routeConfigs,
+        table
     } = useContext(WorkspaceContext);
 
     // debug && console.log(etlColumnConfigs);
@@ -91,6 +95,25 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
                     fontSize: 15,
                 }}
             />
+
+            {Object.keys(fieldTypesConfigs[table]['links']).indexOf(field) >= 0 
+            && <>
+                <a href={fieldTypesConfigs[table]['links'][field]['LINK'] + '/'}>
+                    Link to {fieldTypesConfigs[table]['links'][field]['TABLE']}
+                </a>
+
+                <Link 
+                    to={{
+                        pathname: fieldTypesConfigs[table]['links'][field]['LINK'],
+                        state: {
+                            [field]: checked_val
+                        }
+                    }}
+                >
+                    Link to {fieldTypesConfigs[table]['links'][field]['TABLE']}
+                </Link>
+            </>
+            }
 
         </div>
     )

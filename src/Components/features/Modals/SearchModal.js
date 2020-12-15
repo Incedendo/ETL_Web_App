@@ -4,6 +4,7 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
+import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { search_multi_field, search_multi_field_catalog } from '../../sql_statements';
 import '../../../css/mymodal.scss';
 import axios from 'axios';
@@ -78,7 +79,9 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
             }
                 
             debug && console.log(multiSearchSqlStatement);
-            axiosCallToGetTableRows( multiSearchSqlStatement );
+
+            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
+            axiosCallToGetTableRows( multiSearchSqlStatement , primaryKey );
         }
     }
 

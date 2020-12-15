@@ -13,15 +13,14 @@ import { WorkspaceContext } from '../context/WorkspaceContext';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import CustomAutoCompleteComp from '../features/GridComponents/CustomAutoCompleteComp';
 import WorkTab from '../features/Tabs/WorkTab';
+import { getSearchFieldValue } from '../sql_statements';
 
-const ETLFrameworkUseAuthOKTA = () => {
+const ETLFrameworkUseAuthOKTA = ( props ) => {
     const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
+
+    console.log(props);
 
     const { authState, authService } = useOktaAuth();
 
@@ -54,7 +53,9 @@ const ETLFrameworkUseAuthOKTA = () => {
         tableLoaded, 
         tableSearching,
 
-        editMode
+        editMode,
+
+        axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
     useEffect(() => {
@@ -62,36 +63,37 @@ const ETLFrameworkUseAuthOKTA = () => {
         debug && console.log('APP IDs', appIDs);
     }, [appIDs])
 
-    // useEffect(() => {
-    //     debug && console.log('Update Button Clicked, editMode: ', editMode);
-    // }, [editMode])
+    useEffect(()=>{
+        if(props['location']['state'] !== undefined){
+            setTable('ETLF_EXTRACT_CONFIG');
 
-    // const testCors = () => {
-    //     const { accessToken } = authState;
-    //     const proposed_get_statenent = 'SELECT ETLF_SYSTEM_CONFIG_ID, SYSTEM_CONFIG_TYPE, SYSTEM_CONFIG_DESCRIPTION, SYSTEM_CONFIG_JSON FROM SHARED_TOOLS_DEV.ETL.ETLF_SYSTEM_CONFIG;';
+            let currentSearchObj=  props['location']['state'];
 
-    //     // const getURL = 'https://qkn5syfrye.execute-api.us-east-1.amazonaws.com/Dev/select';
-    //     const getURL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
-        
-    //     axios.get(getURL, {
-    //         headers: {
-    //             'type': 'TOKEN',
-    //             'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-    //             'authorizorToken': accessToken
-    //         },
-    //         params: {
-    //             sql_statement: proposed_get_statenent,
-    //             tableName: "ETLF_SYSTEM_CONFIG",
-    //             database: "SHARED_TOOLS_DEV",
-    //             schema: "ETL",
-    //         }
-    //     })
-    //         //have to setState in .then() due to asynchronous opetaions
-    //         .then(response => {
-    //             debug && console.log("Result from TEST CORS:", response.data);
-    //         })
-    //         .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
-    // }
+            console.log("use search sstatement to fetch only target value")
+            
+            // let searchStmt = 
+            // `SELECT ec.*
+            // , COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            // row_number() OVER(ORDER BY ec.`+ 'GROUP_ID' +` ASC) rn,
+            // COUNT(*) OVER() total_num_rows
+            // FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
+            // JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
+            // ON ec.` + 'GROUP_ID' + ` = auth.APP_ID AND auth.USERNAME = '`
+            //         + username.toLowerCase() + `'
+            // WHERE ` + getSearchFieldValue(currentSearchObj) + `
+            // ;`;
+
+            let searchStmt = 
+            `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+            FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
+            WHERE ` + getSearchFieldValue(currentSearchObj) + `
+            ;`;
+
+            console.log(searchStmt);
+
+            axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
+        }
+    }, [])
 
     const AccessControlInfo = () => (
         <div className="userInfo">
