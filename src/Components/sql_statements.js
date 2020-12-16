@@ -58,12 +58,36 @@ export const search_multi_field_catalog = (db, schema, table, currentSearchObj, 
     FROM "`+
         db + `"."` +
         schema + `"."` +
-        table + `" ec
+        table + `" ec 
     WHERE ` + getSearchFieldValue(currentSearchObj) + `
     );`;
     
 return sql_statement;
 }
+
+export const search_multi_field_catalog_with_Extra_columns_joined = (
+    db, schema, table, 
+    currentSearchObj, 
+    joinedTable, extraColumns, joinedColumn
+) => {
+    console.log(currentSearchObj);
+
+    // SELECT joined.TARGET_DATABASE, joined.TARGET_SCHEMA, joined.TARGET_TABLE, ec.*, 'READ ONLY' AS PRIVILEGE
+
+    let extraJoinedColumns = '';
+    extraColumns.map(col => extraJoinedColumns += 'joined.' + col + ', ');
+    console.log(extraJoinedColumns);
+
+    let sql_statement = `SELECT ` + extraJoinedColumns + ` ec.*, 'READ ONLY' AS PRIVILEGE
+    FROM "`+ db + `"."` + schema + `"."` + table + `" ec ` + `
+    JOIN "`+ db + `"."` + schema + `"."` + joinedTable + `" joined ` + `
+    ON ec.` + joinedColumn + ' = joined.' + joinedColumn + `
+    WHERE ` + getSearchFieldValue(currentSearchObj) + 
+    `ORDER BY joined.TARGET_DATABASE, joined.TARGET_SCHEMA, joined.TARGET_TABLE;`;
+    
+    return sql_statement;
+}
+           
 
 export const getSearchFieldValue = (currentSearchObj) => {
     let res = ''

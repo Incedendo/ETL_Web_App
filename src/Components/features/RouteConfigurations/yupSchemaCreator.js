@@ -16,7 +16,7 @@ export function createYupSchema(schema, config) {
     });
     schema[id] = validator;
 
-    console.log(schema);
+    // console.log(schema);
 
     return schema;
 }

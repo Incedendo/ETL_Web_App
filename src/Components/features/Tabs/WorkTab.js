@@ -45,7 +45,7 @@ const WorkTab = () => {
         // <div className={"card expanded-height"}>
        
         <div style={{
-            "margin-bottom":"30px",
+            "marginBottom":"30px",
         }}>
             <div style={{
                 "display": "inline-block",
@@ -85,7 +85,7 @@ const WorkTab = () => {
     )
 
     const LoadableSearchModal = ({ groupIDColumn }) => (
-        <>
+        <div style={{ 'float': 'left' }}>
             { !columnsLoaded ? 
                 <div style={{ 'float': 'left' }} className="central-spinning-div">
                     <Spinner
@@ -95,7 +95,7 @@ const WorkTab = () => {
                         role="status"
                         aria-hidden="true"
                     />
-                    <span style={{ 'marginLeft': '5px' }}>loading...</span>
+                    <span style={{ 'marginLeft': '15px' }}>loading...</span>
                 </div>
                 :
                 <>
@@ -113,7 +113,7 @@ const WorkTab = () => {
                     <SearchModal_CustomCode /> 
                 </>
             }
-        </>
+        </div>
     )
 
     const handleRemovePK = value => {
@@ -177,7 +177,7 @@ const WorkTab = () => {
     return (
         <div style={{
             "display": "flex",
-            "flex-direction": "column"
+            "flexDirection": "column"
         }}> 
             <TableConfigPanel />
 
@@ -190,7 +190,7 @@ const WorkTab = () => {
                 <div style={{
                     "position":"relative",
                     "display": "inline-block",
-                    "align-items": "center",
+                    "alignItems": "center",
                 }}>
                     <Spinner
                         as="span"

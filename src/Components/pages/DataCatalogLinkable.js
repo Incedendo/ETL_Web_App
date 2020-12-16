@@ -4,25 +4,23 @@ import {
     useOktaAuth
 } from '@okta/okta-react';
 
+import Table from '../features/GenericTable/Table';
 import ConfigurationGrid from '../features/GridComponents/Grids/ConfigurationGrid';
-import DatCat_ControlPanel from '../features/DataCatalog/DatCat_ControlPanelLinked';
+import DatCat_ControlPanelLinked from '../features/DataCatalog/DatCat_ControlPanelLinked';
 
-const DataCatalog = () => {
+
+const DataCatalogLinkable = (props) => {
+    console.log(props);
     const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
-
-    const {
-        setTable,
-        tableLoaded,setTableLoaded,
-    } = useContext(WorkspaceContext);
 
     const { authState, authService } = useOktaAuth();
     // const [table, setTable] = useState('CATALOG_ENTITY_LINEAGE');
     // const [tableList, setTableList] = useState([]);
 
-    useEffect(()=> {
-        setTable('CATALOG_ENTITY_LINEAGE');
-    }, []);
+    const {
+        tableLoaded
+    } = useContext(WorkspaceContext);
 
     const login = async () => {
         // Redirect to '/' after login
@@ -46,10 +44,11 @@ const DataCatalog = () => {
                 tableName={'CATALOG_ENTITY_LINEAGE'}
                 route={"Test"}
                 isDataCatalog={true}
+                linkState={props.location.state}
             /> */}
 
-            <div>
-                <DatCat_ControlPanel/>
+            <div>   
+                <DatCat_ControlPanelLinked linkState={props.location.state}/>
                 { tableLoaded && <ConfigurationGrid/> }
             </div>
 
@@ -59,4 +58,4 @@ const DataCatalog = () => {
         <button onClick={login}>Log In</button>;
 }
 
-export default DataCatalog;
+export default DataCatalogLinkable;

@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from "react-router-dom";
 import { WorkspaceContext } from '../../context/WorkspaceContext';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Dropdown from 'react-bootstrap/Dropdown';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import Button from 'react-bootstrap/Button';
 
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
-
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
+import LinkLogo16 from '../../../media/LinkIcon/link16x16.svg';
+import LinkLogo12 from '../../../media/LinkIcon/link12x12.svg';
+import '../../../css/codeField.scss';
+// import '../../../css/'
 
 const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled, setEditMessage }) => {
 
@@ -70,6 +77,11 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
     }
 
     //perform on the spot type validation for each field
+    const fieldsWithLinks = Object.keys(fieldTypesConfigs[table]['links'])
+
+    const linksArr = fieldTypesConfigs[table]['links'][field];
+    console.log(linksArr);
+
     return (
 
         <div
@@ -77,10 +89,66 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
             style={{
                 "textAlign": "left"
             }}>
+            
+            <div>
+                
+                {fieldsWithLinks.indexOf(field) >= 0 
+                 && <div style={{'float': 'left'}}>
+                    <Dropdown as={ButtonGroup}>
+                        {/* <Button variant="success">Split Button</Button> */}
 
-            <div style={{ "marginTop": "20px", "fontWeight": "bold" }}>
-                {fieldArray[0]}:
+                        <Dropdown.Toggle split variant="success" id="dropdown-split-basic" />
+
+                        <Dropdown.Menu>
+                            {linksArr.map(linkObject => 
+                                <Dropdown.Item 
+                                    // bsPrefix='link-dropdown'
+                                >
+                                    <Link 
+                                        to={{
+                                            pathname: linkObject['LINK'],
+                                            state: {
+                                                'table': linkObject['TABLE'],
+                                                'searchObj':{
+                                                    [field]: checked_val
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        <img 
+                                            style={{'float': 'left'}} 
+                                            src={LinkLogo12} 
+                                            alt="React Logo" 
+                                            title={'This will link to table ' + linkObject['TABLE']}
+                                        />
+                                    </Link>
+                                </Dropdown.Item>
+                                
+                            )}
+                        </Dropdown.Menu>
+                    </Dropdown>
+
+                    {/* <Link 
+                        to={{
+                            pathname: fieldTypesConfigs[table]['links'][field][0]['LINK'],
+                            state: {
+                                [field]: checked_val
+                            }
+                        }}
+                    >
+                        <img 
+                            style={{'float': 'left'}} 
+                            src={LinkLogo12} 
+                            alt="React Logo" 
+                            title={'This will link to table ' + fieldTypesConfigs[table]['links'][field][0]['TABLE']}
+                        />
+                    </Link> */}
+                </div>}
+                <div style={{ "marginTop": "20px", "fontWeight": "bold" }}>
+                    {fieldArray[0]}:
+                </div>
             </div>
+            
 
             <Editor
                 value={value}
@@ -92,28 +160,11 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
                 padding={10}
                 style={{
                     fontFamily: '"Fira code", "Fira Mono", monospace',
-                    fontSize: 15,
+                    fontSize: 25,
                 }}
             />
 
-            {Object.keys(fieldTypesConfigs[table]['links']).indexOf(field) >= 0 
-            && <>
-                <a href={fieldTypesConfigs[table]['links'][field]['LINK'] + '/'}>
-                    Link to {fieldTypesConfigs[table]['links'][field]['TABLE']}
-                </a>
-
-                <Link 
-                    to={{
-                        pathname: fieldTypesConfigs[table]['links'][field]['LINK'],
-                        state: {
-                            [field]: checked_val
-                        }
-                    }}
-                >
-                    Link to {fieldTypesConfigs[table]['links'][field]['TABLE']}
-                </Link>
-            </>
-            }
+            
 
         </div>
     )

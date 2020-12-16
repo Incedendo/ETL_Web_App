@@ -65,7 +65,10 @@ export const fieldTypesConfigs = {
         },
         dropdownFields: {},
         'links':{
-            
+            'EMAIL': {
+                'TABLE': 'DATA_DOMAIN', //linked through DATA_STEWARD_DOMAIN -- 3 table search
+                'LINK': '/datacataloglinked'
+            },
         }
     },
 
@@ -81,7 +84,10 @@ export const fieldTypesConfigs = {
         },
         dropdownFields: {},
         'links':{
-            
+            'DOMAIN': {
+                'TABLE': 'CATALOG_ENTITIES', //linked through CATALOG_ENTITY_DOMAIN -- 3 table search
+                'LINK': '/datacataloglinked'
+            },
         }
     },
 
@@ -138,7 +144,16 @@ export const fieldTypesConfigs = {
             'TARGET_TABLE': []
         },
         'links':{
-            
+            'CATALOG_ENTITIES_HASH': [
+                {
+                    'TABLE': 'CATALOG_ITEMS',
+                    'LINK': '/datacataloglinked'
+                },
+                {
+                    'TABLE': 'CATALOG_ENTITY_LINEAGE',
+                    'LINK': '/datacataloglinked'
+                }
+            ]
         }
     },
 
@@ -163,7 +178,16 @@ export const fieldTypesConfigs = {
         },
         dropdownFields: {},
         'links':{
-            
+            'CATALOG_ENTITIES_HASH': [
+                {
+                    'TABLE': 'CATALOG_ENTITIES',
+                    'LINK': '/datacataloglinked'
+                },
+                {
+                    'TABLE': 'CATALOG_ENTITY_LINEAGE',
+                    'LINK': '/datacataloglinked'
+                }
+            ]
         }
     },
 
@@ -197,22 +221,38 @@ export const fieldTypesConfigs = {
             'CATALOG_ENTITIES': [],
         },
         'links': {
-            'EXTRACT_CONFIG_ID': {
+            'EXTRACT_CONFIG_ID': [
+                {
+                    'TABLE': 'ETLF_EXTRACT_CONFIG',
+                    'LINK': '/etlframework'
+                },
+                {
+                    'TABLE': 'ETLF_EXTRACT_CONFIG',
+                    'LINK': '/etlframework'
+                },
+                {
+                    'TABLE': 'ETLF_EXTRACT_CONFIG',
+                    'LINK': '/etlframework'
+                }
+            ],
+            'SOURCE_TABLE': [{
+                'TABLE': 'ETLF_EXTRACT_CONFIG',
+                'LINK': '/etlframework/'
+            }],
+            'EXTRACT_SCHEMA': [{
                 'TABLE': 'ETLF_EXTRACT_CONFIG',
                 'LINK': '/etlframework'
-            },
-            // 'CONFIG_NAME': {
-            //     'TABLE': 'ETLF_EXTRACT_CONFIG',
-            //     'LINK': '/etlframework'
-            // },
-            'SOURCE_TABLE': {
-                'TABLE': 'ETLF_EXTRACT_CONFIG',
-                'LINK': '/etlframework'
-            },
-            'EXTRACT_SCHEMA': {
-                'TABLE': 'ETLF_EXTRACT_CONFIG',
-                'LINK': '/etlframework'
-            }
+            }],
+            'CATALOG_ENTITIES_HASH': [
+                {
+                    'TABLE': 'CATALOG_ITEMS',
+                    'LINK': '/datacataloglinked'
+                },
+                {
+                    'TABLE': 'CATALOG_ENTITIES',
+                    'LINK': '/datacataloglinked'
+                }
+            ]
         }
     }
 }
@@ -224,6 +264,8 @@ export const autofilledFields = {
     LASTMODIFIEDDT: 'CURRENT_TIMESTAMP:: timestamp_ntz',
 };
 
-export const ETLF_tables = ['ETLF_EXTRACT_CONFIG', 'ETLFCALL', 'ETLF_CUSTOM_CODE']
+export const ETLF_tables = ['ETLF_EXTRACT_CONFIG', 'ETLFCALL', 'ETLF_CUSTOM_CODE'];
+export const joinedTableDataCatalog = ['CATALOG_ITEMS'];
+
 
 export const CatalogTableConfigs = {};

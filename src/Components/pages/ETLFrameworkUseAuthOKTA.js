@@ -67,7 +67,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         if(props['location']['state'] !== undefined){
             setTable('ETLF_EXTRACT_CONFIG');
 
-            let currentSearchObj=  props['location']['state'];
+            let currentSearchObj=  props['location']['state']['searchObj'];
 
             console.log("use search sstatement to fetch only target value")
             

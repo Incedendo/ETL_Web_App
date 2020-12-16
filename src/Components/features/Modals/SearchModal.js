@@ -2,14 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Dropdown from 'react-bootstrap/Dropdown';
 import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
-import { search_multi_field, search_multi_field_catalog } from '../../sql_statements';
+import { search_multi_field, search_multi_field_catalog, search_multi_field_catalog_with_Extra_columns_joined } from '../../sql_statements';
 import '../../../css/mymodal.scss';
 import axios from 'axios';
 
 import { ETLF_tables } from '../../context/FieldTypesConfig';
+import { joinedTableDataCatalog } from '../../context/FieldTypesConfig';
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 
@@ -72,8 +75,10 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
                 multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
-            }
-            else{
+            }else if(joinedTableDataCatalog.indexOf(table) >= 0){
+                multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, 'CATALOG_ENTITIES', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'], 'CATALOG_ENTITIES_HASH');
+                
+            }else{
                 // console.log("table NOTTTTTT in ETLF Framework");
                 multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
             }
@@ -81,6 +86,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
             debug && console.log(multiSearchSqlStatement);
 
             const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
+            console.log(primaryKey);
             axiosCallToGetTableRows( multiSearchSqlStatement , primaryKey );
         }
     }
@@ -117,11 +123,28 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                 <Modal.Body>
                     <div className="body-height">
                         <div className="display-flex">
-                            <CustomAutoCompleteComponent
+                            {/* <CustomAutoCompleteComponent
                                 list={remainingColumns}
                                 setTarget={val => handleAddSearchField(val)}
                                 autoSuggestModalClassName="auto-suggest-box-modal"
-                            />
+                            /> */}
+
+                            <DropdownButton
+                                id="dropdown-basic-button"
+                                size="sm"
+                                title={'Select Search Field'}
+                            >
+                                {remainingColumns.map(val => (
+                                    <Dropdown.Item 
+                                        as="button" 
+                                        key={val}
+                                        onSelect={()=>{handleAddSearchField(val)}}
+                                    >
+                                        {val}
+                                    </Dropdown.Item>
+                                )
+                                )}
+                            </DropdownButton>
 
                             <div className="search-count">
                                 {/* Search Criteria ({Object.keys(currentSearchObj).length} items) */}

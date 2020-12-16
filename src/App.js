@@ -10,6 +10,7 @@ import HomeNew from './Components/pages/HomeNew';
 import ETLFramework from './Components/pages/ETLFramework';
 import ETLFrameworkUseAuthOKTA from './Components/pages/ETLFrameworkUseAuthOKTA';
 import DataCatalog from './Components/pages/DataCatalog';
+import DataCatalogLinkable from './Components/pages/DataCatalogLinkable';
 import Login from './Components/auth/Login';
 import Login1 from './Components/auth/Login1';
 import Logout from './Components/pages/Logout';
@@ -61,6 +62,7 @@ const App = () => {
               <Route exact={true} path="/" component={HomeNew} />
               <SecureRoute exact path = "/etlframework" component = {ETLFrameworkUseAuthOKTA} />
               <SecureRoute exact path = "/datacatalog" component = {DataCatalog} />
+              <SecureRoute exact path = "/datacataloglinked" component = {DataCatalogLinkable} />
               <Route path='/login' render={() => <Login baseUrl='https://devaigtech.oktapreview.com' />} />
               <Route path='/logged_out' component={Logout} />
               <Route path='/implicit/callback' component={LoginCallback} />

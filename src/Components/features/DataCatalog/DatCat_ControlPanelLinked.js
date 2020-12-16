@@ -41,38 +41,7 @@ const DropDown = ({ target, currentVal, menus, table, setState }) => {
     )
 }
 
-// const TableOptions = () => (
-//     <div style={{ 'height': '90px' }}>
-//         <div className="InlineDiv db-div">
-//             <div className="label-text db-text">Catalog table:</div>
-//             <DropDown 
-//                 target='Table' 
-//                 currentVal={table} 
-//                 menus={[ 
-//                     'DATA_STEWARD', 
-//                     'DATA_DOMAIN',
-//                     'DATA_STEWARD_DOMAIN',
-//                     'CATALOG_ENTITY_DOMAIN',
-//                     'CATALOG_ENTITIES',
-//                     'CATALOG_ITEMS',
-//                     'CATALOG_ENTITY_LINEAGE'
-//                 ]} 
-//                 setState={setTable} />
-//         </div>
-
-//         {/* <div className="InlineDiv auto-complete-outerDiv">
-//             <div className="auto-complete-div-margin">
-//                 <div className="label-text">Table:</div>
-//                 <CustomAutoCompleteComp
-//                     list={tableList}
-//                     setTarget={setTable}
-//                     autoSuggestModalClassName="auto-suggest-box" />
-//             </div>
-//         </div> */}
-//     </div>
-// )
-
-const DatCat_ControlPanel = () => {
+const DatCat_ControlPanelLinked = ({ linkState } ) => {
 
     const {
         debug,
@@ -86,6 +55,9 @@ const DatCat_ControlPanel = () => {
 
     const { authState, authService } = useOktaAuth();
 
+
+    const [updatedTable, setUpdatedTable] = useState(false);
+    const [primaryKey, setPrimaryKeys] = useState([]);
     const [datCatSchema, setSchema] = useState([]);
     const [fields, setFields] = useState([]);
     const [codeFields, setCodeFields] = useState(fieldTypesConfigs[table]["codeFields"]);
@@ -95,23 +67,94 @@ const DatCat_ControlPanel = () => {
 
     const [insertError, setInsertError] = useState('');
 
+    
+
     useEffect(() =>{
+        if(linkState !== undefined){
+            const linkedTable = linkState['table'];
+            const currentSearchObj=  linkState['searchObj'];
+            setTable(linkedTable);
+            setUpdatedTable(true);
+        }
+        
+        
         console.log(dropdownFields);
-    }, [dropdownFields]);
+    }, []);
+
+    // useEffect(() =>{
+    //     console.log(dropdownFields);
+    // }, [dropdownFields]);
+
+    useEffect(() =>{
+        console.log(primaryKey);
+    }, []);
 
     // Set dropdown for composite tables
     useEffect(() => {
-        if(table === 'DATA_STEWARD_DOMAIN'){
-            prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
+        // if(table === linkedTable){
+        if(updatedTable){
+            setPrimaryKeys(fieldTypesConfigs[table]['primaryKeys']);
+            if(table === 'DATA_STEWARD_DOMAIN'){
+                prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
+            }
+            else if(table === 'CATALOG_ENTITY_DOMAIN'){
+                prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
+            }else if(table === 'CATALOG_ENTITY_LINEAGE'){
+                prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_LINEAGE();
+            }else{
+                setLoadedConfig(true);
+            }
+    
+            console.log(table);
+    
+            //table can be still ETLF_EXTRACT_CONFIG or ETLFCALL or CUSTOMCODE, hence need to make sure it's updated before fetching 
+            if([ 
+                'DATA_STEWARD', 
+                'DATA_DOMAIN',
+                'DATA_STEWARD_DOMAIN',
+                'CATALOG_ENTITY_DOMAIN',
+                'CATALOG_ENTITIES',
+                'CATALOG_ITEMS',
+                'CATALOG_ENTITY_LINEAGE',
+            ].indexOf(table) >= 0){
+                //check if table has code fields
+                // setCodeFields(fieldTypesConfigs[table]["codeFields"]);
+    
+                //check if table has dropdown fields
+                // setDropdownFields(fieldTypesConfigs[table]["dropdownFields"]);
+    
+                let formValidationsInfo = [];
+                
+                let requiredFields = Object.keys(fieldTypesConfigs[table]["dataTypes"]);
+                console.log(requiredFields);
+                requiredFields.map(col => {
+                    let custom_config = {};
+                    custom_config.id = col;
+                    // custom_config.placeholder = "this field is required";
+                    custom_config.validationType = fieldTypesConfigs[table]["dataTypes"][col];
+                    if(table === 'DATA_STEWARD_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN'){
+                        custom_config.validations = [
+                            {
+                                type: "required",
+                                params: ["this field is required"]
+                            }
+                        ];
+                    }
+                    formValidationsInfo.push(custom_config);
+                });
+    
+                // debug && console.log(formValidationsInfo);
+                let temp_schema = formValidationsInfo.reduce(createYupSchema, {});
+    
+                // debug && console.log(temp_schema);
+                let yup_schema = yup.object().shape(temp_schema);
+    
+                //have to use setState here to FORCE UPDATE the object in the form
+                setSchema(yup_schema);
+                setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
+            }
         }
-        else if(table === 'CATALOG_ENTITY_DOMAIN'){
-            prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
-        }else if(table === 'CATALOG_ENTITY_LINEAGE'){
-            prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_LINEAGE();
-        }else{
-            setLoadedConfig(true);
-        }
-    }, [table]);
+    }, [table, updatedTable]);
 
     const prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN = () => {
         if (authState.isAuthenticated && username !== '') {
@@ -317,57 +360,31 @@ const DatCat_ControlPanel = () => {
         }
     }
 
+    //***************************************************************************** */
+    // EXPERIMENTAL FEATURE WITH LINKABLE TABLE
+    //
+    //
+    //
+    //
+    //***************************************************************************** */
     useEffect(()=>{
-        
-        console.log(table);
-
-        //table can be still ETLF_EXTRACT_CONFIG or ETLFCALL or CUSTOMCODE, hence need to make sure it's updated before fetching 
-        if([ 
-            'DATA_STEWARD', 
-            'DATA_DOMAIN',
-            'DATA_STEWARD_DOMAIN',
-            'CATALOG_ENTITY_DOMAIN',
-            'CATALOG_ENTITIES',
-            'CATALOG_ITEMS',
-            'CATALOG_ENTITY_LINEAGE',
-        ].indexOf(table) >= 0){
-            //check if table has code fields
-            // setCodeFields(fieldTypesConfigs[table]["codeFields"]);
-
-            //check if table has dropdown fields
-            // setDropdownFields(fieldTypesConfigs[table]["dropdownFields"]);
-
-            let formValidationsInfo = [];
+        // if(linkState !== undefined){
+        if(loadedConfig){
+            console.log("use search sstatement to fetch only target value")
             
-            let requiredFields = Object.keys(fieldTypesConfigs[table]["dataTypes"]);
-            console.log(requiredFields);
-            requiredFields.map(col => {
-                let custom_config = {};
-                custom_config.id = col;
-                // custom_config.placeholder = "this field is required";
-                custom_config.validationType = fieldTypesConfigs[table]["dataTypes"][col];
-                if(table === 'DATA_STEWARD_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN'){
-                    custom_config.validations = [
-                        {
-                            type: "required",
-                            params: ["this field is required"]
-                        }
-                    ];
-                }
-                formValidationsInfo.push(custom_config);
-            });
+            // 
 
-            // debug && console.log(formValidationsInfo);
-            let temp_schema = formValidationsInfo.reduce(createYupSchema, {});
+            let searchStmt = 
+            `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+            FROM "SHARED_TOOLS_DEV"."ETL"."` + table + `" ec
+            WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
+            ;`;
 
-            // debug && console.log(temp_schema);
-            let yup_schema = yup.object().shape(temp_schema);
-
-            //have to use setState here to FORCE UPDATE the object in the form
-            setSchema(yup_schema);
-            setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
+            console.log(searchStmt);
+            console.log(primaryKey);
+            axiosCallToGetTableRows(searchStmt, primaryKey);
         }
-    }, [table]);
+    }, [loadedConfig]);
 
     return (
         <>
@@ -430,4 +447,4 @@ const DatCat_ControlPanel = () => {
     )
 }
 
-export default DatCat_ControlPanel;
+export default DatCat_ControlPanelLinked;
