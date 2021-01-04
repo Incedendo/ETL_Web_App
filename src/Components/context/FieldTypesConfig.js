@@ -96,13 +96,13 @@ export const fieldTypesConfigs = {
         // primaryKeys: ['DATA_STEWARD_ID'],
 
         dataTypes:{
-            'DATA_DOMAIN': 'string',
-            'DATA_STEWARD': 'string',
+            'DOMAIN': 'string',
+            'EMAIL': 'string',
         },
         codeFields: {},
         dropdownFields: {
-            'DATA_DOMAIN': [], //SHOW DATA DOMAIN BUT GET DATA_DOMAIN_ID
-            'DATA_STEWARD': [] // SHOW DATA_STEWARD BUT GET DATA_STEWARD_ID 
+            'DOMAIN': [], //SHOW DATA DOMAIN BUT GET DATA_DOMAIN_ID
+            'EMAIL': [] // SHOW DATA_STEWARD BUT GET DATA_STEWARD_ID 
         },
         'links':{
             
@@ -113,12 +113,12 @@ export const fieldTypesConfigs = {
     CATALOG_ENTITY_DOMAIN: {
         // primaryKeys: ['CATALOG_ENTITIES_HASH'],
         dataTypes:{
-            'DATA_DOMAIN': 'string',
+            'DOMAIN': 'string',
             'CATALOG_ENTITIES': 'string',
         },
         codeFields: {},
         dropdownFields: {
-            'DATA_DOMAIN': [],
+            'DOMAIN': [],
             'CATALOG_ENTITIES': []
         },
         'links':{
@@ -243,16 +243,16 @@ export const fieldTypesConfigs = {
                 'TABLE': 'ETLF_EXTRACT_CONFIG',
                 'LINK': '/etlframework'
             }],
-            'CATALOG_ENTITIES_HASH': [
-                {
-                    'TABLE': 'CATALOG_ITEMS',
-                    'LINK': '/datacataloglinked'
-                },
-                {
-                    'TABLE': 'CATALOG_ENTITIES',
-                    'LINK': '/datacataloglinked'
-                }
-            ]
+            // 'CATALOG_ENTITIES_HASH': [
+            //     {
+            //         'TABLE': 'CATALOG_ITEMS',
+            //         'LINK': '/datacataloglinked'
+            //     },
+            //     {
+            //         'TABLE': 'CATALOG_ENTITIES',
+            //         'LINK': '/datacataloglinked'
+            //     }
+            // ]
         }
     }
 }
@@ -265,7 +265,24 @@ export const autofilledFields = {
 };
 
 export const ETLF_tables = ['ETLF_EXTRACT_CONFIG', 'ETLFCALL', 'ETLF_CUSTOM_CODE'];
-export const joinedTableDataCatalog = ['CATALOG_ITEMS'];
+
+export const compositeTables = {
+    'DATA_STEWARD_DOMAIN': {},
+    'CATALOG_ENTITY_DOMAIN':{},
+};
+
+export const joinedTableDataCatalog = {
+    'CATALOG_ITEMS': {
+        'joinedTable': 'CATALOG_ENTITIES',
+        'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
+        'joinedCriterion': 'CATALOG_ENTITIES_HASH'
+    },
+    'CATALOG_ENTITY_LINEAGE': {
+        'joinedTable': 'CATALOG_ENTITIES',
+        'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
+        'joinedCriterion': 'CATALOG_ENTITIES_HASH'
+    }
+};
 
 
 export const CatalogTableConfigs = {};

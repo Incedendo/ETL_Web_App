@@ -38,7 +38,7 @@ const DataCatalogLinkable = (props) => {
 
     return authState.isAuthenticated ?
         <div className="App container">
-           
+            DataCatalogLinkable
             {/* <Table
                 privilege={"READ ONLY"}
                 tableName={'CATALOG_ENTITY_LINEAGE'}

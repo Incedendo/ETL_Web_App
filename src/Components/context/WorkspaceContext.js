@@ -184,6 +184,7 @@ export const WorkspaceProvider = (props) => {
         
     }, [username, authState]);
 
+    //prepare columns config with UseEffect
     useEffect(() => {
         let isMounted = true;
 
@@ -340,12 +341,21 @@ export const WorkspaceProvider = (props) => {
 
         setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
         setRows([]);
-        setRows(
+
+        const compositeKeys = primaryKey.split(',');
+        compositeKeys.length === 1
+        ? setRows(
             dbTableRows.map((row, index) => ({
                 id: row[primaryKey],
                 ...row
             }))
-        );
+        )
+        : setRows(
+            dbTableRows.map((row, index) => ({
+                id: row[compositeKeys[0]] + row[compositeKeys[1]],
+                ...row
+            }))
+        )
     }
 
     useEffect(() => {
@@ -631,7 +641,11 @@ export const WorkspaceProvider = (props) => {
         if(data.length != 0){
             let headers = data.map(row => row.COLUMN_NAME)
             //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
-            headers.push("PRIVILEGE")
+            headers.push("PRIVILEGE");
+            if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
+                console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
+                headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
+            }
             if(headers.length === 0 )
                 return;
             const columns = headers.map(header => ({
@@ -795,8 +809,22 @@ export const WorkspaceProvider = (props) => {
             .then(response => {
                 // returning the data here allows the caller to get it through another .then(...)
                 // console.log('---------GET RESPONSE-----------');
-                debug && console.log(response.data);
-                loadTableRows(response.data, primaryKey); 
+                
+                let rows = response.data;
+                if(rows.length > 0 && (Object.keys(rows[0])).indexOf('CATALOG_ENTITIES_HASH') > -1){
+                    rows = rows.map(row => {
+                        let newObj ={}
+                        Object.keys(row).map(property => {
+                            if(property !== 'CATALOG_ENTITIES_HASH')
+                                newObj[property] = row[property]
+                        }) 
+                        return newObj;
+                    });
+                }
+                
+                debug && console.log(rows);
+
+                loadTableRows(rows, primaryKey); 
             })
             .catch(error => {
                 debug && console.log(error);

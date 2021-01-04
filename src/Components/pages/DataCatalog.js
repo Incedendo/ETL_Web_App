@@ -5,14 +5,14 @@ import {
 } from '@okta/okta-react';
 
 import ConfigurationGrid from '../features/GridComponents/Grids/ConfigurationGrid';
-import DatCat_ControlPanel from '../features/DataCatalog/DatCat_ControlPanelLinked';
+import DatCat_ControlPanel from '../features/DataCatalog/DatCat_ControlPanel';
 
 const DataCatalog = () => {
     const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
     const {
-        setTable,
+        table, setTable,
         tableLoaded,setTableLoaded,
     } = useContext(WorkspaceContext);
 
@@ -50,8 +50,19 @@ const DataCatalog = () => {
 
             <div>
                 <DatCat_ControlPanel/>
-                { tableLoaded && <ConfigurationGrid/> }
             </div>
+
+            { tableLoaded && 
+                <>
+                    <div style={{
+                        "textAlign": "left",
+                        "marginBottom": "10px"
+                    }}>
+                        Table: {table}
+                    </div>
+                    <ConfigurationGrid/> 
+                </>
+            }
 
             {/* <button onClick={logout}>Log Out</button> */}
         </div>

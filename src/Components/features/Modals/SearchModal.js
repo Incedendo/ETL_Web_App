@@ -7,12 +7,12 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
-import { search_multi_field, search_multi_field_catalog, search_multi_field_catalog_with_Extra_columns_joined } from '../../sql_statements';
+import { search_multi_field, search_multi_field_catalog, search_multi_field_catalog_with_Extra_columns_joined, search_composite_DATA_STEWARD_DOMAIN } from '../../sql_statements';
 import '../../../css/mymodal.scss';
 import axios from 'axios';
 
 import { ETLF_tables } from '../../context/FieldTypesConfig';
-import { joinedTableDataCatalog } from '../../context/FieldTypesConfig';
+import { joinedTableDataCatalog, compositeTables } from '../../context/FieldTypesConfig';
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 
@@ -33,10 +33,14 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
 
     const [show, setShow] = useState(false);
 
-    let temp_arr = columns.map(column => column.name);
-    // delete temp_arr["PRIVILEGE"];
+    let temp_arr = (Object.keys(compositeTables)).indexOf(table) < 0
+    ? columns.map(column => column.name)
+    : columns;
 
-    temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1)
+    if(temp_arr.indexOf("PRIVILEGE") > -1)
+        temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1)
+    
+    console.log("search columns: " + temp_arr);
     const [remainingColumns, setRemainingColumns] = useState(temp_arr);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [errors, setErrors] = useState({});
@@ -71,13 +75,24 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
         // const searchTable = 'ETLF_SYSTEM_CONFIG';
         console.log(table);
         if (verifySearchObj()) {
+            let primaryKey = fieldTypesConfigs[table]['primaryKeys'];
             let multiSearchSqlStatement = '';
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
                 multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
-            }else if(joinedTableDataCatalog.indexOf(table) >= 0){
-                multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, 'CATALOG_ENTITIES', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'], 'CATALOG_ENTITIES_HASH');
+            }else if((Object.keys(joinedTableDataCatalog)).indexOf(table) >= 0){
                 
+                const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
+                const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
+                const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
+
+                multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, joinedTable, joinedColumms, joinedCriterion); 
+                
+            }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
+                if(table === 'DATA_STEWARD_DOMAIN'){
+                    primaryKey = 'DATA_DOMAIN_ID,DATA_STEWARD_ID';
+                    multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+                }
             }else{
                 // console.log("table NOTTTTTT in ETLF Framework");
                 multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
@@ -85,9 +100,9 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                 
             debug && console.log(multiSearchSqlStatement);
 
-            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
-            console.log(primaryKey);
-            axiosCallToGetTableRows( multiSearchSqlStatement , primaryKey );
+            
+            // console.log(primaryKey);
+            // axiosCallToGetTableRows( multiSearchSqlStatement , primaryKey );
         }
     }
 

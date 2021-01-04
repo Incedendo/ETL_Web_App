@@ -11,7 +11,7 @@ import axios from 'axios';
 import * as yup from 'yup'; // for everything
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
 import { getSearchFieldValue } from '../../sql_statements';
-
+import { compositeTables } from '../../context/FieldTypesConfig';
 import '../../../css/workspace.scss';
 
 const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
@@ -96,11 +96,18 @@ const DatCat_ControlPanel = () => {
     const [insertError, setInsertError] = useState('');
 
     useEffect(() =>{
+        console.log(fields);
+    }, [fields]);
+
+    useEffect(() =>{
         console.log(dropdownFields);
-    }, [dropdownFields]);
+        console.log(dropdownObject);
+    }, [dropdownFields,dropdownObject]);
 
     // Set dropdown for composite tables
     useEffect(() => {
+        setLoadedConfig(false);
+        console.log(table);
         if(table === 'DATA_STEWARD_DOMAIN'){
             prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
         }
@@ -141,10 +148,11 @@ const DatCat_ControlPanel = () => {
                 response.data.map(item => {
                     domainObj[item['DOMAIN']] = item['DATA_DOMAIN_ID']
                 })
-                dropdownObj['DATA_DOMAIN'] = domainObj;
+                dropdownObj['DOMAIN'] = domainObj;
 
                 // 2 
-                const DATA_STEWARD_SQL = 'SELECT CONCAT(FNAME, \' - \', LNAME) DATA_STEWARD,DATA_STEWARD_ID FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD;';
+                // const DATA_STEWARD_SQL = 'SELECT CONCAT(FNAME, \' - \', LNAME) DATA_STEWARD,DATA_STEWARD_ID FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD;';
+                const DATA_STEWARD_SQL = 'SELECT EMAIL ,DATA_STEWARD_ID FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD;';
                 axios.get(SELECT_URL, {
                     headers: {
                         'type': 'TOKEN',
@@ -164,9 +172,9 @@ const DatCat_ControlPanel = () => {
                     
                     let stewardObj = {}
                     response.data.map(item => {
-                        stewardObj[item['DATA_STEWARD']] = item['DATA_STEWARD_ID']
+                        stewardObj[item['EMAIL']] = item['DATA_STEWARD_ID']
                     })
-                    dropdownObj['DATA_STEWARD'] = stewardObj;
+                    dropdownObj['EMAIL'] = stewardObj;
                 })
                 .catch(error => {
                     debug && console.log(error);
@@ -174,10 +182,10 @@ const DatCat_ControlPanel = () => {
                     console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
-                        'DATA_DOMAIN': Object.keys(dropdownObj['DATA_DOMAIN']), 
-                        'DATA_STEWARD': Object.keys(dropdownObj['DATA_STEWARD']) 
+                        'DOMAIN': Object.keys(dropdownObj['DOMAIN']), 
+                        'EMAIL': Object.keys(dropdownObj['EMAIL']) 
                     }
-                    
+                    console.log(dropdownCompositeFields);
                     setDropdownObject(dropdownObj);
                     setDropdownFields(dropdownCompositeFields);
 
@@ -190,6 +198,7 @@ const DatCat_ControlPanel = () => {
         }
     }
 
+    //prepopulate the dropdowns fields for the Modals
     const prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN = () => {
         if (authState.isAuthenticated && username !== '') {
             const { accessToken } = authState;
@@ -218,7 +227,7 @@ const DatCat_ControlPanel = () => {
                 response.data.map(item => {
                     domainObj[item['DOMAIN']] = item['DATA_DOMAIN_ID']
                 })
-                dropdownObj['DATA_DOMAIN'] = domainObj;
+                dropdownObj['DOMAIN'] = domainObj;
 
                 // 2 
                 const CATALOG_ENTITIES_SQL = `SELECT CONCAT(TARGET_DATABASE,\' - \', TARGET_SCHEMA,\' - \', TARGET_TABLE) ENTITY, CATALOG_ENTITIES_ID FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES ORDER BY TARGET_SCHEMA,TARGET_TABLE;`;
@@ -251,7 +260,7 @@ const DatCat_ControlPanel = () => {
                     console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
-                        'DATA_DOMAIN': Object.keys(dropdownObj['DATA_DOMAIN']), 
+                        'DOMAIN': Object.keys(dropdownObj['DOMAIN']), 
                         'CATALOG_ENTITIES': Object.keys(dropdownObj['CATALOG_ENTITIES']) 
                     }
                     
@@ -370,7 +379,8 @@ const DatCat_ControlPanel = () => {
     }, [table]);
 
     return (
-        <>
+        <div>
+            DatCat_ControlPanel
             <div style={{ 'float': 'left' }}>
                 Catalog table:
                 <DropDown 
@@ -401,31 +411,55 @@ const DatCat_ControlPanel = () => {
             />
                 
             <div style={{ 'padding-top': '10px', 'float': 'left' }}>
-                {!columnsLoaded ? 
-                    <div style={{'padding': '5px'}}>
-                        <Spinner
-                            as="span"
-                            animation="border"
-                            size="sm"
-                            role="status"
-                            aria-hidden="true"
+                { (Object.keys(compositeTables)).indexOf(table) < 0  
+                    ?
+                        !columnsLoaded
+                            ?<div style={{'padding': '5px'}}>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                />
+                                <span style={{ 'marginLeft': '5px' }}>loading columns...</span>
+                            </div>
+                            : 
+                            <SearchModal
+                                database={database} 
+                                schema={schema} 
+                                table={table} 
+                                groupIDColumn={'GroupID Not applicable for Catalog'}
+                                username={username} 
+                                columns={columns}
+                            />
+                    : 
+                        !loadedConfig
+                        ?<div style={{'padding': '5px'}}>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />
+                            <span style={{ 'marginLeft': '5px' }}>loading config...</span>
+                        </div>
+                        :<SearchModal
+                            database={database} 
+                            schema={schema} 
+                            table={table} 
+                            groupIDColumn={'GroupID Not applicable for Catalog'}
+                            username={username} 
+                            columns={Object.keys(dropdownObject)}
                         />
-                        <span style={{ 'marginLeft': '5px' }}>loading...</span>
-                    </div>
-                    :
-                    <SearchModal
-                        database={database} 
-                        schema={schema} 
-                        table={table} 
-                        groupIDColumn={'GroupID Not applicable for Catalog'}
-                        username={username} 
-                        columns={columns}
-                    /> 
                 }
+                    
             </div>
 
             {insertError !== '' && insertError}
-        </>
+        </div>
+
 
     )
 }

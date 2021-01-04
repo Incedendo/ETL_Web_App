@@ -67,16 +67,18 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
 
     const [insertError, setInsertError] = useState('');
 
-    
+    useEffect(() =>{
+        console.log(fields);
+    }, [fields]);
 
     useEffect(() =>{
         if(linkState !== undefined){
+            console.log(linkState);
             const linkedTable = linkState['table'];
             const currentSearchObj=  linkState['searchObj'];
             setTable(linkedTable);
             setUpdatedTable(true);
         }
-        
         
         console.log(dropdownFields);
     }, []);
@@ -92,6 +94,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
     // Set dropdown for composite tables
     useEffect(() => {
         // if(table === linkedTable){
+        console.log("UpdatedTable: " + updatedTable);
         if(updatedTable){
             setPrimaryKeys(fieldTypesConfigs[table]['primaryKeys']);
             if(table === 'DATA_STEWARD_DOMAIN'){
@@ -370,7 +373,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
     useEffect(()=>{
         // if(linkState !== undefined){
         if(loadedConfig){
-            console.log("use search sstatement to fetch only target value")
+            console.log("use search statement to fetch only target value")
             
             // 
 
@@ -388,6 +391,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
 
     return (
         <>
+            DatCat_ControlPanelLinked
             <div style={{ 'float': 'left' }}>
                 Catalog table:
                 <DropDown 
@@ -417,7 +421,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
                 setInsertError={setInsertError}
             />
                 
-            <div style={{ 'padding-top': '10px', 'float': 'left' }}>
+            <div style={{ 'paddingTop': '10px', 'float': 'left' }}>
                 {!columnsLoaded ? 
                     <div style={{'padding': '5px'}}>
                         <Spinner

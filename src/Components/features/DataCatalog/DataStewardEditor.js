@@ -30,8 +30,11 @@ const DataStewardEditor = ({
     const [validating, setValidating] = useState(false);
     const [initialStates, setInitialStates] = useState({});
 
+    console.log(fields);
+
     useEffect(() => {
-        debug && console.log("submit pressed....validating.....");
+        if(validating)
+            debug && console.log("submit pressed....validating.....");
     }, [validating]);
 
     function getMergeStatement(values) {
@@ -55,7 +58,9 @@ const DataStewardEditor = ({
     }
 
     return (
-        fields.length > 0 && loadedConfig ? 
+        fields.length > 0 
+        // && loadedConfig 
+        ? 
         <Formik
             validationSchema={schema}
 

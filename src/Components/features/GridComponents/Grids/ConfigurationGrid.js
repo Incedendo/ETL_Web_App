@@ -77,7 +77,7 @@ const ConfigurationGrid = () => {
     } = useContext(WorkspaceContext);
 
     const [grouping, setGrouping] = useState([
-        { columnName: 'PRIVILEGE' }
+        // { columnName: 'PRIVILEGE' }
     ]);
 
     const [defaultHiddenColumnNames] = useState([]);
