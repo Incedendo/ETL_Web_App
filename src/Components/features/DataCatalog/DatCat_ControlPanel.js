@@ -114,7 +114,9 @@ const DatCat_ControlPanel = () => {
         else if(table === 'CATALOG_ENTITY_DOMAIN'){
             prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
         }else if(table === 'CATALOG_ENTITY_LINEAGE'){
-            prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_LINEAGE();
+            prepareValuesFor_CATALOG_ENTITIES();
+        }else if(table === 'CATALOG_ITEMS'){
+            prepareValuesFor_CATALOG_ENTITIES();
         }else{
             setLoadedConfig(true);
         }
@@ -230,7 +232,12 @@ const DatCat_ControlPanel = () => {
                 dropdownObj['DOMAIN'] = domainObj;
 
                 // 2 
-                const CATALOG_ENTITIES_SQL = `SELECT CONCAT(TARGET_DATABASE,\' - \', TARGET_SCHEMA,\' - \', TARGET_TABLE) ENTITY, CATALOG_ENTITIES_ID FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES ORDER BY TARGET_SCHEMA,TARGET_TABLE;`;
+                const CATALOG_ENTITIES_SQL = 
+                `SELECT 
+                    CONCAT(TARGET_DATABASE,\' - \', TARGET_SCHEMA,\' - \', TARGET_TABLE) ENTITY, 
+                    CATALOG_ENTITIES_ID 
+                FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES 
+                ORDER BY TARGET_SCHEMA,TARGET_TABLE;`;
                 axios.get(SELECT_URL, {
                     headers: {
                         'type': 'TOKEN',
@@ -276,16 +283,15 @@ const DatCat_ControlPanel = () => {
         }
     }
 
-    const prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_LINEAGE = () => {
+    const prepareValuesFor_CATALOG_ENTITIES = () => {
         if (authState.isAuthenticated && username !== '') {
             const { accessToken } = authState;
             let dropdownObj = {}
-            
-            //1
+        
             const CATALOG_ENTITIES_SQL =
             `SELECT 
                 CONCAT(TARGET_DATABASE,'  -  ', TARGET_SCHEMA,'  -  ', TARGET_TABLE) CATALOG_ENTITIES, 
-                CATALOG_ENTITIES_HASH 
+                CATALOG_ENTITIES_ID , 
             FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
             ORDER BY TARGET_SCHEMA,TARGET_TABLE`;
             axios.get(SELECT_URL, {
@@ -307,7 +313,7 @@ const DatCat_ControlPanel = () => {
 
                 let domainObj = {}
                 response.data.map(item => {
-                    domainObj[item['CATALOG_ENTITIES']] = item['CATALOG_ENTITIES_HASH']
+                    domainObj[item['CATALOG_ENTITIES']] = item['CATALOG_ENTITIES_ID']
                 })
                 dropdownObj['CATALOG_ENTITIES'] = domainObj;
 
@@ -326,9 +332,12 @@ const DatCat_ControlPanel = () => {
         }
     }
 
+
     useEffect(()=>{
         
         console.log(table);
+
+        const requiredColumns = ['EMAIL', 'DOMAIN'];
 
         //table can be still ETLF_EXTRACT_CONFIG or ETLFCALL or CUSTOMCODE, hence need to make sure it's updated before fetching 
         if([ 
@@ -355,7 +364,8 @@ const DatCat_ControlPanel = () => {
                 custom_config.id = col;
                 // custom_config.placeholder = "this field is required";
                 custom_config.validationType = fieldTypesConfigs[table]["dataTypes"][col];
-                if(table === 'DATA_STEWARD_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN'){
+                // if(table === 'DATA_STEWARD_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN'){
+                if( (Object.keys(compositeTables)).indexOf(table) >= 0 || requiredColumns.indexOf(col) >= 0){
                     custom_config.validations = [
                         {
                             type: "required",

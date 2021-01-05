@@ -12,8 +12,6 @@ const table_primaryKeys = {
     "ETLFCALL": ["ETLFCALL_ID"],
     "DATA_STEWARD": ["DATA_STEWARD_ID"],
     "DATA_DOMAIN": ["DATA_DOMAIN_ID"],
-    "DATA_STEWARD_DOMAIN": [],
-    "CATALOG_ENTITY_DOMAIN": [],
     "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID"],
     "CATALOG_ENTITY_LINEAGE": ["CATALOG_ENTITY_LINEAGE_ID"],
     "CATALOG_ITEMS": ["CATALOG_ITEMS_ID"]
@@ -338,11 +336,13 @@ export const WorkspaceProvider = (props) => {
 
     //'EXTRACT_CONFIG_ID'
     const loadTableRows = (dbTableRows, primaryKey) => {
+        console.log(primaryKey[0]);
 
         setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
         setRows([]);
 
-        const compositeKeys = primaryKey.split(',');
+        const compositeKeys = primaryKey[0].split(',');
+        
         compositeKeys.length === 1
         ? setRows(
             dbTableRows.map((row, index) => ({

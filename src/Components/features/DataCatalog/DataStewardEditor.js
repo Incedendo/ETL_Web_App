@@ -3,13 +3,17 @@ import React, { useState, useEffect, useContext } from 'react';
 import {WorkspaceContext} from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { Formik, Field } from 'formik';
-import * as yup from 'yup'; // for everything
-import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
 import { generateMergeStatement } from '../../SQL_Operations/Insert';
 // import axios from 'axios';
 import Form from 'react-bootstrap/Form';
 import FormField from '../FormComponents/FormField';
 import Button from 'react-bootstrap/Button';
+
+import { 
+    merge_data_steward,
+    merge_data_domain,
+    merge_data_steward_domain,
+} from './datcatsql/datcat_merge';
 
 // const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
 // const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
@@ -31,6 +35,8 @@ const DataStewardEditor = ({
     const [initialStates, setInitialStates] = useState({});
 
     console.log(fields);
+    console.log(dropdownFields);
+    console.log(dropdownObject);
 
     useEffect(() => {
         if(validating)
@@ -69,28 +75,31 @@ const DataStewardEditor = ({
                 console.log('values: ', values);
                 console.log(dropdownObject);
                 // debug && 
-                console.log('Touched Object: ', touched);
+                // console.log('Touched Object: ', touched);
                 // setValidating(true);
                 
                 //all fields in values obj will be inserted to DB
                 // test_UniqueKeys_For_Insert(values);
+                let mergeStmt = "";
+
                 if(table === 'DATA_STEWARD_DOMAIN'){
                     let submitedValues = {
-                        'DATA_DOMAIN_ID': dropdownObject['DATA_DOMAIN'][values['DATA_DOMAIN']],
+                        'DATA_DOMAIN_ID': dropdownObject['DOMAIN'][values['DOMAIN']],
                         'DATA_STEWARD_ID': dropdownObject['DATA_STEWARD'][values['DATA_STEWARD']]
                     }
                     console.log(submitedValues);
 
-                    const mergeStmt = getMergeStatement(submitedValues);
+                    // mergeStmt = getMergeStatement(submitedValues);
+                    mergeStmt = merge_data_steward_domain(submitedValues);
                 }else if(table === 'CATALOG_ENTITY_DOMAIN'){
                     
                     let submitedValues = {
-                        'DATA_DOMAIN_ID': dropdownObject['DATA_DOMAIN'][values['DATA_DOMAIN']],
+                        'DATA_DOMAIN_ID': dropdownObject['DOMAIN'][values['DOMAIN']],
                         'CATALOG_ENTITIES_ID': dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']]
                     }
                     console.log(submitedValues);
 
-                    const mergeStmt = getMergeStatement(submitedValues);
+                    mergeStmt = getMergeStatement(submitedValues);
                 }else if(table === 'CATALOG_ENTITY_LINEAGE'){
 
                     let submitedValues = {...values};
@@ -99,12 +108,17 @@ const DataStewardEditor = ({
                     delete submitedValues['CATALOG_ENTITIES'];
                     console.log(submitedValues);
 
-                    const mergeStmt = getMergeStatement(submitedValues);
+                    mergeStmt = getMergeStatement(submitedValues);
                 }else{
-                    const mergeStmt = getMergeStatement(values);
+                    // mergeStmt = getMergeStatement(values);
+
+                    mergeStmt = merge_data_steward(values)
                 }
 
-                // setShow(false);
+                console.log(mergeStmt);
+
+                insertUsingMergeStatement(mergeStmt);
+                setShow(false);
             }}
             initialValues={initialStates}
         >

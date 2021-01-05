@@ -137,19 +137,24 @@ export const getSearchFieldValue = (currentSearchObj) => {
 
 const getMultiCompositeValues = (currentSearchObj, table, items) => {
     let res = '';
-    for (let item in currentSearchObj){
-        //item is the column
-        let value = items.indexOf(item) >= 0 ? currentSearchObj[item] : '';
-        if(Object.keys(currentSearchObj).indexOf(item) > 0){
-            res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER('%` + value + `%')
+    let dataDomainsObj = {}
+    for(let item in currentSearchObj)
+        if(items.indexOf(item) >=0)
+            dataDomainsObj[item] = currentSearchObj[item];
+    
+    // (Object.keys(currentSearchObj)).map(col => {
+    //     if(items.indexOf(col) >=0)
+    //         dataDomainsObj[item] = currentSearchObj[item];
+    // })
+    console.log(dataDomainsObj);
+
+    for (let item in dataDomainsObj){
+        if(Object.keys(dataDomainsObj).indexOf(item) > 0){
+            res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER('%` + dataDomainsObj[item] + `%')
             `;
-            // res += 'AND ' + 'ec.' + item + '=' + surroundWithQuotesIfString(currentSearchObj[item]) + `
-            // `;
         }else{
-            res += `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER('%` + value + `%')
+            res += `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER('%` + dataDomainsObj[item] + `%')
             `;
-            // res += 'ec.' + item + '=' + surroundWithQuotesIfString(currentSearchObj[item]) + `
-            // `;
         }
     }
     return res;

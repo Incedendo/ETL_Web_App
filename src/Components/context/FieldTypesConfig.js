@@ -176,7 +176,9 @@ export const fieldTypesConfigs = {
             // 'SEARCH_KEY': 'Enter your code here...',
             // 'COMMENTS': 'Enter your code here...',
         },
-        dropdownFields: {},
+        dropdownFields: {
+            'CATALOG_ENTITIES': [],
+        },
         'links':{
             'CATALOG_ENTITIES_HASH': [
                 {
@@ -275,12 +277,12 @@ export const joinedTableDataCatalog = {
     'CATALOG_ITEMS': {
         'joinedTable': 'CATALOG_ENTITIES',
         'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
-        'joinedCriterion': 'CATALOG_ENTITIES_HASH'
+        'joinedCriterion': 'CATALOG_ENTITIES_ID'
     },
     'CATALOG_ENTITY_LINEAGE': {
         'joinedTable': 'CATALOG_ENTITIES',
         'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
-        'joinedCriterion': 'CATALOG_ENTITIES_HASH'
+        'joinedCriterion': 'CATALOG_ENTITIES_ID'
     }
 };
 

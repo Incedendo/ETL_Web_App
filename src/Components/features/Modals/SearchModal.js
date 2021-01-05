@@ -7,7 +7,12 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
-import { search_multi_field, search_multi_field_catalog, search_multi_field_catalog_with_Extra_columns_joined, search_composite_DATA_STEWARD_DOMAIN } from '../../sql_statements';
+import { search_multi_field, 
+    search_multi_field_catalog, 
+    search_multi_field_catalog_with_Extra_columns_joined, 
+    search_composite_DATA_STEWARD_DOMAIN, 
+    search_composite_CATALOG_ENTITY_DOMAIN 
+} from '../../sql_statements';
 import '../../../css/mymodal.scss';
 import axios from 'axios';
 
@@ -37,8 +42,19 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
     ? columns.map(column => column.name)
     : columns;
 
+    if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ITEMS'){
+        if(temp_arr.indexOf("TARGET_DATABASE") < 0) 
+            temp_arr.push('TARGET_DATABASE');
+        if(temp_arr.indexOf("TARGET_SCHEMA") < 0)
+            temp_arr.push('TARGET_SCHEMA');
+        if(temp_arr.indexOf("TARGET_TABLE") < 0)
+            temp_arr.push('TARGET_TABLE');
+        if(temp_arr.indexOf('CATALOG_ENTITIES') > -1)
+            temp_arr.splice(temp_arr.indexOf('CATALOG_ENTITIES'),1);
+    }
+
     if(temp_arr.indexOf("PRIVILEGE") > -1)
-        temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1)
+        temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1);
     
     console.log("search columns: " + temp_arr);
     const [remainingColumns, setRemainingColumns] = useState(temp_arr);
@@ -52,7 +68,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
     }
 
     const assignValueToSearchField = (field, event) => 
-        setCurrentSearchObj({...currentSearchObj, [field]: event.target.value});
+        setCurrentSearchObj({...currentSearchObj, [field]: event.target.value.toUpperCase().trim()});
     
 
     const handleRemoveSearchField = field => {
@@ -90,8 +106,11 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                 
             }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
                 if(table === 'DATA_STEWARD_DOMAIN'){
-                    primaryKey = 'DATA_DOMAIN_ID,DATA_STEWARD_ID';
+                    primaryKey = ['DATA_DOMAIN_ID,DATA_STEWARD_ID'];
                     multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+                }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+                    primaryKey = ['DATA_DOMAIN_ID,CATALOG_ENTITIES_ID'];
+                    multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
                 }
             }else{
                 // console.log("table NOTTTTTT in ETLF Framework");
@@ -100,9 +119,8 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                 
             debug && console.log(multiSearchSqlStatement);
 
-            
             // console.log(primaryKey);
-            // axiosCallToGetTableRows( multiSearchSqlStatement , primaryKey );
+            axiosCallToGetTableRows( multiSearchSqlStatement , primaryKey );
         }
     }
 
@@ -117,7 +135,6 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                 variant="primary"
                 onClick={() => {
                     setShow(true);
-
                 }}>
                 Search
             </Button>

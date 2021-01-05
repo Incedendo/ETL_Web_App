@@ -55,6 +55,7 @@ const DataCatalog = () => {
             { tableLoaded && 
                 <>
                     <div style={{
+                        'fontWeight': 'bold',
                         "textAlign": "left",
                         "marginBottom": "10px"
                     }}>
