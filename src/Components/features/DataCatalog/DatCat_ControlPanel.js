@@ -110,8 +110,7 @@ const DatCat_ControlPanel = () => {
         console.log(table);
         if(table === 'DATA_STEWARD_DOMAIN'){
             prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
-        }
-        else if(table === 'CATALOG_ENTITY_DOMAIN'){
+        }else if(table === 'CATALOG_ENTITY_DOMAIN'){
             prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
         }else if(table === 'CATALOG_ENTITY_LINEAGE'){
             prepareValuesFor_CATALOG_ENTITIES();
@@ -291,7 +290,7 @@ const DatCat_ControlPanel = () => {
             const CATALOG_ENTITIES_SQL =
             `SELECT 
                 CONCAT(TARGET_DATABASE,'  -  ', TARGET_SCHEMA,'  -  ', TARGET_TABLE) CATALOG_ENTITIES, 
-                CATALOG_ENTITIES_ID , 
+                CATALOG_ENTITIES_ID 
             FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
             ORDER BY TARGET_SCHEMA,TARGET_TABLE`;
             axios.get(SELECT_URL, {
@@ -337,7 +336,13 @@ const DatCat_ControlPanel = () => {
         
         console.log(table);
 
-        const requiredColumns = ['EMAIL', 'DOMAIN'];
+        const requiredColumns = [
+            'EMAIL', 
+            'DOMAIN', 
+            'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', // table CATALOG_ENTITIES
+            'CATALOG_ENTITIES', 'COLUMN_NAME', 'DATA_TYPE', //table CATALOG_ITEMS
+            'CATALOG_ENTITIES_ID', //table CATALOG_ENTITY_LINEAGE
+        ];
 
         //table can be still ETLF_EXTRACT_CONFIG or ETLFCALL or CUSTOMCODE, hence need to make sure it's updated before fetching 
         if([ 

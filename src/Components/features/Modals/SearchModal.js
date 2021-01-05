@@ -42,7 +42,9 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
     ? columns.map(column => column.name)
     : columns;
 
-    if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ITEMS'){
+    if(table === 'CATALOG_ENTITY_DOMAIN' 
+        // || table === 'CATALOG_ITEMS'
+    ){
         if(temp_arr.indexOf("TARGET_DATABASE") < 0) 
             temp_arr.push('TARGET_DATABASE');
         if(temp_arr.indexOf("TARGET_SCHEMA") < 0)
@@ -53,8 +55,28 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
             temp_arr.splice(temp_arr.indexOf('CATALOG_ENTITIES'),1);
     }
 
-    if(temp_arr.indexOf("PRIVILEGE") > -1)
-        temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1);
+    // if(table === 'CATALOG_ITEMS')
+    //     if(temp_arr.indexOf('CATALOG_ENTITIES') > -1)
+    //         temp_arr.splice(temp_arr.indexOf('CATALOG_ENTITIES'),1);
+
+    let nonSearchableColumns = [
+        'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
+        'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
+        'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID'
+    ];
+
+    for(let item of nonSearchableColumns){
+        if(temp_arr.indexOf(item) > -1)
+            temp_arr.splice(temp_arr.indexOf(item),1);
+    }
+
+
+    // if(temp_arr.indexOf("PRIVILEGE") > -1)
+    //     temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1);
+    // if(temp_arr.indexOf("CREATEDDATE") > -1)
+    //     temp_arr.splice(temp_arr.indexOf("CREATEDDATE"),1);
+    // if(temp_arr.indexOf("LASTMODIFIEDDATE") > -1)
+    //     temp_arr.splice(temp_arr.indexOf("LASTMODIFIEDDATE"),1);
     
     console.log("search columns: " + temp_arr);
     const [remainingColumns, setRemainingColumns] = useState(temp_arr);
@@ -91,7 +113,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
         // const searchTable = 'ETLF_SYSTEM_CONFIG';
         console.log(table);
         if (verifySearchObj()) {
-            let primaryKey = fieldTypesConfigs[table]['primaryKeys'];
+            let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
             let multiSearchSqlStatement = '';
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
@@ -106,10 +128,8 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                 
             }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
                 if(table === 'DATA_STEWARD_DOMAIN'){
-                    primaryKey = ['DATA_DOMAIN_ID,DATA_STEWARD_ID'];
                     multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
                 }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-                    primaryKey = ['DATA_DOMAIN_ID,CATALOG_ENTITIES_ID'];
                     multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
                 }
             }else{
@@ -120,7 +140,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
             debug && console.log(multiSearchSqlStatement);
 
             // console.log(primaryKey);
-            axiosCallToGetTableRows( multiSearchSqlStatement , primaryKey );
+            axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
         }
     }
 

@@ -3,19 +3,21 @@ import { useOktaAuth } from '@okta/okta-react';
 import axios from 'axios';
 import { get_custom_table } from '../sql_statements';
 import { NumberEditor } from '../features/GridComponents/Grids/GridHelperClass';
-import { fieldTypesConfigs } from './FieldTypesConfig';
+import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS } from './FieldTypesConfig';
 import { generateAuditStmt } from '../SQL_Operations/Insert';
 export const WorkspaceContext = createContext();
 
-const table_primaryKeys = {
-    "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID"],
-    "ETLFCALL": ["ETLFCALL_ID"],
-    "DATA_STEWARD": ["DATA_STEWARD_ID"],
-    "DATA_DOMAIN": ["DATA_DOMAIN_ID"],
-    "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID"],
-    "CATALOG_ENTITY_LINEAGE": ["CATALOG_ENTITY_LINEAGE_ID"],
-    "CATALOG_ITEMS": ["CATALOG_ITEMS_ID"]
-}
+// const TABLES_NON_EDITABLE_COLUMNS = {
+//     "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "ETLFCALL": ["ETLFCALL_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "DATA_STEWARD": ["DATA_STEWARD_ID", 'EMAIL', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "DATA_DOMAIN": ["DATA_DOMAIN_ID", 'DOMAIN', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID", 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "CATALOG_ENTITY_LINEAGE": ["CATALOG_ENTITY_LINEAGE_ID", 'CATALOG_ENTITIES_ID', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "CATALOG_ITEMS": ["CATALOG_ITEMS_ID", 'CATALOG_ENTITIES_ID', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'COLUMN_NAME', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     'DATA_STEWARD_DOMAIN': ['DATA_STEWARD_ID', 'DATA_DOMAIN_ID', 'EMAIL', 'DOMAIN', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     'CATALOG_ENTITY_DOMAIN': ['CATALOG_ENTITIES_ID', 'DATA_DOMAIN_ID', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+// }
 
 const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
@@ -767,8 +769,8 @@ export const WorkspaceProvider = (props) => {
     // }
 
     const axiosCallToGetTableRows = (get_statenent, primaryKey) => {
-        if(Object.keys(table_primaryKeys).indexOf(table) >= 0)
-            setPrimaryKeys(table_primaryKeys[table]);
+        if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) >= 0)
+            setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
         console.log(gridConfigs);
@@ -841,8 +843,8 @@ export const WorkspaceProvider = (props) => {
     }
 
     const axiosCallToGetTable = (isMounted, proposed_get_statenent, primaryKey) => {
-        if(Object.keys(table_primaryKeys).indexOf(table) > 0)
-            setPrimaryKeys(table_primaryKeys[table]);
+        if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) > 0)
+            setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
         console.log(gridConfigs);

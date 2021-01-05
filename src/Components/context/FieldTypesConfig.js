@@ -52,7 +52,7 @@ export const fieldTypesConfigs = {
     },
 
     DATA_STEWARD: {
-        primaryKeys: ['EMAIL'],
+        primaryKeys: ["DATA_STEWARD_ID"],
         dataTypes: {
             'FNAME': 'string',
             'LNAME': 'string',
@@ -69,11 +69,14 @@ export const fieldTypesConfigs = {
                 'TABLE': 'DATA_DOMAIN', //linked through DATA_STEWARD_DOMAIN -- 3 table search
                 'LINK': '/datacataloglinked'
             },
+        },
+        'links':{
+            
         }
     },
 
     DATA_DOMAIN: {
-        primaryKeys: ['DOMAIN'],
+        primaryKeys: ["DATA_DOMAIN_ID"],
         dataTypes:{
             'DOMAIN': 'string',
             'DOMAIN_DESCRIPTIONS': 'string',
@@ -88,12 +91,15 @@ export const fieldTypesConfigs = {
                 'TABLE': 'CATALOG_ENTITIES', //linked through CATALOG_ENTITY_DOMAIN -- 3 table search
                 'LINK': '/datacataloglinked'
             },
+        },
+        'links':{
+            
         }
     },
 
     //composite table
     DATA_STEWARD_DOMAIN: {
-        // primaryKeys: ['DATA_STEWARD_ID'],
+        primaryKeys: ['DATA_DOMAIN_ID,DATA_STEWARD_ID'],
 
         dataTypes:{
             'DOMAIN': 'string',
@@ -111,7 +117,7 @@ export const fieldTypesConfigs = {
 
     //composite table
     CATALOG_ENTITY_DOMAIN: {
-        // primaryKeys: ['CATALOG_ENTITIES_HASH'],
+        primaryKeys: ['DATA_DOMAIN_ID,CATALOG_ENTITIES_ID'],
         dataTypes:{
             'DOMAIN': 'string',
             'CATALOG_ENTITIES': 'string',
@@ -139,12 +145,12 @@ export const fieldTypesConfigs = {
             // 'COMMENTS': 'Enter your code here...',
         },
         dropdownFields: {
-            'TARGET_DATABASE': [],
-            'TARGET_SCHEMA': [],
-            'TARGET_TABLE': []
+            // 'TARGET_DATABASE': [],
+            // 'TARGET_SCHEMA': [],
+            // 'TARGET_TABLE': []
         },
         'links':{
-            'CATALOG_ENTITIES_HASH': [
+            'CATALOG_ENTITIES_ID': [
                 {
                     'TABLE': 'CATALOG_ITEMS',
                     'LINK': '/datacataloglinked'
@@ -160,6 +166,8 @@ export const fieldTypesConfigs = {
     CATALOG_ITEMS: {
         primaryKeys: ['CATALOG_ITEMS_ID'],
         dataTypes:{
+            'CATALOG_ENTITIES': 'string', 
+            //CATALOG_ITEMS_ID calculated on the fly when insert
             'COLUMN_NAME': 'string',
             'DATA_TYPE': 'string',
             'PII': 'string',
@@ -180,16 +188,18 @@ export const fieldTypesConfigs = {
             'CATALOG_ENTITIES': [],
         },
         'links':{
-            'CATALOG_ENTITIES_HASH': [
-                {
-                    'TABLE': 'CATALOG_ENTITIES',
-                    'LINK': '/datacataloglinked'
-                },
-                {
-                    'TABLE': 'CATALOG_ENTITY_LINEAGE',
-                    'LINK': '/datacataloglinked'
-                }
-            ]
+            // NOT SHOWING CATALOG_ENTITIES_ID SO CANT USE THIS TO LINK??????????!!!!!!!!!
+            
+            // 'CATALOG_ENTITIES_ID': [
+            //     {
+            //         'TABLE': 'CATALOG_ENTITIES',
+            //         'LINK': '/datacataloglinked'
+            //     },
+            //     {
+            //         'TABLE': 'CATALOG_ENTITY_LINEAGE',
+            //         'LINK': '/datacataloglinked'
+            //     }
+            // ]
         }
     },
 
@@ -286,5 +296,45 @@ export const joinedTableDataCatalog = {
     }
 };
 
+// export const TABLES_NON_EDITABLE_COLUMNS = {
+//     "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID"],
+//     "ETLFCALL": ["ETLFCALL_ID"],
+//     "DATA_STEWARD": ['EMAIL'],
+//     "DATA_DOMAIN": ['DOMAIN'],
+//     "CATALOG_ENTITIES": [ 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
+//     "CATALOG_ENTITY_LINEAGE": [],
+//     "CATALOG_ITEMS": [ 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'COLUMN_NAME'],
+//     'DATA_STEWARD_DOMAIN': ['EMAIL', 'DOMAIN'],
+//     'CATALOG_ENTITY_DOMAIN': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
+// }
+
+export const TABLES_NON_EDITABLE_COLUMNS = {
+    "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    "ETLFCALL": ["ETLFCALL_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    "DATA_STEWARD": ["DATA_STEWARD_ID", 'EMAIL', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    "DATA_DOMAIN": ["DATA_DOMAIN_ID", 'DOMAIN', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID", 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    "CATALOG_ENTITY_LINEAGE": ["CATALOG_ENTITY_LINEAGE_ID", 'CATALOG_ENTITIES_ID', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    "CATALOG_ITEMS": ["CATALOG_ITEMS_ID", 'CATALOG_ENTITIES_ID', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'COLUMN_NAME', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    'DATA_STEWARD_DOMAIN': ['DATA_STEWARD_ID', 'DATA_DOMAIN_ID', 'EMAIL', 'DOMAIN', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+    'CATALOG_ENTITY_DOMAIN': ['CATALOG_ENTITIES_ID', 'DATA_DOMAIN_ID', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+}
+
+export const TABLES_HIDDEN_IN_TABLE_COLUMNS = [
+    "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
+    'CREATEDDATE', 'LASTMODIFIEDDATE', 
+    // 'PRIVILEGE'
+]
+// {
+//     "ETLF_EXTRACT_CONFIG": ['CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "ETLFCALL": ['CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "DATA_STEWARD": ["DATA_STEWARD_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "DATA_DOMAIN": ["DATA_DOMAIN_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "CATALOG_ENTITY_LINEAGE": ["CATALOG_ENTITY_LINEAGE_ID", 'CATALOG_ENTITIES_ID', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     "CATALOG_ITEMS": ["CATALOG_ITEMS_ID", 'CATALOG_ENTITIES_ID', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     'DATA_STEWARD_DOMAIN': ['DATA_STEWARD_ID', 'DATA_DOMAIN_ID', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+//     'CATALOG_ENTITY_DOMAIN': ['CATALOG_ENTITIES_ID', 'DATA_DOMAIN_ID', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
+// }
 
 export const CatalogTableConfigs = {};

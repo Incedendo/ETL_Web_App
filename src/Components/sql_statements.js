@@ -91,9 +91,9 @@ export const search_multi_field_catalog_with_Extra_columns_joined = (
 export const search_composite_DATA_STEWARD_DOMAIN = currentSearchObj =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C1.CREATEDDATE, C1.LASTMODIFEDDATE, 'READ ONLY' AS PRIVILEGE
+    let sql_statement = `SELECT C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ ONLY' AS PRIVILEGE
     FROM
-    (SELECT A.FNAME, A.LNAME, A.EMAIL, B.DATA_STEWARD_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFEDDATE
+    (SELECT A.FNAME, A.LNAME, A.EMAIL, B.DATA_STEWARD_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD A
       INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN B 
       ON A.DATA_STEWARD_ID = B.DATA_STEWARD_ID
@@ -107,9 +107,9 @@ export const search_composite_DATA_STEWARD_DOMAIN = currentSearchObj =>{
 export const search_composite_CATALOG_ENTITY_DOMAIN = currentSearchObj =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C1.CREATEDDATE, C1.LASTMODIFEDDATE
+    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C1.CREATEDDATE, C1.LASTMODIFIEDDATE
     FROM
-    (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFEDDATE
+    (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
       INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
       ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
@@ -125,10 +125,10 @@ export const getSearchFieldValue = (currentSearchObj) => {
     let res = ''
     for (let item in currentSearchObj){
         if(Object.keys(currentSearchObj).indexOf(item) > 0){
-            res += `AND UPPER(TRIM(ec.` + item + `)) LIKE UPPER('%` + currentSearchObj[item] + `%')
+            res += `AND UPPER(TRIM(ec.` + item + `)) LIKE UPPER(TRIM('%` + currentSearchObj[item] + `%'))
             `;
         }else{
-            res += `UPPER(TRIM(ec.` + item + `)) LIKE UPPER('%` + currentSearchObj[item] + `%')
+            res += `UPPER(TRIM(ec.` + item + `)) LIKE UPPER(TRIM('%` + currentSearchObj[item] + `%'))
             `;
         }
     }
@@ -138,29 +138,45 @@ export const getSearchFieldValue = (currentSearchObj) => {
 const getMultiCompositeValues = (currentSearchObj, table, items) => {
     let res = '';
     let dataDomainsObj = {}
-    for(let item in currentSearchObj)
-        if(items.indexOf(item) >=0)
-            dataDomainsObj[item] = currentSearchObj[item];
-    
-    // (Object.keys(currentSearchObj)).map(col => {
-    //     if(items.indexOf(col) >=0)
-    //         dataDomainsObj[item] = currentSearchObj[item];
-    // })
-    console.log(dataDomainsObj);
 
-    for (let item in dataDomainsObj){
-        if(Object.keys(dataDomainsObj).indexOf(item) > 0){
-            res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER('%` + dataDomainsObj[item] + `%')
+    for(let item of items){
+        let value = item in currentSearchObj ? currentSearchObj[item] : '';
+        if(items.indexOf(item) > 0){
+        
+            res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))
             `;
         }else{
-            res += `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER('%` + dataDomainsObj[item] + `%')
+            res += `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))
             `;
         }
     }
     return res;
+
+    // for(let item in currentSearchObj)
+    //     if(items.indexOf(item) >=0)
+    //         dataDomainsObj[item] = currentSearchObj[item];
+    
+    // // (Object.keys(currentSearchObj)).map(col => {
+    // //     if(items.indexOf(col) >=0)
+    // //         dataDomainsObj[item] = currentSearchObj[item];
+    // // })
+    // console.log(dataDomainsObj);
+
+    // for (let item in dataDomainsObj){
+    //     const value = item in dataDomainsObj ? currentSearchObj[item] : '';;
+    //     if(Object.keys(dataDomainsObj).indexOf(item) > 0){
+        
+    //         res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + dataDomainsObj[item] + `%'))
+    //         `;
+    //     }else{
+    //         res += `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + dataDomainsObj[item] + `%'))
+    //         `;
+    //     }
+    // }
+    // return res;
 }
 
 const getCompositeValue = (currentSearchObj, table, item) => {
     let value = item in currentSearchObj ? currentSearchObj[item] : '';
-    return  `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER('%` + value + `%')`;
+    return  `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))`;
 }
