@@ -54,7 +54,7 @@ export const search_multi_field = (username, db, schema, table, groupIDColumn, c
 
 export const search_multi_field_catalog = (db, schema, table, currentSearchObj, start, end) => {
     let sql_statement = `SELECT * FROM(
-    SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+    SELECT ec.*, 'READ/WRITE' AS PRIVILEGE
     FROM "`+
         db + `"."` +
         schema + `"."` +
@@ -78,7 +78,7 @@ export const search_multi_field_catalog_with_Extra_columns_joined = (
     joinedColumms.map(col => extraJoinedColumns += 'joined.' + col + ', ');
     console.log(extraJoinedColumns);
 
-    let sql_statement = `SELECT ` + extraJoinedColumns + ` ec.*, 'READ ONLY' AS PRIVILEGE
+    let sql_statement = `SELECT ` + extraJoinedColumns + ` ec.*, 'READ/WRITE' AS PRIVILEGE
     FROM "`+ db + `"."` + schema + `"."` + table + `" ec ` + `
     JOIN "`+ db + `"."` + schema + `"."` + joinedTable + `" joined ` + `
     ON ec.` + joinedCriterion + ' = joined.' + joinedCriterion + `
@@ -91,7 +91,7 @@ export const search_multi_field_catalog_with_Extra_columns_joined = (
 export const search_composite_DATA_STEWARD_DOMAIN = currentSearchObj =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ ONLY' AS PRIVILEGE
+    let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
     FROM
     (SELECT A.FNAME, A.LNAME, A.EMAIL, B.DATA_STEWARD_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD A
@@ -107,7 +107,7 @@ export const search_composite_DATA_STEWARD_DOMAIN = currentSearchObj =>{
 export const search_composite_CATALOG_ENTITY_DOMAIN = currentSearchObj =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C1.CREATEDDATE, C1.LASTMODIFIEDDATE
+    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
     FROM
     (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A

@@ -34,21 +34,24 @@ const FormField = ({
             <Col sm={sm_right}>
 
                 {(fieldType === "text") &&
-                    <Form.Control
-                        type="text"
-                        // id={field}
-                        name={field}
-                        value={values[field]}
-                        onChange={e => {
-                            handleChange(e);
-                        }}
-                        onBlur={handleBlur}
-                        // placeholder={required === 'Y' ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
-                        placeholder={requiredFields.indexOf(field) >= 0 ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
-                        disabled={disabled}
-                        isValid={touched[field] && !errors[field]}
-                        isInvalid={errors[field]}
-                    />
+                    <>
+                        <Form.Control
+                            type="text"
+                            // id={field}
+                            name={field}
+                            value={values[field]}
+                            onChange={e => {
+                                handleChange(e);
+                            }}
+                            onBlur={handleBlur}
+                            // placeholder={required === 'Y' ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
+                            // placeholder={requiredFields.indexOf(field) >= 0 ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
+                            disabled={disabled}
+                            isValid={touched[field] && !errors[field]}
+                            isInvalid={errors[field]}
+                        />
+                        <a href=''></a>
+                    </>
                 }
 
                 {(fieldType === 'dropdown') &&

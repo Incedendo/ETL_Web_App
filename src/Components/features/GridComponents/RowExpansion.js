@@ -4,10 +4,21 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 import GenericTableModal from '../Modals/GenericTableModal';
 import DisplayField from '../GenericTable/DisplayField';
 import axios from 'axios';
-import { getDataType } from '../FormComponents/FormUtils';
+import { getDataType, getFieldType } from '../FormComponents/FormUtils';
 import { generateMergeStatement, generateAuditStmt } from '../../SQL_Operations/Insert';
 import '../../../css/rowExpansion.scss';
-import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
+import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, DATA_CATALOG_TABLE } from '../../context/FieldTypesConfig';
+import { 
+    merge_update_data_steward,
+    merge_update_data_domain,
+    merge_update_catalog_items,
+    merge_update_catalog_entities,
+    merge_catalog_entity_lineage
+} from '../DataCatalog/datcatsql/datcat_merge_update';
+
+import PrimaryKeyField from '../GenericTable/PrimaryKeyField';
+import CodeField from '../GenericTable/CodeField';
+import DropdownField from '../GenericTable/DropdownField';
 
 // const url = "https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/update";
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
@@ -45,6 +56,7 @@ const RowExpansion = ({ row }) => {
     debug && console.log(row);
     // debug && console.log(fieldTypesConfigs);
     debug && console.log(table);
+    
     const [state, setState] = useState(row);
     const [oldtates, setOldStates] = useState({});
     const [updatedStates, setUpdatedStates] = useState({});
@@ -76,7 +88,10 @@ const RowExpansion = ({ row }) => {
             }
         }, {});
         delete differenceBetweenRowAndState['ID'];
-        differenceBetweenRowAndState['EXTRACT_CONFIG_ID'] = state['EXTRACT_CONFIG_ID']
+        if('EXTRACT_CONFIG_ID' in state){
+            differenceBetweenRowAndState['EXTRACT_CONFIG_ID'] = state['EXTRACT_CONFIG_ID']
+        }
+        
 
         setDiff(differenceBetweenRowAndState);
         console.log(differenceBetweenRowAndState);
@@ -215,20 +230,59 @@ const RowExpansion = ({ row }) => {
         }
     }, [])
 
-    const performUpdate = (isSubscribed) => {
-        const diffCols = Object.keys(diff);
-        const sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
+    const getUpdateStatementForDataCatalog = (row, diff) => {
+        let updateStatement = '';
+        let primaryKey = TABLES_NON_EDITABLE_COLUMNS[table][0];
+
+        console.log(row); // row is the old record
+        console.log(state); // state is the updated record
+        console.log(diff); // diff is the object to be updated
+
+        if(table === 'DATA_STEWARD'){
+            updateStatement = merge_update_data_steward(row, diff);
+            
+        }
+        if(table === 'DATA_DOMAIN'){
+            updateStatement = merge_update_data_domain(row, diff);
+        }else if(table === 'CATALOG_ENTITIES'){
+            
+            updateStatement = merge_update_catalog_entities(row, diff);
+        }else if(table === 'CATALOG_ENTITY_LINEAGE'){
+
+            updateStatement = merge_catalog_entity_lineage(row, diff);
+        }else if(table === 'CATALOG_ITEMS'){
+            updateStatement = merge_update_catalog_items(row, diff);
+        }
         
-        // console.log(database);
-        // console.log(schema);
-        // console.log(table);
-        // console.log(primaryKeys);
-        console.log("EXTRACT_CONFIG_ID: "+ row['EXTRACT_CONFIG_ID']);
+        console.log(updateStatement);
+
+        return updateStatement;
+    }
+
+    const performUpdate = (isSubscribed) => {
+        //get the ID columns in the array of non_editable columns:
+        let primaryKey = TABLES_NON_EDITABLE_COLUMNS[table][0];
+        let sqlMergeStatement = '';
+        const diffCols = Object.keys(diff);
+
+        if(table in TABLES_NON_EDITABLE_COLUMNS){
+            console.log("generate update for DATCAT");
+            sqlMergeStatement = getUpdateStatementForDataCatalog(row, diff);
+        }else{
+            sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
+            // console.log(database);
+            // console.log(schema);
+            // console.log(table);
+            // console.log(primaryKeys);
+            console.log("EXTRACT_CONFIG_ID: "+ row['EXTRACT_CONFIG_ID']);
+        }
 
         console.log(row);
         console.log(state);
 
-        let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
+        // let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
+        let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
+        
         setRows(newRows);
 
         console.log(diffCols);
@@ -304,6 +358,7 @@ const RowExpansion = ({ row }) => {
                 setLoading(false);
                 return;
             } else {
+
                 performUpdate(isSubscribed);
             }
         }
@@ -326,6 +381,97 @@ const RowExpansion = ({ row }) => {
             {isLoading ? 'Updating...' : 'Update'}
         </button>
     )
+
+    const renderFieldByType = () => {
+        let primaryGroups = {};
+        let dropdownGroups = {};
+        let codeGroups = {};
+
+        const excludedFields = [
+            "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
+            "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
+            'CREATEDDATE', 'LASTMODIFIEDDATE', 
+            // "ROUTE_ID", 'ACTION_ID'
+        ];
+
+        console.log(primaryKeys);
+        console.log(codeFields);
+        console.log(dropdownFields);
+        
+        console.log(row);
+        Object.entries(row).map((key, index) =>{
+            console.log(key);
+            const field = key[0];
+            if (excludedFields.indexOf(field) < 0) {
+                
+                const fieldType = getFieldType(field, codeFields, dropdownFields);
+                console.log(field + ": " + fieldType);
+
+                if(primaryKeys.indexOf(field) >= 0){
+                    primaryGroups[field] = key[1];
+                }else{
+                    if(fieldType === "dropdown" ){
+                        dropdownGroups[field] = key[1];
+                    }else{
+                        codeGroups[field] = key[1];
+                    }
+                } 
+            }
+            
+        });
+
+        console.log(primaryGroups);
+        console.log(dropdownGroups);
+        console.log(codeGroups);
+
+        return(
+            <>
+                {Object.entries(primaryGroups).map((key, index) =>      
+                    <PrimaryKeyField 
+                        key={key[0]}
+                        row={key}
+                        primaryKeys={primaryKeys}
+                        fieldArray={key} 
+                    />
+                )}
+
+                {Object.entries(codeGroups).map((key, index) => 
+                    <CodeField 
+                        key={key[0]}
+                        setState={setState}
+                        setChanged={setChanged}
+                        fieldArray={key}
+                        columnDataTypes={columnDataTypes}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
+                        setEditMessage={setEditError}
+                    />
+                        
+                )}
+
+                {Object.entries(dropdownGroups).map((key, index) => 
+                    key.PRIVILEGE !== 'READ ONLY'
+                    ?<DropdownField
+                        key={key[0]}
+                        field={key[0]}
+                        value={key[1]}
+                        dropdownFields={dropdownFields}
+                        setChanged={setChanged}
+                        setState={setState}
+                        route={route}
+                    />
+                    :<CodeField 
+                        key={key[0]}
+                        setState={setState}
+                        setChanged={setChanged}
+                        fieldArray={key}
+                        columnDataTypes={columnDataTypes}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
+                        setEditMessage={setEditError}
+                    />   
+                )}
+            </>
+        )
+    }
 
     return (
         <>
@@ -374,9 +520,57 @@ const RowExpansion = ({ row }) => {
                             route={route}
                         />)
                 }
+
+                {/* {renderFieldByType()} */}
             </div>
         </>
     )
 }
 
 export default RowExpansion;
+
+// {key[0] in primaryGroups &&
+//     <PrimaryKeyField 
+//         key={key[0]}
+//         row={row}
+//         primaryKeys={primaryKeys}
+//         fieldArray={key} 
+//     />
+// }
+
+// {key[0] in dropdownGroups
+// ?
+//     row.PRIVILEGE !== 'READ ONLY'
+//     ?<DropdownField
+//         key={key[0]}
+//         field={key[0]}
+//         value={key[1]}
+//         dropdownFields={dropdownFields}
+//         setChanged={setChanged}
+//         setState={setState}
+//         route={route}
+//     />
+//     :<CodeField 
+//         key={key[0]}
+//         setState={setState}
+//         setChanged={setChanged}
+//         fieldArray={key}
+//         columnDataTypes={columnDataTypes}
+//         disabled={row.PRIVILEGE === 'READ ONLY'}
+//         setEditMessage={setEditError}
+//     />
+// : null
+// }
+
+// { key[0] in codeGroups
+// &&
+//     <CodeField 
+//         key={key[0]}
+//         setState={setState}
+//         setChanged={setChanged}
+//         fieldArray={fieldArray}
+//         columnDataTypes={columnDataTypes}
+//         disabled={row.PRIVILEGE === 'READ ONLY'}
+//         setEditMessage={setEditError}
+//     />
+// }

@@ -16,7 +16,9 @@ const DisplayField = ({
     
     //do not load id field of the row record
     const excludedFields = [
-        "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id", 
+        "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
+        "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
+        'CREATEDDATE', 'LASTMODIFIEDDATE', 
         // "ROUTE_ID", 'ACTION_ID'
     ];
 

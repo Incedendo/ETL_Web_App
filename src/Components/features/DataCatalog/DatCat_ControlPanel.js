@@ -17,7 +17,7 @@ import '../../../css/workspace.scss';
 const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
 const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
 
-const DropDown = ({ target, currentVal, menus, table, setState }) => {
+const DropDown = ({ target, currentVal, menus, table, setState, disabled }) => {
     return (
         <DropdownButton
             id="dropdown-item-button"
@@ -25,7 +25,7 @@ const DropDown = ({ target, currentVal, menus, table, setState }) => {
             // disabled={tableSearching || tableLoading}
         >
             {menus.map(item => (
-                <Dropdown.Item as="button" key={item}
+                <Dropdown.Item as="button" key={item} disabled={disabled}
                     onSelect={() => {
                         if (item !== table) {
                             setState(item)
@@ -337,8 +337,8 @@ const DatCat_ControlPanel = () => {
         console.log(table);
 
         const requiredColumns = [
-            'EMAIL', 
-            'DOMAIN', 
+            'EMAIL', 'FNAME', 'LNAME',//DATA_STEWARD
+            'DOMAIN', //DATA_DOMAIN
             'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', // table CATALOG_ENTITIES
             'CATALOG_ENTITIES', 'COLUMN_NAME', 'DATA_TYPE', //table CATALOG_ITEMS
             'CATALOG_ENTITIES_ID', //table CATALOG_ENTITY_LINEAGE
@@ -395,9 +395,9 @@ const DatCat_ControlPanel = () => {
 
     return (
         <div>
-            DatCat_ControlPanel
+            {/* DatCat_ControlPanel */}
             <div style={{ 'float': 'left' }}>
-                Catalog table:
+                Select Catalog table:
                 <DropDown 
                     target='Table' 
                     currentVal={table} 
@@ -411,7 +411,9 @@ const DatCat_ControlPanel = () => {
                         'CATALOG_ENTITY_LINEAGE',
                     ]}
                     table={table}
-                    setState={setTable} />
+                    setState={setTable} 
+                    disabled={!columnsLoaded}
+                />
             </div>
 
             <DataCatalogModal

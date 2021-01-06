@@ -7,18 +7,6 @@ import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS } from './FieldTypesConf
 import { generateAuditStmt } from '../SQL_Operations/Insert';
 export const WorkspaceContext = createContext();
 
-// const TABLES_NON_EDITABLE_COLUMNS = {
-//     "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     "ETLFCALL": ["ETLFCALL_ID", 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     "DATA_STEWARD": ["DATA_STEWARD_ID", 'EMAIL', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     "DATA_DOMAIN": ["DATA_DOMAIN_ID", 'DOMAIN', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID", 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     "CATALOG_ENTITY_LINEAGE": ["CATALOG_ENTITY_LINEAGE_ID", 'CATALOG_ENTITIES_ID', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     "CATALOG_ITEMS": ["CATALOG_ITEMS_ID", 'CATALOG_ENTITIES_ID', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'COLUMN_NAME', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     'DATA_STEWARD_DOMAIN': ['DATA_STEWARD_ID', 'DATA_DOMAIN_ID', 'EMAIL', 'DOMAIN', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-//     'CATALOG_ENTITY_DOMAIN': ['CATALOG_ENTITIES_ID', 'DATA_DOMAIN_ID', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'CREATEDDATE', 'LASTMODIFIEDDATE'],
-// }
-
 const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
@@ -198,6 +186,7 @@ export const WorkspaceProvider = (props) => {
             let sqlGetColumnsStmt =
                     "SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM " + database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + schema + "' AND TABLE_NAME = '"
                     + table + "';";
+            console.log(sqlGetColumnsStmt);
             
             axios.get(SELECT_URL, {
                 headers: {
@@ -641,6 +630,7 @@ export const WorkspaceProvider = (props) => {
     //saving configs 
     const prepareGridConfig = (data) => {
         if(data.length != 0){
+            console.log(data);
             let headers = data.map(row => row.COLUMN_NAME)
             //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
             headers.push("PRIVILEGE");
@@ -1003,9 +993,14 @@ export const WorkspaceProvider = (props) => {
                             setInsertSuccess(true);
                             setInsertError('');
                             // if(performReload) setReloadTable(true);
-                            console.log(values);
                             values['PRIVILEGE'] = 'READ/WRITE';
                             
+                            
+                            //CONVER ALL VAL TO UPPER CASE B4 SAVING:    
+                            (Object.keys(values)).map(col => values[col] = values[col].toUpperCase().trim());
+                            console.log(values);
+
+
                             let newRows = [...rows];
                             newRows.push(values);
                             setRows(newRows);
