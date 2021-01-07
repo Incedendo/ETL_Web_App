@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import GenericTableModal from '../Modals/GenericTableModal';
+import CustomizedLink from './CustomizedLink';
 import DisplayField from '../GenericTable/DisplayField';
 import axios from 'axios';
 import { getDataType, getFieldType } from '../FormComponents/FormUtils';
@@ -16,6 +17,7 @@ import {
     merge_catalog_entity_lineage
 } from '../DataCatalog/datcatsql/datcat_merge_update';
 
+import WrapperField from '../GenericTable/WrapperField';
 import PrimaryKeyField from '../GenericTable/PrimaryKeyField';
 import CodeField from '../GenericTable/CodeField';
 import DropdownField from '../GenericTable/DropdownField';
@@ -386,6 +388,7 @@ const RowExpansion = ({ row }) => {
         let primaryGroups = {};
         let dropdownGroups = {};
         let codeGroups = {};
+        let allDisplayedKeys = [];
 
         const excludedFields = [
             "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
@@ -411,11 +414,17 @@ const RowExpansion = ({ row }) => {
                     primaryGroups[field] = key[1];
                 }else{
                     if(fieldType === "dropdown" ){
-                        dropdownGroups[field] = key[1];
+                        // dropdownGroups[field] = key[1];
+                        dropdownGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
                     }else{
-                        codeGroups[field] = key[1];
+                        // codeGroups[field] = key[1];
+                        codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
                     }
+
+                    
                 } 
+
+                allDisplayedKeys.push(field);
             }
             
         });
@@ -427,6 +436,14 @@ const RowExpansion = ({ row }) => {
         return(
             <>
                 {Object.entries(primaryGroups).map((key, index) =>      
+                    // <WrapperField
+                    //     type={'primaryKey'}
+                    //     field={key[0]}
+                    //     row={key}
+                    //     // primaryKeys={primaryKeys}
+                    //     fieldArray={key} 
+                    // />
+
                     <PrimaryKeyField 
                         key={key[0]}
                         row={key}
@@ -436,6 +453,17 @@ const RowExpansion = ({ row }) => {
                 )}
 
                 {Object.entries(codeGroups).map((key, index) => 
+                    // <WrapperField
+                    //     type={'code'}
+                    //     field={key[0]}
+                    //     setState={setState}
+                    //     setChanged={setChanged}
+                    //     fieldArray={key}
+                    //     columnDataTypes={columnDataTypes}
+                    //     disabled={row.PRIVILEGE === 'READ ONLY'}
+                    //     setEditMessage={setEditError}
+                    // />
+
                     <CodeField 
                         key={key[0]}
                         setState={setState}
@@ -450,13 +478,33 @@ const RowExpansion = ({ row }) => {
 
                 {Object.entries(dropdownGroups).map((key, index) => 
                     key.PRIVILEGE !== 'READ ONLY'
-                    ?<DropdownField
+                    ?
+                    // <WrapperField
+                    //     type={'dropdown'}
+                    //     field={key[0]}
+                    //     value={key[1]}
+                    //     setState={setState}
+                    //     setChanged={setChanged}
+                    //     dropdownFields={dropdownFields}
+                    //     route={route}
+                    //     />
+                    // :<WrapperField
+                    //     type={'code'}
+                    //     field={key[0]}
+                    //     setState={setState}
+                    //     setChanged={setChanged}
+                    //     fieldArray={key}
+                    //     columnDataTypes={columnDataTypes}
+                    //     disabled={row.PRIVILEGE === 'READ ONLY'}
+                    //     setEditMessage={setEditError}
+                    //     />
+                    <DropdownField
                         key={key[0]}
                         field={key[0]}
                         value={key[1]}
-                        dropdownFields={dropdownFields}
-                        setChanged={setChanged}
                         setState={setState}
+                        setChanged={setChanged}
+                        dropdownFields={dropdownFields}
                         route={route}
                     />
                     :<CodeField 
@@ -502,7 +550,9 @@ const RowExpansion = ({ row }) => {
                     </>
                 }
 
-                {Object.entries(row).map((key, index) =>
+                <CustomizedLink row = {row}/>
+
+                {/* {Object.entries(row).map((key, index) =>
                         <DisplayField
                             setState={setState}
                             setChanged={setChanged}
@@ -519,9 +569,9 @@ const RowExpansion = ({ row }) => {
                             dropdownFields={dropdownFields}
                             route={route}
                         />)
-                }
+                } */}
 
-                {/* {renderFieldByType()} */}
+                {renderFieldByType()}
             </div>
         </>
     )

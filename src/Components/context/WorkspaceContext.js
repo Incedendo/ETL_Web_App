@@ -184,8 +184,8 @@ export const WorkspaceProvider = (props) => {
             // Use Username to generate Get Statement Inner Join
             // with Authorization table.
             let sqlGetColumnsStmt =
-                    "SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM " + database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + schema + "' AND TABLE_NAME = '"
-                    + table + "';";
+            "SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM " + database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + schema + "' AND TABLE_NAME = '"
+            + table + "' ORDER BY ORDINAL_POSITION ASC;";
             console.log(sqlGetColumnsStmt);
             
             axios.get(SELECT_URL, {

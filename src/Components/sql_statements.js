@@ -45,8 +45,7 @@ export const search_multi_field = (username, db, schema, table, groupIDColumn, c
     JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
     ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
             + username.toLowerCase() + `'
-    WHERE ` + getSearchFieldValue(currentSearchObj) + `
-    ;`;
+    WHERE ` + getSearchFieldValue(currentSearchObj) + ';';
 // WHERE rn BETWEEN `+ start + ` AND ` + end;
 
     return sql_statement;
@@ -82,7 +81,7 @@ export const search_multi_field_catalog_with_Extra_columns_joined = (
     FROM "`+ db + `"."` + schema + `"."` + table + `" ec ` + `
     JOIN "`+ db + `"."` + schema + `"."` + joinedTable + `" joined ` + `
     ON ec.` + joinedCriterion + ' = joined.' + joinedCriterion + `
-    WHERE ` + getSearchFieldValue(currentSearchObj) + 
+    WHERE ` + getSearchFieldValueJoinedColumns(currentSearchObj, ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE']) +
     `ORDER BY joined.TARGET_DATABASE, joined.TARGET_SCHEMA, joined.TARGET_TABLE;`;
     
     return sql_statement;
@@ -131,6 +130,31 @@ export const getSearchFieldValue = (currentSearchObj) => {
             res += `UPPER(TRIM(ec.` + item + `)) LIKE UPPER(TRIM('%` + currentSearchObj[item] + `%'))
             `;
         }
+    }
+    return res;
+}
+
+export const getSearchFieldValueJoinedColumns = (currentSearchObj, excludedFields) => {
+    let res = ''
+    for (let item in currentSearchObj){
+        if(excludedFields.indexOf(item) < 0){
+            if(Object.keys(currentSearchObj).indexOf(item) > 0){
+                res += `AND UPPER(TRIM(ec.` + item + `)) LIKE UPPER(TRIM('%` + currentSearchObj[item] + `%'))
+                `;
+            }else{
+                res += `UPPER(TRIM(ec.` + item + `)) LIKE UPPER(TRIM('%` + currentSearchObj[item] + `%'))
+                `;
+            }
+        }else{
+            if(Object.keys(currentSearchObj).indexOf(item) > 0){
+                res += `AND UPPER(TRIM(joined.` + item + `)) LIKE UPPER(TRIM('%` + currentSearchObj[item] + `%'))
+                `;
+            }else{
+                res += `UPPER(TRIM(joined.` + item + `)) LIKE UPPER(TRIM('%` + currentSearchObj[item] + `%'))
+                `;
+            }
+        }
+        
     }
     return res;
 }

@@ -75,7 +75,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
         if(linkState !== undefined){
             console.log(linkState);
             const linkedTable = linkState['table'];
-            const currentSearchObj=  linkState['searchObj'];
+            // const currentSearchObj=  linkState['searchObj'];
             setTable(linkedTable);
             setUpdatedTable(true);
         }
@@ -99,11 +99,10 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
             setPrimaryKeys(fieldTypesConfigs[table]['primaryKeys']);
             if(table === 'DATA_STEWARD_DOMAIN'){
                 prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
-            }
-            else if(table === 'CATALOG_ENTITY_DOMAIN'){
+            }else if(table === 'CATALOG_ENTITY_DOMAIN'){
                 prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
-            }else if(table === 'CATALOG_ENTITY_LINEAGE'){
-                prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_LINEAGE();
+            }else if(table === 'CATALOG_ENTITY_LINEAGE' || table === 'CATALOG_ITEMS'){
+                prepareValuesFor_CATALOG_ENTITIES();
             }else{
                 setLoadedConfig(true);
             }
@@ -313,16 +312,15 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
         }
     }
 
-    const prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_LINEAGE = () => {
+    const prepareValuesFor_CATALOG_ENTITIES = () => {
         if (authState.isAuthenticated && username !== '') {
             const { accessToken } = authState;
             let dropdownObj = {}
-            
-            //1
+        
             const CATALOG_ENTITIES_SQL =
             `SELECT 
                 CONCAT(TARGET_DATABASE,'  -  ', TARGET_SCHEMA,'  -  ', TARGET_TABLE) CATALOG_ENTITIES, 
-                CATALOG_ENTITIES_HASH 
+                CATALOG_ENTITIES_ID 
             FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
             ORDER BY TARGET_SCHEMA,TARGET_TABLE`;
             axios.get(SELECT_URL, {
@@ -344,7 +342,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
 
                 let domainObj = {}
                 response.data.map(item => {
-                    domainObj[item['CATALOG_ENTITIES']] = item['CATALOG_ENTITIES_HASH']
+                    domainObj[item['CATALOG_ENTITIES']] = item['CATALOG_ENTITIES_ID']
                 })
                 dropdownObj['CATALOG_ENTITIES'] = domainObj;
 
@@ -373,15 +371,15 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
     useEffect(()=>{
         // if(linkState !== undefined){
         if(loadedConfig){
-            console.log("use search statement to fetch only target value")
-            
-            // 
+            console.log("use search statement to fetch only target value");
 
-            let searchStmt = 
-            `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
-            FROM "SHARED_TOOLS_DEV"."ETL"."` + table + `" ec
-            WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
-            ;`;
+            // let searchStmt = 
+            // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+            // FROM "SHARED_TOOLS_DEV"."ETL"."` + table + `" ec
+            // WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
+            // ;`;
+
+            const searchStmt = linkState['searchStmt']
 
             console.log(searchStmt);
             console.log(primaryKey);

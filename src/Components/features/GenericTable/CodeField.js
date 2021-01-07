@@ -14,7 +14,9 @@ import LinkLogo12 from '../../../media/LinkIcon/link12x12.svg';
 import '../../../css/codeField.scss';
 // import '../../../css/'
 
-const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled, setEditMessage }) => {
+const CodeField = ({ 
+    setState, setChanged, fieldArray, columnDataTypes, disabled, setEditMessage
+}) => {
 
     const {
         debug,
@@ -26,11 +28,11 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
     // debug && console.log(etlRowConfigs);
 
     const field = fieldArray[0]
-    let checked_val = fieldArray[1];
+    let checked_val = fieldArray[1] !== null ? fieldArray[1] : 'null value';
 
-    if (fieldArray[1] === null) {
-        checked_val = 'null value'
-    }
+    // if (fieldArray[1] === null) {
+    //     checked_val = 'null value'
+    // }
 
     const [value, setValue] = useState(checked_val);
 
@@ -77,10 +79,10 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
     }
 
     //perform on the spot type validation for each field
-    const fieldsWithLinks = Object.keys(fieldTypesConfigs[table]['links'])
+    // const fieldsWithLinks = Object.keys(fieldTypesConfigs[table]['links'])
 
-    const linksArr = fieldTypesConfigs[table]['links'][field];
-    console.log(linksArr);
+    // const linksArr = fieldTypesConfigs[table]['links'][field];
+    // console.log(linksArr);
 
     return (
 
@@ -90,64 +92,12 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
                 "textAlign": "left"
             }}>
             
-            <div>
+            <>
                 
-                {fieldsWithLinks.indexOf(field) >= 0 
-                 && <div style={{'float': 'left'}}>
-                    <Dropdown as={ButtonGroup}>
-                        {/* <Button variant="success">Split Button</Button> */}
-
-                        <Dropdown.Toggle split variant="success" id="dropdown-split-basic" />
-
-                        <Dropdown.Menu>
-                            {linksArr.map(linkObject => 
-                                <Dropdown.Item 
-                                    // bsPrefix='link-dropdown'
-                                >
-                                    <Link 
-                                        to={{
-                                            pathname: linkObject['LINK'],
-                                            state: {
-                                                'table': linkObject['TABLE'],
-                                                'searchObj':{
-                                                    [field]: checked_val
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        <img 
-                                            style={{'float': 'left'}} 
-                                            src={LinkLogo12} 
-                                            alt="React Logo" 
-                                            title={'This will link to table ' + linkObject['TABLE']}
-                                        />
-                                    </Link>
-                                </Dropdown.Item>
-                                
-                            )}
-                        </Dropdown.Menu>
-                    </Dropdown>
-
-                    {/* <Link 
-                        to={{
-                            pathname: fieldTypesConfigs[table]['links'][field][0]['LINK'],
-                            state: {
-                                [field]: checked_val
-                            }
-                        }}
-                    >
-                        <img 
-                            style={{'float': 'left'}} 
-                            src={LinkLogo12} 
-                            alt="React Logo" 
-                            title={'This will link to table ' + fieldTypesConfigs[table]['links'][field][0]['TABLE']}
-                        />
-                    </Link> */}
-                </div>}
                 <div style={{ "marginTop": "20px", "fontWeight": "bold" }}>
                     {fieldArray[0]}:
                 </div>
-            </div>
+            </>
             
 
             <Editor
@@ -171,3 +121,42 @@ const CodeField = ({ setState, setChanged, fieldArray, columnDataTypes, disabled
 }
 
 export default CodeField;
+
+
+// {fieldsWithLinks.indexOf(field) >= 0 
+//     && <div style={{'float': 'left'}}>
+//     <Dropdown as={ButtonGroup}>
+//         {/* <Button variant="success">Split Button</Button> */}
+
+//         <Dropdown.Toggle split variant="success" id="dropdown-split-basic" />
+
+//         <Dropdown.Menu>
+//             {linksArr.map(linkObject => 
+//                 <Dropdown.Item 
+//                     // bsPrefix='link-dropdown'
+//                 >
+//                     <Link 
+//                         to={{
+//                             pathname: linkObject['LINK'],
+//                             state: {
+//                                 'table': linkObject['TABLE'],
+//                                 'searchObj':{
+//                                     [field]: checked_val
+//                                 }
+//                             }
+//                         }}
+//                     >
+//                         <img 
+//                             style={{'float': 'left'}} 
+//                             src={LinkLogo12} 
+//                             alt="React Logo" 
+//                             title={'This will link to table ' + linkObject['TABLE']}
+//                         />
+//                     </Link>
+//                 </Dropdown.Item>
+                
+//             )}
+//         </Dropdown.Menu>
+//     </Dropdown>
+// </div>}
+               

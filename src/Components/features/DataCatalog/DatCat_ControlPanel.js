@@ -112,9 +112,7 @@ const DatCat_ControlPanel = () => {
             prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
             prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
-        }else if(table === 'CATALOG_ENTITY_LINEAGE'){
-            prepareValuesFor_CATALOG_ENTITIES();
-        }else if(table === 'CATALOG_ITEMS'){
+        }else if(table === 'CATALOG_ENTITY_LINEAGE' || table === 'CATALOG_ITEMS'){
             prepareValuesFor_CATALOG_ENTITIES();
         }else{
             setLoadedConfig(true);

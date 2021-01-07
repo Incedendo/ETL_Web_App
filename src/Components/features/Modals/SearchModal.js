@@ -38,26 +38,26 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
 
     const [show, setShow] = useState(false);
 
-    let temp_arr = (Object.keys(compositeTables)).indexOf(table) < 0
+    let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
     ? columns.map(column => column.name)
     : columns;
 
     if(table === 'CATALOG_ENTITY_DOMAIN' 
-        // || table === 'CATALOG_ITEMS'
+        || table === 'CATALOG_ITEMS'
     ){
-        if(temp_arr.indexOf("TARGET_DATABASE") < 0) 
-            temp_arr.push('TARGET_DATABASE');
-        if(temp_arr.indexOf("TARGET_SCHEMA") < 0)
-            temp_arr.push('TARGET_SCHEMA');
-        if(temp_arr.indexOf("TARGET_TABLE") < 0)
-            temp_arr.push('TARGET_TABLE');
-        if(temp_arr.indexOf('CATALOG_ENTITIES') > -1)
-            temp_arr.splice(temp_arr.indexOf('CATALOG_ENTITIES'),1);
+        if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
+            searchFieldsFromDropdownArr.push('TARGET_DATABASE');
+        if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
+            searchFieldsFromDropdownArr.push('TARGET_SCHEMA');
+        if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
+            searchFieldsFromDropdownArr.push('TARGET_TABLE');
+        if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
+            searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
     }
 
     // if(table === 'CATALOG_ITEMS')
-    //     if(temp_arr.indexOf('CATALOG_ENTITIES') > -1)
-    //         temp_arr.splice(temp_arr.indexOf('CATALOG_ENTITIES'),1);
+    //     if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
+    //         searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
 
     let nonSearchableColumns = [
         'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
@@ -66,20 +66,20 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
     ];
 
     for(let item of nonSearchableColumns){
-        if(temp_arr.indexOf(item) > -1)
-            temp_arr.splice(temp_arr.indexOf(item),1);
+        if(searchFieldsFromDropdownArr.indexOf(item) > -1)
+            searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
     }
 
 
-    // if(temp_arr.indexOf("PRIVILEGE") > -1)
-    //     temp_arr.splice(temp_arr.indexOf("PRIVILEGE"),1);
-    // if(temp_arr.indexOf("CREATEDDATE") > -1)
-    //     temp_arr.splice(temp_arr.indexOf("CREATEDDATE"),1);
-    // if(temp_arr.indexOf("LASTMODIFIEDDATE") > -1)
-    //     temp_arr.splice(temp_arr.indexOf("LASTMODIFIEDDATE"),1);
+    // if(searchFieldsFromDropdownArr.indexOf("PRIVILEGE") > -1)
+    //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("PRIVILEGE"),1);
+    // if(searchFieldsFromDropdownArr.indexOf("CREATEDDATE") > -1)
+    //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("CREATEDDATE"),1);
+    // if(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE") > -1)
+    //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE"),1);
     
-    console.log("search columns: " + temp_arr);
-    const [remainingColumns, setRemainingColumns] = useState(temp_arr);
+    console.log("search columns: " + searchFieldsFromDropdownArr);
+    const [remainingColumns, setRemainingColumns] = useState(searchFieldsFromDropdownArr);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [errors, setErrors] = useState({});
 

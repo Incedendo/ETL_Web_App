@@ -67,14 +67,8 @@ export const fieldTypesConfigs = {
 
         },
         'links':{
-            'EMAIL': {
-                'TABLE': 'DATA_DOMAIN', //linked through DATA_STEWARD_DOMAIN -- 3 table search
-                'LINK': '/datacataloglinked'
-            },
+            'DATA_DOMAIN': 'DATA_STEWARD_ID'
         },
-        'links':{
-            
-        }
     },
 
     DATA_DOMAIN: {
@@ -89,14 +83,9 @@ export const fieldTypesConfigs = {
         },
         dropdownFields: {},
         'links':{
-            'DOMAIN': {
-                'TABLE': 'CATALOG_ENTITIES', //linked through CATALOG_ENTITY_DOMAIN -- 3 table search
-                'LINK': '/datacataloglinked'
-            },
+            'DATA_STEWARD': 'DATA_DOMAIN_ID',
+            'CATALOG_ENTITIES': 'DATA_DOMAIN_ID'
         },
-        'links':{
-            
-        }
     },
 
     //composite table
@@ -152,17 +141,24 @@ export const fieldTypesConfigs = {
             // 'TARGET_TABLE': []
         },
         'links':{
-            'CATALOG_ENTITIES_ID': [
-                {
-                    'TABLE': 'CATALOG_ITEMS',
-                    'LINK': '/datacataloglinked'
-                },
-                {
-                    'TABLE': 'CATALOG_ENTITY_LINEAGE',
-                    'LINK': '/datacataloglinked'
-                }
-            ]
+            'DATA_DOMAIN': 'CATALOG_ENTITIES_ID',
+            'CATALOG_ENTITY_LINEAGE': 'CATALOG_ENTITIES_ID', 
+            'CATALOG_ITEMS': 'CATALOG_ENTITIES_ID'
         }
+        // 'links':{
+        //     'DATA_DOMAIN': {
+        //         'KEYS': ['CATALOG_ENTITIES_ID', 'DATA_DOMAIN_ID'], //linked through DATA_STEWARD_DOMAIN -- 3 table search
+        //         'LINK': '/datacataloglinked'
+        //     },
+        //     'CATALOG_ENTITY_LINEAGE': {
+        //         'KEYS': ['CATALOG_ENTITIES_ID'], //linked through DATA_STEWARD_DOMAIN -- 3 table search
+        //         'LINK': '/datacataloglinked'
+        //     },
+        //     'CATALOG_ITEMS': {
+        //         'KEYS': ['CATALOG_ENTITIES_ID'], //linked through DATA_STEWARD_DOMAIN -- 3 table search
+        //         'LINK': '/datacataloglinked'
+        //     }
+        // }
     },
 
     CATALOG_ITEMS: {
@@ -190,18 +186,7 @@ export const fieldTypesConfigs = {
             'CATALOG_ENTITIES': [],
         },
         'links':{
-            // NOT SHOWING CATALOG_ENTITIES_ID SO CANT USE THIS TO LINK??????????!!!!!!!!!
-            
-            // 'CATALOG_ENTITIES_ID': [
-            //     {
-            //         'TABLE': 'CATALOG_ENTITIES',
-            //         'LINK': '/datacataloglinked'
-            //     },
-            //     {
-            //         'TABLE': 'CATALOG_ENTITY_LINEAGE',
-            //         'LINK': '/datacataloglinked'
-            //     }
-            // ]
+            'CATALOG_ENTITIES': 'CATALOG_ENTITIES_ID'
         }
     },
 
@@ -235,38 +220,8 @@ export const fieldTypesConfigs = {
             'CATALOG_ENTITIES': [],
         },
         'links': {
-            'EXTRACT_CONFIG_ID': [
-                {
-                    'TABLE': 'ETLF_EXTRACT_CONFIG',
-                    'LINK': '/etlframework'
-                },
-                {
-                    'TABLE': 'ETLF_EXTRACT_CONFIG',
-                    'LINK': '/etlframework'
-                },
-                {
-                    'TABLE': 'ETLF_EXTRACT_CONFIG',
-                    'LINK': '/etlframework'
-                }
-            ],
-            'SOURCE_TABLE': [{
-                'TABLE': 'ETLF_EXTRACT_CONFIG',
-                'LINK': '/etlframework/'
-            }],
-            'EXTRACT_SCHEMA': [{
-                'TABLE': 'ETLF_EXTRACT_CONFIG',
-                'LINK': '/etlframework'
-            }],
-            // 'CATALOG_ENTITIES_HASH': [
-            //     {
-            //         'TABLE': 'CATALOG_ITEMS',
-            //         'LINK': '/datacataloglinked'
-            //     },
-            //     {
-            //         'TABLE': 'CATALOG_ENTITIES',
-            //         'LINK': '/datacataloglinked'
-            //     }
-            // ]
+            'ETLF_EXTRACT_CONFIG': 'EXTRACT_CONFIG_ID',
+            'CATALOG_ENTITIES': 'CATALOG_ENTITIES_ID'
         }
     }
 }
