@@ -17,7 +17,10 @@ import '../../../css/workspace.scss';
 const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
 const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
 
-const DropDown = ({ target, currentVal, menus, table, setState, disabled }) => {
+const DropDown = ({ 
+    target, currentVal, menus, table, 
+    setState, setShownModalUponChangingTable, setCommingFromLink, setTableLoaded, disabled
+}) => {
     return (
         <DropdownButton
             id="dropdown-item-button"
@@ -28,7 +31,10 @@ const DropDown = ({ target, currentVal, menus, table, setState, disabled }) => {
                 <Dropdown.Item as="button" key={item} disabled={disabled}
                     onSelect={() => {
                         if (item !== table) {
-                            setState(item)
+                            setState(item);
+                            setShownModalUponChangingTable(true);
+                            setCommingFromLink(false);
+                            setTableLoaded(false);
                         }
                     }}
                 >
@@ -72,7 +78,7 @@ const DropDown = ({ target, currentVal, menus, table, setState, disabled }) => {
 //     </div>
 // )
 
-const DatCat_ControlPanel = () => {
+const DatCat_ControlPanel = ({ linkState }) => {
 
     const {
         debug,
@@ -92,8 +98,28 @@ const DatCat_ControlPanel = () => {
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]["dropdownFields"]);
     const [dropdownObject, setDropdownObject] = useState({});
     const [loadedConfig, setLoadedConfig] = useState(false);
+    const [comingFromLink, setCommingFromLink] = useState(false);
 
     const [insertError, setInsertError] = useState('');
+    const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
+
+    useEffect(() =>{
+        if(linkState !== undefined){
+            console.log(linkState);
+            setTable(linkState['table']);
+            setCommingFromLink(true);
+        }else{
+            console.log("linkstate is undefined...");
+            setTable('CATALOG_ENTITY_LINEAGE');
+            setShownModalUponChangingTable(true);
+
+            // the first time user clicks on the tab, still needs to enforce false to NOT show the result table
+            setTableLoaded(false);
+            setCommingFromLink(false);
+        }
+        
+        console.log(dropdownFields);
+    }, []);
 
     useEffect(() =>{
         console.log(fields);
@@ -117,6 +143,8 @@ const DatCat_ControlPanel = () => {
         }else{
             setLoadedConfig(true);
         }
+
+        updateDropdownBasedOnTable();
     }, [table]);
 
     const prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN = () => {
@@ -329,8 +357,7 @@ const DatCat_ControlPanel = () => {
         }
     }
 
-
-    useEffect(()=>{
+    const updateDropdownBasedOnTable = () => {
         
         console.log(table);
 
@@ -389,7 +416,26 @@ const DatCat_ControlPanel = () => {
             setSchema(yup_schema);
             setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
         }
-    }, [table]);
+    };
+
+    useEffect(()=>{
+        // if(linkState !== undefined){
+        if(loadedConfig && comingFromLink){
+            console.log("Immediately get linked result based on Link state's params");
+
+            // let searchStmt = 
+            // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+            // FROM "SHARED_TOOLS_DEV"."ETL"."` + table + `" ec
+            // WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
+            // ;`;
+
+            const searchStmt = linkState['searchStmt'];
+            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
+            console.log(searchStmt);
+            console.log(primaryKey);
+            axiosCallToGetTableRows(searchStmt, primaryKey);
+        }
+    }, [loadedConfig, comingFromLink]);
 
     return (
         <div>
@@ -409,7 +455,10 @@ const DatCat_ControlPanel = () => {
                         'CATALOG_ENTITY_LINEAGE',
                     ]}
                     table={table}
-                    setState={setTable} 
+                    setState={setTable}
+                    setShownModalUponChangingTable={setShownModalUponChangingTable}
+                    setCommingFromLink={setCommingFromLink}
+                    setTableLoaded={setTableLoaded}
                     disabled={!columnsLoaded}
                 />
             </div>
@@ -447,6 +496,7 @@ const DatCat_ControlPanel = () => {
                                 groupIDColumn={'GroupID Not applicable for Catalog'}
                                 username={username} 
                                 columns={columns}
+                                shown={shownModalUponChangingTable}
                             />
                     : 
                         !loadedConfig
@@ -467,6 +517,7 @@ const DatCat_ControlPanel = () => {
                             groupIDColumn={'GroupID Not applicable for Catalog'}
                             username={username} 
                             columns={Object.keys(dropdownObject)}
+                            shown={shownModalUponChangingTable}
                         />
                 }
                     

@@ -13,6 +13,13 @@ import { search_multi_field,
     search_composite_DATA_STEWARD_DOMAIN, 
     search_composite_CATALOG_ENTITY_DOMAIN 
 } from '../../sql_statements';
+import { 
+    select_all_etl_tables,
+    select_all_composite_DATA_STEWARD_DOMAIN,
+    select_all_composite_CATALOG_ENTITY_DOMAIN,
+    select_all_multi_field_catalog,
+    select_all_multi_field_catalog_with_Extra_columns_joined
+} from '../../SQL_Operations/selectAll';
 import '../../../css/mymodal.scss';
 import axios from 'axios';
 
@@ -21,7 +28,7 @@ import { joinedTableDataCatalog, compositeTables } from '../../context/FieldType
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 
-const SearchModal = ({database, schema, table, groupIDColumn, username, columns}) => {
+const SearchModal = ({database, schema, table, groupIDColumn, username, columns, shown}) => {
 
     // const { authState, authService } = useOktaAuth();
     
@@ -36,7 +43,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
 
     // console.log(groupIDColumn);
 
-    const [show, setShow] = useState(false);
+    const [show, setShow] = useState(shown);
 
     let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
     ? columns.map(column => column.name)
@@ -144,6 +151,43 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
         }
     }
 
+    const selectAll = () => {
+        let start = 0;
+        let end = 100;
+        // const searchTable = 'ETLF_SYSTEM_CONFIG';
+        console.log(table);
+        if (verifySearchObj()) {
+            let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
+            let multiSearchSqlStatement = '';
+            if(ETLF_tables.indexOf(table) >= 0){
+                // console.log("table is in ETLF Framework");
+                multiSearchSqlStatement = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
+            }else if((Object.keys(joinedTableDataCatalog)).indexOf(table) >= 0){
+                
+                const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
+                const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
+                const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
+
+                multiSearchSqlStatement = select_all_multi_field_catalog_with_Extra_columns_joined(database, schema, table, joinedTable, joinedColumms, joinedCriterion); 
+                
+            }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
+                if(table === 'DATA_STEWARD_DOMAIN'){
+                    multiSearchSqlStatement = select_all_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+                }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+                    multiSearchSqlStatement = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+                }
+            }else{
+                // console.log("table NOTTTTTT in ETLF Framework");
+                multiSearchSqlStatement = select_all_multi_field_catalog(database, schema, table);
+            }
+                
+            debug && console.log(multiSearchSqlStatement);
+
+            // console.log(primaryKey);
+            axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
+        }
+    }
+
     useEffect(() => {
         // debug && console.log(currentSearchObj);
         debug && console.log(remainingColumns);
@@ -201,6 +245,14 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns}
                             <div className="search-count">
                                 {/* Search Criteria ({Object.keys(currentSearchObj).length} items) */}
                                 Total columns remaining: ({remainingColumns.length} items)
+                            </div>
+
+                            <div 
+                                style={{
+                                    'position': 'absolute',
+                                    'right': '18px'
+                                }}>
+                                <Button onClick={selectAll}>Search All</Button>
                             </div>
                         </div>
 

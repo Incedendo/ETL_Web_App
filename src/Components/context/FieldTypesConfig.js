@@ -32,7 +32,7 @@ export const fieldTypesConfigs = {
             SOURCE_FILE_TYPE: ['CSV', 'XLSX', 'XLS']
         },
         'links':{
-
+            'CATALOG_ENTITY_LINEAGE': 'EXTRACT_CONFIG_ID'
         }
 
     }, 
@@ -47,7 +47,7 @@ export const fieldTypesConfigs = {
             CODE_TYPE: ['ADHOC_QUERY', 'BLOCK_FORMATION']
         },
         'links':{
-            
+            'CATALOG_ENTITY_LINEAGE': 'EXTRACT_CONFIG_ID'
         }
     },
 
@@ -102,7 +102,8 @@ export const fieldTypesConfigs = {
             'EMAIL': [] // SHOW DATA_STEWARD BUT GET DATA_STEWARD_ID 
         },
         'links':{
-            
+            'DATA_STEWARD': 'DATA_DOMAIN_ID',
+            'DATA_DOMAIN': 'DATA_STEWARD_ID'
         }
     },
 
@@ -119,7 +120,8 @@ export const fieldTypesConfigs = {
             'CATALOG_ENTITIES': []
         },
         'links':{
-            
+            'DATA_DOMAIN': 'DATA_STEWARD_ID',
+            'CATALOG_ENTITIES': 'DATA_DOMAIN_ID'
         }
     },
 

@@ -327,7 +327,8 @@ export const WorkspaceProvider = (props) => {
 
     //'EXTRACT_CONFIG_ID'
     const loadTableRows = (dbTableRows, primaryKey) => {
-        console.log(primaryKey[0]);
+        console.log('1st column to distinguish rows in results: ' + primaryKey[0]);
+        console.log('Rows to set rows: ', dbTableRows);
 
         setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
         setRows([]);
@@ -805,11 +806,8 @@ export const WorkspaceProvider = (props) => {
                 let rows = response.data;
                 if(rows.length > 0 && (Object.keys(rows[0])).indexOf('CATALOG_ENTITIES_HASH') > -1){
                     rows = rows.map(row => {
-                        let newObj ={}
-                        Object.keys(row).map(property => {
-                            if(property !== 'CATALOG_ENTITIES_HASH')
-                                newObj[property] = row[property]
-                        }) 
+                        let newObj ={...rows};
+                        delete newObj['CATALOG_ENTITIES_HASH']
                         return newObj;
                     });
                 }

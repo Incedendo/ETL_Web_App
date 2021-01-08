@@ -14,9 +14,9 @@ const CustomizedLink = ({ row }) => {
 
     const linkedTablesObject = fieldTypesConfigs[table]['links'];
     
-    const getStandardSearchStmt = (linkedTable, searchObj) => {
-        let sql = `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
-        FROM "SHARED_TOOLS_DEV"."ETL"."` + linkedTable + `" ec
+    const getStandardSearchStmt = (destinationTable, searchObj) => {
+        let sql = `SELECT ec.*, 'READ/WRITE' AS PRIVILEGE
+        FROM "SHARED_TOOLS_DEV"."ETL"."` + destinationTable + `" ec
         WHERE ` + getSearchFieldValue(searchObj) + `
         ;`
 
@@ -46,15 +46,15 @@ const CustomizedLink = ({ row }) => {
         console.log('sql_linking_dataDomain_To_dataSteward...');
         console.log(searchObj);
 
-        const sql = `SELECT C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
+        const sql = `SELECT C.FNAME, C.LNAME, C.EMAIL, C.DATA_STEWARD_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
         FROM
-        (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
-          FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
-          INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-          ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
-          WHERE UPPER(TRIM(A.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%')) ) C1
-        INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-        ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID;`
+        (SELECT A.DOMAIN, A.DOMAIN_DESCRIPTIONS, B.DATA_DOMAIN_ID, B.DATA_STEWARD_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
+          FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN A
+          INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN B 
+          ON A.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID
+          WHERE UPPER(TRIM(A.DATA_DOMAIN_ID)) LIKE UPPER(TRIM('%` + searchObj['DATA_DOMAIN_ID'] + `%')) ) C1
+        INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD C
+        ON C1.DATA_STEWARD_ID = C.DATA_STEWARD_ID;`
 
         // console.log(sql);
 
@@ -62,7 +62,7 @@ const CustomizedLink = ({ row }) => {
     }
 
     const sql_linking_catalogEntities_To_dataDomain = searchObj => {
-        console.log('sql_linking_dataDomain_To_dataSteward...');
+        console.log('sql_linking_catalogEntities_To_dataDomain...');
         console.log(searchObj);
 
         const sql = `SELECT C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
@@ -101,10 +101,10 @@ const CustomizedLink = ({ row }) => {
 
 
     return(
-        <div>
-            {(Object.keys(linkedTablesObject)).map(linkedTable => {
-                // console.log("linked table: " + linkedTable)
-                const criteria = linkedTablesObject[linkedTable];
+        <div style={{'marginTop': '30px'}}>
+            {(Object.keys(linkedTablesObject)).map(destinationTable => {
+                // console.log("linked table: " + destinationTable)
+                const criteria = linkedTablesObject[destinationTable];
                 // console.log("search columns: " + criteria);
 
                 let searchObj = {};
@@ -112,30 +112,45 @@ const CustomizedLink = ({ row }) => {
                 console.log(searchObj);
 
                 let searchStmt = '';
-                if(table === 'DATA_STEWARD'){
+                if(table === 'ETLF_EXTRACT_CONFIG'){
+                    searchStmt = getStandardSearchStmt(destinationTable, searchObj);
+                }if(table === 'ETLF_CUSTOM_CODE'){
+                    searchStmt = getStandardSearchStmt(destinationTable, searchObj);
+                }else if(table === 'DATA_STEWARD'){
                     searchStmt = sql_linking_dataSteward_To_dataDomain(searchObj);
-                }else if(table === 'DATA_DOMAIN'){
-                    if(linkedTable === 'DATA_STEWARD')
+                }else if(table === 'DATA_STEWARD_DOMAIN'){
+                    if(destinationTable === 'DATA_STEWARD')
                         searchStmt = sql_linking_dataDomain_To_dataSteward(searchObj);
-                    else if(linkedTable === 'CATALOG_ENTITIES' )
+                    else if(destinationTable === 'DATA_DOMAIN' )
+                        searchStmt = sql_linking_dataSteward_To_dataDomain(searchObj);
+                }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+                    if(destinationTable === 'DATA_DOMAIN')
+                        searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
+                    else if(destinationTable === 'CATALOG_ENTITIES' )
+                        searchStmt = sql_linking_dataDomain_To_catalogEntities(searchObj);
+                }else if(table === 'DATA_DOMAIN'){
+                    if(destinationTable === 'DATA_STEWARD')
+                        searchStmt = sql_linking_dataDomain_To_dataSteward(searchObj);
+                    else if(destinationTable === 'CATALOG_ENTITIES' )
                         searchStmt = sql_linking_dataDomain_To_catalogEntities(searchObj);
                 }else if(table === 'CATALOG_ENTITIES'){
-                    if(linkedTable === 'CATALOG_ITEMS'  || linkedTable === 'CATALOG_ENTITY_LINEAGE')
-                        searchStmt =  getStandardSearchStmt(linkedTable, searchObj);
-                    else if(linkedTable === 'DATA_DOMAIN')
+                    if(destinationTable === 'CATALOG_ITEMS'  || destinationTable === 'CATALOG_ENTITY_LINEAGE')
+                        searchStmt =  getStandardSearchStmt(destinationTable, searchObj);
+                    else if(destinationTable === 'DATA_DOMAIN')
                         searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
                 }else if(table === 'CATALOG_ITEMS'  || table === 'CATALOG_ENTITY_LINEAGE')
-                    searchStmt =  getStandardSearchStmt(linkedTable, searchObj);
+                    searchStmt =  getStandardSearchStmt(destinationTable, searchObj);
                 
                 console.log(searchStmt);
 
                 return(
-                    <div>
+                    <div style={{'marginBottom': '10px'}}>
                         <Link 
                             to={{
-                                pathname: '/datacataloglinked',
+                                // pathname: '/datacataloglinked',
+                                pathname: '/datacatalog',
                                 state: {
-                                    'table': linkedTable,
+                                    'table': destinationTable,
                                     'searchObj': searchObj,
                                     'searchStmt': searchStmt,
                                 }
@@ -145,8 +160,8 @@ const CustomizedLink = ({ row }) => {
                                 style={{'float': 'left'}} 
                                 src={LinkLogo12} 
                                 alt="React Logo" 
-                                title={'This will link to table ' + linkedTable}
-                            /> Link to table {linkedTable}
+                                title={'This will link to table ' + destinationTable}
+                            /> Link to table {destinationTable}
                         </Link>
                     </div>
                 )

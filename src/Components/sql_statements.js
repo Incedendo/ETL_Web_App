@@ -159,7 +159,7 @@ export const getSearchFieldValueJoinedColumns = (currentSearchObj, excludedField
     return res;
 }
 
-const getMultiCompositeValues = (currentSearchObj, table, items) => {
+export const getMultiCompositeValues = (currentSearchObj, table, items) => {
     let res = '';
     let dataDomainsObj = {}
 
@@ -200,7 +200,7 @@ const getMultiCompositeValues = (currentSearchObj, table, items) => {
     // return res;
 }
 
-const getCompositeValue = (currentSearchObj, table, item) => {
+export const getCompositeValue = (currentSearchObj, table, item) => {
     let value = item in currentSearchObj ? currentSearchObj[item] : '';
     return  `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))`;
 }

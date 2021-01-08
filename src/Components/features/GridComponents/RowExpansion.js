@@ -550,8 +550,6 @@ const RowExpansion = ({ row }) => {
                     </>
                 }
 
-                <CustomizedLink row = {row}/>
-
                 {/* {Object.entries(row).map((key, index) =>
                         <DisplayField
                             setState={setState}
@@ -572,6 +570,8 @@ const RowExpansion = ({ row }) => {
                 } */}
 
                 {renderFieldByType()}
+
+                <CustomizedLink row = {row}/>
             </div>
         </>
     )

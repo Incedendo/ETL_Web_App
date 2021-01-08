@@ -6,7 +6,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Spinner from 'react-bootstrap/Spinner';
 import DataCatalogModal from './DataCatalogModal';
-import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
+import { fieldTypesConfigs, compositeTables } from '../../context/FieldTypesConfig';
 import axios from 'axios';
 import * as yup from 'yup'; // for everything
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
@@ -17,7 +17,7 @@ import '../../../css/workspace.scss';
 const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
 const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
 
-const DropDown = ({ target, currentVal, menus, table, setState }) => {
+const DropDown = ({ target, currentVal, menus, table, setState, setUpdatedTable, setShownModalUponChangingTable, disabled }) => {
     return (
         <DropdownButton
             id="dropdown-item-button"
@@ -25,10 +25,12 @@ const DropDown = ({ target, currentVal, menus, table, setState }) => {
             // disabled={tableSearching || tableLoading}
         >
             {menus.map(item => (
-                <Dropdown.Item as="button" key={item}
+                <Dropdown.Item as="button" key={item} disabled={disabled}
                     onSelect={() => {
                         if (item !== table) {
-                            setState(item)
+                            setState(item);
+                            setUpdatedTable(true);
+                            setShownModalUponChangingTable(true);
                         }
                     }}
                 >
@@ -57,7 +59,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
 
 
     const [updatedTable, setUpdatedTable] = useState(false);
-    const [primaryKey, setPrimaryKeys] = useState([]);
+    // const [primaryKey, setPrimaryKeys] = useState([]);
     const [datCatSchema, setSchema] = useState([]);
     const [fields, setFields] = useState([]);
     const [codeFields, setCodeFields] = useState(fieldTypesConfigs[table]["codeFields"]);
@@ -66,6 +68,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
     const [loadedConfig, setLoadedConfig] = useState(false);
 
     const [insertError, setInsertError] = useState('');
+    const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
 
     useEffect(() =>{
         console.log(fields);
@@ -75,88 +78,33 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
         if(linkState !== undefined){
             console.log(linkState);
             const linkedTable = linkState['table'];
-            // const currentSearchObj=  linkState['searchObj'];
-            setTable(linkedTable);
             setUpdatedTable(true);
         }
         
         console.log(dropdownFields);
     }, []);
 
-    // useEffect(() =>{
-    //     console.log(dropdownFields);
-    // }, [dropdownFields]);
-
     useEffect(() =>{
-        console.log(primaryKey);
-    }, []);
+        console.log("dropdown fields: ", dropdownFields);
+        console.log("dropdown object: ", dropdownObject);
+    }, [dropdownFields, dropdownObject]);
 
     // Set dropdown for composite tables
     useEffect(() => {
-        // if(table === linkedTable){
-        console.log("UpdatedTable: " + updatedTable);
-        if(updatedTable){
-            setPrimaryKeys(fieldTypesConfigs[table]['primaryKeys']);
-            if(table === 'DATA_STEWARD_DOMAIN'){
-                prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
-            }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-                prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
-            }else if(table === 'CATALOG_ENTITY_LINEAGE' || table === 'CATALOG_ITEMS'){
-                prepareValuesFor_CATALOG_ENTITIES();
-            }else{
-                setLoadedConfig(true);
-            }
-    
-            console.log(table);
-    
-            //table can be still ETLF_EXTRACT_CONFIG or ETLFCALL or CUSTOMCODE, hence need to make sure it's updated before fetching 
-            if([ 
-                'DATA_STEWARD', 
-                'DATA_DOMAIN',
-                'DATA_STEWARD_DOMAIN',
-                'CATALOG_ENTITY_DOMAIN',
-                'CATALOG_ENTITIES',
-                'CATALOG_ITEMS',
-                'CATALOG_ENTITY_LINEAGE',
-            ].indexOf(table) >= 0){
-                //check if table has code fields
-                // setCodeFields(fieldTypesConfigs[table]["codeFields"]);
-    
-                //check if table has dropdown fields
-                // setDropdownFields(fieldTypesConfigs[table]["dropdownFields"]);
-    
-                let formValidationsInfo = [];
-                
-                let requiredFields = Object.keys(fieldTypesConfigs[table]["dataTypes"]);
-                console.log(requiredFields);
-                requiredFields.map(col => {
-                    let custom_config = {};
-                    custom_config.id = col;
-                    // custom_config.placeholder = "this field is required";
-                    custom_config.validationType = fieldTypesConfigs[table]["dataTypes"][col];
-                    if(table === 'DATA_STEWARD_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN'){
-                        custom_config.validations = [
-                            {
-                                type: "required",
-                                params: ["this field is required"]
-                            }
-                        ];
-                    }
-                    formValidationsInfo.push(custom_config);
-                });
-    
-                // debug && console.log(formValidationsInfo);
-                let temp_schema = formValidationsInfo.reduce(createYupSchema, {});
-    
-                // debug && console.log(temp_schema);
-                let yup_schema = yup.object().shape(temp_schema);
-    
-                //have to use setState here to FORCE UPDATE the object in the form
-                setSchema(yup_schema);
-                setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
-            }
+        setLoadedConfig(false);
+        console.log(table);
+        if(table === 'DATA_STEWARD_DOMAIN'){
+            prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
+        }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+            prepareValuesForCompositeTableInsertInto_CATALOG_ENTITY_DOMAIN();
+        }else if(table === 'CATALOG_ENTITY_LINEAGE' || table === 'CATALOG_ITEMS'){
+            prepareValuesFor_CATALOG_ENTITIES();
+        }else{
+            setLoadedConfig(true);
         }
-    }, [table, updatedTable]);
+
+        updateDropdownBasedOnTable();
+    }, [table]);
 
     const prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN = () => {
         if (authState.isAuthenticated && username !== '') {
@@ -361,6 +309,67 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
         }
     }
 
+    const updateDropdownBasedOnTable = () => {
+        
+        console.log(table);
+
+        const requiredColumns = [
+            'EMAIL', 'FNAME', 'LNAME',//DATA_STEWARD
+            'DOMAIN', //DATA_DOMAIN
+            'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', // table CATALOG_ENTITIES
+            'CATALOG_ENTITIES', 'COLUMN_NAME', 'DATA_TYPE', //table CATALOG_ITEMS
+            'CATALOG_ENTITIES_ID', //table CATALOG_ENTITY_LINEAGE
+        ];
+
+        //table can be still ETLF_EXTRACT_CONFIG or ETLFCALL or CUSTOMCODE, hence need to make sure it's updated before fetching 
+        if([ 
+            'DATA_STEWARD', 
+            'DATA_DOMAIN',
+            'DATA_STEWARD_DOMAIN',
+            'CATALOG_ENTITY_DOMAIN',
+            'CATALOG_ENTITIES',
+            'CATALOG_ITEMS',
+            'CATALOG_ENTITY_LINEAGE',
+        ].indexOf(table) >= 0){
+            //check if table has code fields
+            // setCodeFields(fieldTypesConfigs[table]["codeFields"]);
+
+            //check if table has dropdown fields
+            // setDropdownFields(fieldTypesConfigs[table]["dropdownFields"]);
+
+            let formValidationsInfo = [];
+            
+            let requiredFields = Object.keys(fieldTypesConfigs[table]["dataTypes"]);
+            console.log(requiredFields);
+            requiredFields.map(col => {
+                let custom_config = {};
+                custom_config.id = col;
+                // custom_config.placeholder = "this field is required";
+                custom_config.validationType = fieldTypesConfigs[table]["dataTypes"][col];
+                // if(table === 'DATA_STEWARD_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN'){
+                if( (Object.keys(compositeTables)).indexOf(table) >= 0 || requiredColumns.indexOf(col) >= 0){
+                    custom_config.validations = [
+                        {
+                            type: "required",
+                            params: ["this field is required"]
+                        }
+                    ];
+                }
+                formValidationsInfo.push(custom_config);
+            });
+
+            // debug && console.log(formValidationsInfo);
+            let temp_schema = formValidationsInfo.reduce(createYupSchema, {});
+
+            // debug && console.log(temp_schema);
+            let yup_schema = yup.object().shape(temp_schema);
+
+            //have to use setState here to FORCE UPDATE the object in the form
+            setSchema(yup_schema);
+            setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
+        }
+    };
+
     //***************************************************************************** */
     // EXPERIMENTAL FEATURE WITH LINKABLE TABLE
     //
@@ -379,8 +388,8 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
             // WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
             // ;`;
 
-            const searchStmt = linkState['searchStmt']
-
+            const searchStmt = linkState['searchStmt'];
+            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
             console.log(searchStmt);
             console.log(primaryKey);
             axiosCallToGetTableRows(searchStmt, primaryKey);
@@ -388,10 +397,10 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
     }, [loadedConfig]);
 
     return (
-        <>
-            DatCat_ControlPanelLinked
+        <>  
+            {/* DatCat_ControlPanelLinked */}
             <div style={{ 'float': 'left' }}>
-                Catalog table:
+                Select Catalog table:
                 <DropDown 
                     target='Table' 
                     currentVal={table} 
@@ -405,7 +414,11 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
                         'CATALOG_ENTITY_LINEAGE',
                     ]}
                     table={table}
-                    setState={setTable} />
+                    setState={setTable}
+                    setUpdatedTable={setUpdatedTable}
+                    setShownModalUponChangingTable={setShownModalUponChangingTable}
+                    disabled={!columnsLoaded}
+                />
             </div>
 
             <DataCatalogModal
@@ -419,28 +432,53 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
                 setInsertError={setInsertError}
             />
                 
-            <div style={{ 'paddingTop': '10px', 'float': 'left' }}>
-                {!columnsLoaded ? 
-                    <div style={{'padding': '5px'}}>
-                        <Spinner
-                            as="span"
-                            animation="border"
-                            size="sm"
-                            role="status"
-                            aria-hidden="true"
+            <div style={{ 'padding-top': '10px', 'float': 'left' }}>
+                { (Object.keys(compositeTables)).indexOf(table) < 0  
+                    ?
+                        !columnsLoaded
+                            ?<div style={{'padding': '5px'}}>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                />
+                                <span style={{ 'marginLeft': '5px' }}>loading columns...</span>
+                            </div>
+                            : 
+                            <SearchModal
+                                database={database} 
+                                schema={schema} 
+                                table={table} 
+                                groupIDColumn={'GroupID Not applicable for Catalog'}
+                                username={username} 
+                                columns={columns}
+                                shown={shownModalUponChangingTable}
+                            />
+                    : 
+                        !loadedConfig
+                        ?<div style={{'padding': '5px'}}>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />
+                            <span style={{ 'marginLeft': '5px' }}>loading config...</span>
+                        </div>
+                        :<SearchModal
+                            database={database} 
+                            schema={schema} 
+                            table={table} 
+                            groupIDColumn={'GroupID Not applicable for Catalog'}
+                            username={username} 
+                            columns={Object.keys(dropdownObject)}
+                            shown={shownModalUponChangingTable}
                         />
-                        <span style={{ 'marginLeft': '5px' }}>loading...</span>
-                    </div>
-                    :
-                    <SearchModal
-                        database={database} 
-                        schema={schema} 
-                        table={table} 
-                        groupIDColumn={'GroupID Not applicable for Catalog'}
-                        username={username} 
-                        columns={columns}
-                    /> 
                 }
+                    
             </div>
 
             {insertError !== '' && insertError}

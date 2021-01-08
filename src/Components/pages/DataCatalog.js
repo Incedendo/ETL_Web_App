@@ -3,26 +3,31 @@ import { WorkspaceContext } from '../context/WorkspaceContext';
 import {
     useOktaAuth
 } from '@okta/okta-react';
-
+import Spinner from 'react-bootstrap/Spinner';
 import ConfigurationGrid from '../features/GridComponents/Grids/ConfigurationGrid';
 import DatCat_ControlPanel from '../features/DataCatalog/DatCat_ControlPanel';
 
-const DataCatalog = () => {
+const DataCatalog = (props) => {
     const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
     const {
         table, setTable,
-        tableLoaded,setTableLoaded,
+        tableLoading, tableLoaded,setTableLoaded,
     } = useContext(WorkspaceContext);
 
     const { authState, authService } = useOktaAuth();
     // const [table, setTable] = useState('CATALOG_ENTITY_LINEAGE');
     // const [tableList, setTableList] = useState([]);
 
-    useEffect(()=> {
-        setTable('CATALOG_ENTITY_LINEAGE');
-    }, []);
+    // useEffect(()=> {
+    //     if(props.location.state !== undefined){
+
+    //     }else{
+    //         setTable('CATALOG_ENTITY_LINEAGE');
+    //     }
+        
+    // }, []);
 
     const login = async () => {
         // Redirect to '/' after login
@@ -48,9 +53,25 @@ const DataCatalog = () => {
                 isDataCatalog={true}
             /> */}
 
-            <div>
-                <DatCat_ControlPanel/>
-            </div>
+            <DatCat_ControlPanel linkState={props.location.state}/>
+            
+
+            {tableLoading && 
+                <div style={{
+                    "position":"relative",
+                    "display": "inline-block",
+                    "alignItems": "center",
+                }}>
+                    <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                    />
+                    <span style={{ 'marginLeft': '5px' }}>loading Table {table}...</span>
+                </div>
+            }
 
             { tableLoaded && 
                 <>

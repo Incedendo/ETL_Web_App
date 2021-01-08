@@ -3,7 +3,7 @@ import { WorkspaceContext } from '../context/WorkspaceContext';
 import {
     useOktaAuth
 } from '@okta/okta-react';
-
+import Spinner from 'react-bootstrap/Spinner';
 import Table from '../features/GenericTable/Table';
 import ConfigurationGrid from '../features/GridComponents/Grids/ConfigurationGrid';
 import DatCat_ControlPanelLinked from '../features/DataCatalog/DatCat_ControlPanelLinked';
@@ -19,8 +19,13 @@ const DataCatalogLinkable = (props) => {
     // const [tableList, setTableList] = useState([]);
 
     const {
+        table, tableLoading,
         tableLoaded
     } = useContext(WorkspaceContext);
+
+    useEffect(()=>{
+        tableLoaded && console.log("table " + table + " has loaded");
+    }, [tableLoaded]);
 
     const login = async () => {
         // Redirect to '/' after login
@@ -38,7 +43,7 @@ const DataCatalogLinkable = (props) => {
 
     return authState.isAuthenticated ?
         <div className="App container">
-            DataCatalogLinkable
+            {/* DataCatalogLinkable */}
             {/* <Table
                 privilege={"READ ONLY"}
                 tableName={'CATALOG_ENTITY_LINEAGE'}
@@ -46,11 +51,41 @@ const DataCatalogLinkable = (props) => {
                 isDataCatalog={true}
                 linkState={props.location.state}
             /> */}
+            
 
             <div>   
                 <DatCat_ControlPanelLinked linkState={props.location.state}/>
-                { tableLoaded && <ConfigurationGrid/> }
             </div>
+            {tableLoading && 
+                <div style={{
+                    "position":"relative",
+                    "display": "inline-block",
+                    "alignItems": "center",
+                }}>
+                    <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                    />
+                    <span style={{ 'marginLeft': '5px' }}>loading Table {table}...</span>
+                </div>
+            }
+
+            { tableLoaded && 
+                <>
+                    <div style={{
+                        'fontWeight': 'bold',
+                        "textAlign": "left",
+                        "marginBottom": "10px"
+                    }}>
+                        Table: {table}
+                    </div>
+                    <ConfigurationGrid/> 
+                </>
+            }
+            
 
             {/* <button onClick={logout}>Log Out</button> */}
         </div>
