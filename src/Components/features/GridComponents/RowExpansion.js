@@ -392,6 +392,7 @@ const RowExpansion = ({ row }) => {
 
         const excludedFields = [
             "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
+            'EXTRACT_CONFIG_ID',
             "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
             'CREATEDDATE', 'LASTMODIFIEDDATE', 
             // "ROUTE_ID", 'ACTION_ID'

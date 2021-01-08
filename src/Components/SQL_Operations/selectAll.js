@@ -60,8 +60,7 @@ export const select_all_multi_field_catalog_with_Extra_columns_joined = (
     db, schema, table, 
     joinedTable, joinedColumms, joinedCriterion
 ) => {
-    console.log(currentSearchObj);
-    console.log(joinedColumms);
+    // console.log(joinedColumms);
     // SELECT joined.TARGET_DATABASE, joined.TARGET_SCHEMA, joined.TARGET_TABLE, ec.*, 'READ ONLY' AS PRIVILEGE
 
     let extraJoinedColumns = '';
