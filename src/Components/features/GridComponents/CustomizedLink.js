@@ -56,26 +56,7 @@ const CustomizedLink = ({ row }) => {
         INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD C
         ON C1.DATA_STEWARD_ID = C.DATA_STEWARD_ID;`
 
-        // console.log(sql);
-
-        return sql;
-    }
-
-    const sql_linking_catalogEntities_To_dataDomain = searchObj => {
-        console.log('sql_linking_catalogEntities_To_dataDomain...');
-        console.log(searchObj);
-
-        const sql = `SELECT C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
-        FROM
-        (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
-          FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
-          INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-          ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
-          WHERE UPPER(TRIM(A.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%')) ) C1
-        INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-        ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID;`
-
-        // console.log(sql);
+        console.log(sql);
 
         return sql;
     }
@@ -84,7 +65,7 @@ const CustomizedLink = ({ row }) => {
         console.log('sql_linking_dataDomain_To_catalogEntities...');
         console.log(searchObj);
 
-        const sql = `SELECT C.TARGET_DATABASE, C.TARGET_SCHEMA, C.TARGET_TABLE, C.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
+        const sql = `SELECT C1. DOMAIN, C.TARGET_DATABASE, C.TARGET_SCHEMA, C.TARGET_TABLE, C.COMMENTS, C.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
         FROM
         (SELECT A.DOMAIN, A.DOMAIN_DESCRIPTIONS, B.DATA_DOMAIN_ID, B.CATALOG_ENTITIES_ID,  B.CREATEDDATE, B.LASTMODIFIEDDATE
           FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN A
@@ -95,6 +76,117 @@ const CustomizedLink = ({ row }) => {
         ON C1.CATALOG_ENTITIES_ID = C.CATALOG_ENTITIES_ID;`
 
         // console.log(sql);
+
+        return sql;
+    }
+
+    const sql_linking_catalogEntities_To_dataDomain = searchObj => {
+        console.log('sql_linking_catalogEntities_To_dataDomain...');
+        console.log(searchObj);
+
+        const sql = `SELECT C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C.DATA_DOMAIN_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
+        FROM
+        (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
+          FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+          INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+          ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+          WHERE UPPER(TRIM(A.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%')) ) C1
+        INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID;`
+
+        console.log(sql);
+
+        return sql;
+    }
+
+    //missing domain
+    const sql_linking_catalogEntities_To_catalogItems = searchObj => {
+        console.log('sql_linking_catalogEntities_To_catalogItems...');
+        console.log(searchObj);
+
+        const sql = `SELECT *, 'READ/WRITE' AS PRIVILEGE  FROM (
+            SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
+            FROM
+            (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
+              FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+              INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+              ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+              WHERE UPPER(TRIM(A.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%')) ) C1
+            INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+            ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
+          )C2
+          INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ITEMS D
+          ON C2.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
+          WHERE C2.CATALOG_ENTITIES_ID LIKE '%` + searchObj['CATALOG_ENTITIES_ID'] + `%';`
+
+        return sql;
+    }
+
+    const sql_linking_catalogEntities_To_catalogEntityLineage = searchObj => {
+        console.log('sql_linking_catalogEntities_To_catalogItems...');
+        console.log(searchObj);
+
+        const sql = `SELECT *, 'READ/WRITE' AS PRIVILEGE FROM (
+            SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID
+            FROM
+            (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.DATA_DOMAIN_ID, B.CATALOG_ENTITIES_ID
+              FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+              INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+              ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+              WHERE UPPER(TRIM(A.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%')) 
+            ) C1
+            INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+            ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
+          )C2
+          INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE D
+          ON C2.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
+          WHERE C2.CATALOG_ENTITIES_ID LIKE '%` + searchObj['CATALOG_ENTITIES_ID'] + `%';`
+
+        return sql;
+    }
+
+    const sql_linking_catalogItems_To_catalogEntities = searchObj => {
+        console.log('sql_linking_catalogItems_To_catalogEntities...');
+        console.log(searchObj);
+
+        const sql = `SELECT C2.*
+        FROM(
+          SELECT C.DOMAIN, C1.*, 'READ/WRITE' AS PRIVILEGE
+          FROM
+          (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, A.CREATEDDATE,A.LASTMODIFIEDDATE
+            FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+            INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+            ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+          ) C1
+          INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+          ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
+        )C2
+        INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ITEMS D
+        ON D.CATALOG_ENTITIES_ID = C2.CATALOG_ENTITIES_ID
+        WHERE UPPER(TRIM(D.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'));`
+
+        return sql;
+    }
+
+    const sql_linking_catalogEntityLineage_To_catalogEntities = searchObj => {
+        console.log('sql_linking_catalogItems_To_catalogEntityLineage...');
+        console.log(searchObj);
+
+        const sql = `SELECT C2.*
+        FROM(
+          SELECT C.DOMAIN, C1.*, 'READ/WRITE' AS PRIVILEGE
+          FROM
+          (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, A.CREATEDDATE,A.LASTMODIFIEDDATE
+            FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+            INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+            ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+          ) C1
+          INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+          ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
+        )C2
+        INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE D
+        ON D.CATALOG_ENTITIES_ID = C2.CATALOG_ENTITIES_ID
+        WHERE UPPER(TRIM(D.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'));`
 
         return sql;
     }
@@ -127,19 +219,26 @@ const CustomizedLink = ({ row }) => {
                     if(destinationTable === 'DATA_DOMAIN')
                         searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
                     else if(destinationTable === 'CATALOG_ENTITIES' )
-                        searchStmt = sql_linking_dataDomain_To_catalogEntities(searchObj);
+                        searchStmt = sql_linking_dataDomain_To_catalogEntities(searchObj); //!!!!!!!!!!!!!!!!!!! add DOMAIN
                 }else if(table === 'DATA_DOMAIN'){
                     if(destinationTable === 'DATA_STEWARD')
                         searchStmt = sql_linking_dataDomain_To_dataSteward(searchObj);
                     else if(destinationTable === 'CATALOG_ENTITIES' )
                         searchStmt = sql_linking_dataDomain_To_catalogEntities(searchObj);
                 }else if(table === 'CATALOG_ENTITIES'){
-                    if(destinationTable === 'CATALOG_ITEMS'  || destinationTable === 'CATALOG_ENTITY_LINEAGE')
-                        searchStmt =  getStandardSearchStmt(destinationTable, searchObj);
+                    if(destinationTable === 'CATALOG_ITEMS') 
+                        searchStmt =  sql_linking_catalogEntities_To_catalogItems(searchObj); //!!!!!!!!!!!!!!!!!!!
+                    else if(destinationTable === 'CATALOG_ENTITY_LINEAGE')
+                        searchStmt = sql_linking_catalogEntities_To_catalogEntityLineage(searchObj) //!!!!!!!!!!!!!!!!!!!
                     else if(destinationTable === 'DATA_DOMAIN')
                         searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
-                }else if(table === 'CATALOG_ITEMS'  || table === 'CATALOG_ENTITY_LINEAGE')
-                    searchStmt =  getStandardSearchStmt(destinationTable, searchObj);
+                }else if(table === 'CATALOG_ITEMS'){
+                    searchStmt = sql_linking_catalogItems_To_catalogEntities(searchObj);
+                }else if(table === 'CATALOG_ENTITY_LINEAGE'){
+                    searchStmt = sql_linking_catalogEntityLineage_To_catalogEntities(searchObj);
+                }
+                    
+                    //also had to join 3 tables entities to domain
                 
                 console.log(searchStmt);
 

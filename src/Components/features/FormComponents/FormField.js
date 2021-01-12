@@ -1,27 +1,46 @@
 import React, { useContext } from 'react';
+import { WorkspaceContext } from '../../context/WorkspaceContext';
+import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import FormEditableField from './FormEditableField';
-import { getFieldType } from './FormUtils';
 
-import { WorkspaceContext } from '../../context/WorkspaceContext';
+import FormEditableField from './FormEditableField';
+import MultiSelectField from './MultiSelectField';
+import { getFieldType, getFieldType2 } from './FormUtils';
 
 const sm_left = "2";
 const sm_right = "10";
 
 const FormField = ({  
-    field, required, requiredFields, values, dataTypes, 
+    field, requiredFields, values, dataTypes, 
     handleChange, handleBlur, touched, errors, disabled, 
     codeFields, dropdownFields 
 }) => {
 
-    //get the field type to determine what Component of Field to render
-    let fieldType = getFieldType(field, codeFields, dropdownFields);
+    const {
+        table
+    } = useContext(WorkspaceContext);
 
-    console.log("Field type for " + field + ": " + fieldType);
+    //get the field type to determine what Component of Field to render
+    // let fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
+
+    const multiSelectArr = 'multiSelect' in fieldTypesConfigs[table] 
+        ? fieldTypesConfigs[table]['multiSelect'] 
+        : [];
+    
+    let fieldType = getFieldType2(field, codeFields, dropdownFields, multiSelectArr);
+
+    // console.log("Field type for " + field + ": " + fieldType);
     // console.log(codeFields);
-    // console.log(dropdownFields);
+    // console.log(values);
+    // console.log("field: " + field + " , has value: "+ dropdownFields[field]);
+
+    let dropdownOptions = [<option key='base' value='' >Select an item</option>];
+    if(field in dropdownFields){
+        dropdownFields[field].map(groupID => dropdownOptions.push(<option key={groupID} value={groupID} >{groupID}</option>));
+    }
+    
     // if (field === 'ROUTE_ID' || field === 'ACTION_ID') console.log("RouteID: ", values[field])
 
     return (
@@ -61,12 +80,6 @@ const FormField = ({
                         value={values[field]}
                         onChange={(e) => {
                             handleChange(e);
-                            // if (field === "WORK_GROUP_ID") {
-                            //     let temp = sourceTableList.filter(item => item['GROUP_ID'].toString() === e.target.value);
-                            //     let tables = temp.map(item => item['SOURCE_TABLE'])
-                            //     // tables.unshift('Select Source Table');
-                            //     setSourceTables(tables);
-                            // }
                         }}
                         onBlur={handleBlur}
                         //Only RECREATE for TGT_TABLE_ACTION in R4A1
@@ -74,9 +87,19 @@ const FormField = ({
                         disabled={disabled}
                         isValid={touched[field] && !errors[field]}
                         isInvalid={errors[field]}
-                    >
-                        {dropdownFields[field].map(groupID => <option key={groupID} value={groupID} >{groupID}</option>)}
+                    >   
+                        {dropdownOptions}
+                        {/* {dropdownFields[field].map(groupID => <option key={groupID} value={groupID} >{groupID}</option>)} */}
                     </Form.Control>
+                }
+
+                {(fieldType === 'multiSelect') &&
+                    <MultiSelectField
+                        field={field}
+                        dropdownFields={dropdownFields}
+                        touched={touched}
+                        errors={errors}
+                    />
                 }
 
                 {(fieldType === 'code') &&

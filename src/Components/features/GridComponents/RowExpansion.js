@@ -408,7 +408,7 @@ const RowExpansion = ({ row }) => {
             const field = key[0];
             if (excludedFields.indexOf(field) < 0) {
                 
-                const fieldType = getFieldType(field, codeFields, dropdownFields);
+                const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
                 console.log(field + ": " + fieldType);
 
                 if(primaryKeys.indexOf(field) >= 0){

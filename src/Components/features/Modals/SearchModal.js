@@ -21,7 +21,6 @@ import {
     select_all_multi_field_catalog_with_Extra_columns_joined
 } from '../../SQL_Operations/selectAll';
 import '../../../css/mymodal.scss';
-import axios from 'axios';
 
 import { ETLF_tables } from '../../context/FieldTypesConfig';
 import { joinedTableDataCatalog, compositeTables } from '../../context/FieldTypesConfig';
@@ -85,7 +84,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
     // if(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE") > -1)
     //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE"),1);
     
-    console.log("search columns: " + searchFieldsFromDropdownArr);
+    // console.log("search columns: " + searchFieldsFromDropdownArr);
     const [remainingColumns, setRemainingColumns] = useState(searchFieldsFromDropdownArr);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [errors, setErrors] = useState({});
@@ -144,7 +143,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                 multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
             }
                 
-            debug && console.log(multiSearchSqlStatement);
+            // debug && console.log(multiSearchSqlStatement);
 
             // console.log(primaryKey);
             axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
@@ -162,18 +161,53 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
                 multiSearchSqlStatement = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
-            }else if((Object.keys(joinedTableDataCatalog)).indexOf(table) >= 0){
-                
-                const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
-                const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
-                const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
+            }
+            else if(table === 'CATALOG_ENTITIES'){
+                // multiSearchSqlStatement = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+                // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
+                multiSearchSqlStatement = `SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.COMMENTS, C1.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE
+                FROM
+                (
+                  SELECT A.*, B.DATA_DOMAIN_ID
+                  FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+                  LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+                  ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+                ) C1
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID;`
+            }
+            // else if(table === 'CATALOG_ITEMS'){
+            //     searchStmt = sql_linking_catalogItems_To_catalogEntities(searchObj);
+            // }else if(table === 'CATALOG_ENTITY_LINEAGE'){
+            //     searchStmt = sql_linking_catalogEntityLineage_To_catalogEntities(searchObj);
+            // }
+            // else if((Object.keys(joinedTableDataCatalog)).indexOf(table) >= 0){
+            
+                // const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
+                // const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
+                // const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
+                // multiSearchSqlStatement = select_all_multi_field_catalog_with_Extra_columns_joined(database, schema, table, joinedTable, joinedColumms, joinedCriterion); 
+            else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
+                multiSearchSqlStatement = `SELECT C2.DOMAIN, C2.TARGET_DATABASE, C2.TARGET_SCHEMA, C2.TARGET_TABLE, D.*,'READ/WRITE' AS PRIVILEGE
+                FROM(
+                  SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID
+                  FROM
+                  (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, A.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID
+                    FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+                    ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+                  ) C1
+                  LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                  ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
+                )C2
+                RIGHT OUTER JOIN SHARED_TOOLS_DEV.ETL.` + table + ` D
+                ON D.CATALOG_ENTITIES_ID = C2.CATALOG_ENTITIES_ID;`;
 
-                multiSearchSqlStatement = select_all_multi_field_catalog_with_Extra_columns_joined(database, schema, table, joinedTable, joinedColumms, joinedCriterion); 
-                
             }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
                 if(table === 'DATA_STEWARD_DOMAIN'){
                     multiSearchSqlStatement = select_all_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
                 }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+                    //fix this
                     multiSearchSqlStatement = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
                 }
             }else{
@@ -181,17 +215,17 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                 multiSearchSqlStatement = select_all_multi_field_catalog(database, schema, table);
             }
                 
-            debug && console.log(multiSearchSqlStatement);
+            // debug && console.log(multiSearchSqlStatement);
 
             // console.log(primaryKey);
             axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
         }
     }
 
-    useEffect(() => {
-        // debug && console.log(currentSearchObj);
-        debug && console.log(remainingColumns);
-    }, [remainingColumns]);
+    // useEffect(() => {
+    //     // debug && console.log(currentSearchObj);
+    //     // debug && console.log(remainingColumns);
+    // }, [remainingColumns]);
 
     return (
         <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>

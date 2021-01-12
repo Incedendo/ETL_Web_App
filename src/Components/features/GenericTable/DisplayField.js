@@ -11,7 +11,7 @@ const DisplayField = ({
 }) => {
 
     const {
-        debug
+        debug, table
     } = useContext(WorkspaceContext);
     
     //do not load id field of the row record
@@ -23,7 +23,7 @@ const DisplayField = ({
     ];
 
     const field = fieldArray[0];
-    const fieldType = getFieldType(field, codeFields, dropdownFields);
+    const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
 
     if (excludedFields.indexOf(field) < 0) {
         const privi = row.PRIVILEGE;

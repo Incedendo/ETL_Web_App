@@ -13,7 +13,7 @@ const DataCatalogModal = ({
 }) => {
     const [show, setShow] = useState(false);
 
-    console.log(table);
+    // console.log(table);
 
     return (
         <div style={{ 'float': 'left' }}>
@@ -25,6 +25,8 @@ const DataCatalogModal = ({
 
             <Modal
                 show={show}
+                animation={true}
+                // scrollable={true}
                 onHide={() => setShow(false)}
                 dialogClassName="route-modal-width"
                 size="lg"
@@ -33,7 +35,7 @@ const DataCatalogModal = ({
             >
                 <Modal.Header closeButton>
                     <Modal.Title id="example-custom-modal-styling-title">
-                        {table} item
+                        {table}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>

@@ -110,7 +110,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setCommingFromLink(true);
         }else{
             console.log("linkstate is undefined...");
-            setTable('CATALOG_ENTITY_LINEAGE');
+            setTable('DATA_DOMAIN');
             setShownModalUponChangingTable(true);
 
             // the first time user clicks on the tab, still needs to enforce false to NOT show the result table
@@ -141,6 +141,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
         }else if(table === 'CATALOG_ENTITY_LINEAGE' || table === 'CATALOG_ITEMS'){
             prepareValuesFor_CATALOG_ENTITIES();
         }else{
+            setDropdownFields({});
+            setDropdownObject({});
             setLoadedConfig(true);
         }
 
@@ -446,8 +448,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     target='Table' 
                     currentVal={table} 
                     menus={[ 
-                        'DATA_STEWARD', 
                         'DATA_DOMAIN',
+                        'DATA_STEWARD', 
                         'DATA_STEWARD_DOMAIN',
                         'CATALOG_ENTITY_DOMAIN',
                         'CATALOG_ENTITIES',
@@ -463,16 +465,18 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 />
             </div>
 
-            <DataCatalogModal
-                table={table}
-                fields={fields}
-                schema={datCatSchema}
-                loadedConfig={loadedConfig}
-                codeFields={codeFields}
-                dropdownFields={dropdownFields}
-                dropdownObject={dropdownObject}
-                setInsertError={setInsertError}
-            />
+            {loadedConfig && 
+                <DataCatalogModal
+                    table={table}
+                    fields={fields}
+                    schema={datCatSchema}
+                    loadedConfig={loadedConfig}
+                    codeFields={codeFields}
+                    dropdownFields={dropdownFields}
+                    dropdownObject={dropdownObject}
+                    setInsertError={setInsertError}
+                />
+            }
                 
             <div style={{ 'padding-top': '10px', 'float': 'left' }}>
                 { (Object.keys(compositeTables)).indexOf(table) < 0  
@@ -522,6 +526,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 }
                     
             </div>
+
+    
 
             {insertError !== '' && insertError}
         </div>

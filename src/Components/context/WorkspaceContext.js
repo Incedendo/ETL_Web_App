@@ -82,6 +82,7 @@ export const WorkspaceProvider = (props) => {
 
     const [tableColumnExtensions, setTableColumnExtensions] = useState([]);
     const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);
+    
     const [columnDataTypes, setColumnDataTypes] = useState({});
     const [columnWidths, setColumnWidths] = useState([]);
     
@@ -164,7 +165,7 @@ export const WorkspaceProvider = (props) => {
             })
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
-                    debug && console.log("Group IDs from ETLF_ACCESS_AUTHORIZATION:", response.data);
+                    // debug && console.log("Group IDs from ETLF_ACCESS_AUTHORIZATION:", response.data);
                     setAppIDs(response.data.map(item => item.APP_ID))
                 })
                 .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
@@ -202,7 +203,7 @@ export const WorkspaceProvider = (props) => {
             })
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
-                    debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
+                    // debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
                     prepareGridConfig(response.data);
                     setColumnsLoaded(true);
                 })
@@ -408,7 +409,7 @@ export const WorkspaceProvider = (props) => {
         })
             //have to setState in .then() due to asynchronous opetaions
             .then(response => {
-                debug && console.log(response.data.rows);
+                // debug && console.log(response.data.rows);
                 const systemConfigs = response.data.rows;
 
                 const system_types = systemConfigs.map(value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type);
@@ -425,7 +426,7 @@ export const WorkspaceProvider = (props) => {
                 })
 
                 setSystem_configs(temp_system_configs);
-                debug && console.log(temp_system_configs);
+                // debug && console.log(temp_system_configs);
             })
             .catch(err => debug && console.log("error from loading ETLF_SYSTEM_CONFIG:", err.message))
     }
@@ -455,7 +456,7 @@ export const WorkspaceProvider = (props) => {
         })
         //have to setState in .then() due to asynchronous opetaions
         .then(response => {
-            debug && console.log('ROUTE METADATA: ', response.data);
+            // debug && console.log('ROUTE METADATA: ', response.data);
             generateRouteConfigs(response.data.rows);
             // generateActionConfigs(response.data.rows);
         })
@@ -479,7 +480,7 @@ export const WorkspaceProvider = (props) => {
                 })
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
-                    debug && console.log(response.data);
+                    // debug && console.log(response.data);
                     setRowEtlConfigs(response.data);
                 })
                 .catch(err => debug && console.log("error from loading ETLF_EXTRACT_CONFIG_REQUIREMENTS:", err.message))
@@ -523,7 +524,7 @@ export const WorkspaceProvider = (props) => {
             }
         })
 
-        debug && console.log(routes_config);
+        // debug && console.log(routes_config);
         setRouteConfigs(routes_config);
     }
 
@@ -631,7 +632,7 @@ export const WorkspaceProvider = (props) => {
     //saving configs 
     const prepareGridConfig = (data) => {
         if(data.length != 0){
-            console.log(data);
+            // console.log(data);
             let headers = data.map(row => row.COLUMN_NAME)
             //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
             headers.push("PRIVILEGE");
@@ -981,6 +982,7 @@ export const WorkspaceProvider = (props) => {
 
         if (window.confirm(userConfirmedMsg)) {
             let insert_status = "FAILURE";
+            console.log(values);
             axios.post(INSERT_URL, data, options)
                 .then(response => {
                     // returning the data here allows the caller to get it through another .then(...)
@@ -990,17 +992,29 @@ export const WorkspaceProvider = (props) => {
                         if (response.data[0]['number of rows inserted'] > 0) {
                             setInsertSuccess(true);
                             setInsertError('');
-                            // if(performReload) setReloadTable(true);
-                            values['PRIVILEGE'] = 'READ/WRITE';
-                            
-                            
-                            //CONVER ALL VAL TO UPPER CASE B4 SAVING:    
-                            (Object.keys(values)).map(col => values[col] = values[col].toUpperCase().trim());
-                            console.log(values);
-
 
                             let newRows = [...rows];
-                            newRows.push(values);
+                            if(table === 'CATALOG_ENTITY_DOMAIN'){
+                                let insertedRows = []
+                                values['CATALOG_ENTITIES_ID'].map(entityID => {
+                                    insertedRows.push({
+                                        'CATALOG_ENTITIES_ID': entityID,
+                                        'DATA_DOMAIN_ID': values['DATA_DOMAIN_ID']
+                                    })
+                                }) 
+                                newRows = [...newRows, ...insertedRows];
+                                console.log(insertedRows);
+                            }else{
+                                // if(performReload) setReloadTable(true);
+                                values['PRIVILEGE'] = 'READ/WRITE';
+                                                            
+                                                            
+                                //CONVER ALL VAL TO UPPER CASE B4 SAVING:    
+                                (Object.keys(values)).map(col => values[col] = values[col].toUpperCase().trim());
+                                console.log(values);
+                                newRows.push(values);
+                            }
+                            
                             setRows(newRows);
 
                             insert_status = "SUCCESS";

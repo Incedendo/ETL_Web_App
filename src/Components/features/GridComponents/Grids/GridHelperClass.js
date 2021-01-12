@@ -142,10 +142,11 @@ export const CommandColumnCell = ({ children, row, ...restProps }) => {
 }
 
 export const Command = ({ id, onExecute, row, ...restProps }) => {
-
+  // console.log(id);
+  // console.log(row);
   const ButtonComponent = commandComponents[id];
 
-  if (id === 'edit') {
+  // if (id === 'edit') {
     return (
       <ButtonComponent
         onExecute={onExecute}
@@ -153,16 +154,18 @@ export const Command = ({ id, onExecute, row, ...restProps }) => {
         {...restProps}
       />
     );
-  }
-  else {
-    return (
-      <ButtonComponent
-        onExecute={onExecute}
-        privilege={{ privilege: "Not Edit Row" }}
-        {...restProps}
-      />
-    )
-  }
+  // }
+  // else {
+  //   return (
+  //     <ButtonComponent
+  //       onExecute={onExecute}
+  //       privilege={{ privilege: "Not Edit Row" }}
+  //       {...restProps}
+  //     />
+  //   )
+  // }
+
+  
 };
 
 export const NumberEditor = ({ value, onValueChange }) => {

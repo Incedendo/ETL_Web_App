@@ -1,4 +1,4 @@
-export { getDataType, getFieldType };
+export { getDataType, getFieldType, getFieldType2 };
 
 function getDataType(type){
     let data_type = 'string';
@@ -27,10 +27,32 @@ const getFieldType = (field, codeFields, dropdownFields) => {
     // if (codeFields.indexOf(field) > -1) {
     //     type = 'code';
     // }
+    if (codeFields.indexOf(field) > -1) {
+        type = 'code';
+    } else if (dropdownFields.indexOf(field) > -1) {
+        type = 'dropdown';
+    }
+
+    return type;
+}
+
+
+// This function check if the fields is found in the codeFields array or dropdownFields Object
+// and return the type to display a Code Field or DropDown field in the Form
+const getFieldType2 = (field, codeFields, dropdownFields, multiSelect) => {
+    let type = 'text';
+
+    // if (codeFields.indexOf(field) > -1) {
+    //     type = 'code';
+    // }
     if (Object.keys(codeFields).indexOf(field) > -1) {
         type = 'code';
-    } else if (Object.keys(dropdownFields).indexOf(field) > -1) {
+    } 
+    if (Object.keys(dropdownFields).indexOf(field) > -1) {
         type = 'dropdown';
+    } 
+    if (multiSelect.indexOf(field) > -1) {
+        type = 'multiSelect';
     }
 
     return type;

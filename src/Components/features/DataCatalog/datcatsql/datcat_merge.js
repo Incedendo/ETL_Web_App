@@ -103,13 +103,28 @@ export const merge_catalog_entity_domain = (searchObj) => {
     console.log(searchObj);
 
     const DATA_DOMAIN_ID = searchObj['DATA_DOMAIN_ID'];
-    const CATALOG_ENTITIES_ID = searchObj['CATALOG_ENTITIES_ID'];
+    const CATALOG_ENTITIES_ID_string = searchObj['CATALOG_ENTITIES_ID'];
+
+    // let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN TT
+    // USING (
+    //     SELECT UPPER(TRIM('` + DATA_DOMAIN_ID + `')) AS DATA_DOMAIN_ID,
+    //             UPPER(TRIM('` + CATALOG_ENTITIES_ID_string + `')) AS CATALOG_ENTITIES_ID
+    //    FROM DUAL
+    // ) st 
+    // ON (TT.DATA_DOMAIN_ID = ST.DATA_DOMAIN_ID AND TT.CATALOG_ENTITIES_ID = ST.CATALOG_ENTITIES_ID)
+    // WHEN NOT matched THEN
+    // INSERT (
+    //     DATA_DOMAIN_ID, CATALOG_ENTITIES_ID
+    // ) 
+    // VALUES 
+    // (
+    //     st.DATA_DOMAIN_ID, st.CATALOG_ENTITIES_ID
+    // );`;
 
     let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN TT
     USING (
-        SELECT UPPER(TRIM('` + DATA_DOMAIN_ID + `')) AS DATA_DOMAIN_ID,
-                UPPER(TRIM('` + CATALOG_ENTITIES_ID + `')) AS CATALOG_ENTITIES_ID
-       FROM DUAL
+        select table1.value as CATALOG_ENTITIES_ID, UPPER(TRIM('` + DATA_DOMAIN_ID + `')) AS DATA_DOMAIN_ID
+        from table(strtok_split_to_table('` + CATALOG_ENTITIES_ID_string + `', ',')) as table1
     ) st 
     ON (TT.DATA_DOMAIN_ID = ST.DATA_DOMAIN_ID AND TT.CATALOG_ENTITIES_ID = ST.CATALOG_ENTITIES_ID)
     WHEN NOT matched THEN
@@ -119,7 +134,7 @@ export const merge_catalog_entity_domain = (searchObj) => {
     VALUES 
     (
         st.DATA_DOMAIN_ID, st.CATALOG_ENTITIES_ID
-    );`;
+    );`
 
     return sql;
 }

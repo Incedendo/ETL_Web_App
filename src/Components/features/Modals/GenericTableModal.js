@@ -28,7 +28,7 @@ const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, 
             <Button className="button-margin"
                 variant="primary"
                 onClick={() => setShow(true)}>
-                Linked Items
+                Custom Code
             </Button>
 
             <Modal
@@ -68,7 +68,6 @@ const GenericTableModal = ({ modalName, tableName, data, uniqueCols, routeCode, 
                             getStatement={proposed_get_statenent}
                             tableName={tableName}
                             route={route}
-                            isDataCatalog={false}
                         />
                     }
                     

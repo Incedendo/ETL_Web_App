@@ -18,7 +18,7 @@ import {
 import {
     Grid, VirtualTable, DragDropProvider,
     TableHeaderRow, TableFilterRow, TableGroupRow, TableRowDetail, TableEditRow, TableSummaryRow,
-    TableColumnResizing, TableColumnReordering, TableColumnVisibility,
+    TableEditColumn, TableColumnResizing, TableColumnReordering, TableColumnVisibility,
     Toolbar, ColumnChooser,
     SearchPanel,GroupingPanel,
     PagingPanel
@@ -27,7 +27,8 @@ import {
 import {
     getRowId,
     getCellValue, Cell, LookupEditCell,
-    NumberEditor,
+    NumberEditor, 
+    CommandColumnCell, Command
 } from './GridHelperClass';
 
 import { generateUpdateSQLStatement } from '../../../SQL_Operations/Edit';
@@ -79,10 +80,12 @@ const ConfigurationGrid = () => {
     const [grouping, setGrouping] = useState([
         // { columnName: 'PRIVILEGE' }
     ]);
+    const [sorting, getSorting] = useState([]);
 
     const [defaultHiddenColumnNames] = useState([]);
     const [totalSummaryItems] = useState([
         { columnName: 'EXTRACT_CONFIG_ID', type: 'count' },
+        { columnName: 'PRIVILEGE', type: 'count' },
     ]);
 
     const [numberFilterOperations] = useState([
@@ -333,9 +336,10 @@ const ConfigurationGrid = () => {
                     defaultValue={''} 
                 />
 
-                {/* <SortingState
-                    defaultSorting={sortingStates}
-                /> */}
+                <SortingState
+                    sorting={sorting}
+                    onSortingChange={getSorting}
+                />
 
                 <GroupingState
                     grouping={grouping}
@@ -346,17 +350,18 @@ const ConfigurationGrid = () => {
                 <SummaryState
                     totalItems={totalSummaryItems}
                 />
-
-                {/* <EditingState
+                
+                {/* The 'TableEditColumn' plugin requires 'EditingState' to be defined before it */}
+                <EditingState
                     // onAddedRowsChange={activateAddingEditRow}
                     // onEditingRowIdsChange={stopEditRows(0)}
                     // onRowChangesChange={cancelTableEditRow}
                     onCommitChanges={commitChanges}
                     // columnExtensions={editingStateColumnExtensions}
                     // onAddedRowsChange={changeAddedRows}
-                /> */}
+                />
 
-                {/* <IntegratedSorting /> */}
+                <IntegratedSorting />
                 <IntegratedGrouping />
                 <IntegratedFiltering /> {/* need for searching */}
                 <IntegratedSummary />
@@ -394,7 +399,7 @@ const ConfigurationGrid = () => {
                 />
 
                 <TableHeaderRow
-                    // showSortingControls
+                    showSortingControls
                     // showGroupingControls
                 />
                 <TableSummaryRow />
@@ -416,24 +421,24 @@ const ConfigurationGrid = () => {
                     cellComponent={EditCell}
                 /> */}
 
-                {/* <TableEditColumn
+                <TableEditColumn
                     width={60}
-                    showEditCommand={true}
+                    // showEditCommand={true}
                     showDeleteCommand={true}
                     cellComponent={CommandColumnCell}
                     
                     //the actual add/edit/delete/save/cancel buttons
                     commandComponent={Command}
-                /> */}
+                />
                 
                 <SearchPanel />
 
                 {/* Grouping panel display the panel in the top left corner 
                 to drag and drop headers for grouping  */}
-                {/* <GroupingPanel 
-                    // showGroupingControls
-                    // showSortingControls
-                /> */}
+                <GroupingPanel 
+                    showGroupingControls
+                    showSortingControls
+                />
             </Grid> 
         </div>
     );
