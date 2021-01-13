@@ -39,6 +39,8 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
     }
 
     const [loadingAppIDs, setLoadingAppIDs] = useState(false);
+    const [etlTabClicked, setEtlTabClicked] = useState(false);
+    const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
 
     const {
         debug,
@@ -64,9 +66,13 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
     }, [appIDs])
 
     useEffect(()=>{
-        if(props['location']['state'] !== undefined){
+        if(etlTabClicked || props['location']['state'] === undefined){
+            setShownModalUponChangingTable(true);
+            setTableLoaded(false);
+            // setCommingFromLink(false);
+        }else if(props['location']['state'] !== undefined ){
             setTable('ETLF_EXTRACT_CONFIG');
-
+            
             let currentSearchObj=  props['location']['state']['searchObj'];
 
             console.log("use search sstatement to fetch only target value")
@@ -93,7 +99,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
 
             axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
         }
-    }, [])
+    }, [etlTabClicked])
 
     const AccessControlInfo = () => (
         <div className="userInfo">
@@ -144,15 +150,19 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                                 debug && console.log("Configuration Tab");
                                 setTable("ETLFCALL");
                             } 
-
+                            setEtlTabClicked(true);
                             setTableLoaded(false);
                         }}
                     >
                         < Tab eventKey = "Configuration" title = "Configuration" disabled = {tableLoading}>
-                            <WorkTab />
+                            <WorkTab
+                                shownModalUponChangingTable={shownModalUponChangingTable}
+                            />
                         </Tab>
                         <Tab eventKey="Jobs" title="Jobs" disabled = {tableLoading}>
-                            <WorkTab />
+                            <WorkTab
+                                shownModalUponChangingTable={shownModalUponChangingTable}
+                            />
                         </Tab>
                 
                         

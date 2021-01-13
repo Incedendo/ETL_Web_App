@@ -112,6 +112,29 @@ const RouteForm = ({
         }
     };
 
+    const orderedRequiredFields = (Object.keys(requiredFields)).sort();
+
+    const renderOrderFields = requiredFields =>{
+        for(let field in requiredFields)
+            return(
+                <FormField
+                    routeCode={routeCode}
+                    key={field}
+                    field={field}
+                    required={requiredFields[field]}
+                    requiredFields={Object.keys(requiredFields)}
+                    values={values}
+                    dataTypes={columnDataTypes}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    touched={touched}
+                    errors={errors}
+                    disabled={validating}
+                    codeFields={codeFields}
+                    dropdownFields={dropdownFields}
+                />
+            )
+    }
 
     return (
         <div>
@@ -164,8 +187,8 @@ const RouteForm = ({
                                 <Form
                                     noValidate
                                     onSubmit={handleSubmit}>
-
-                                    {Object.keys(requiredFields).map(field =>
+                                    
+                                    {orderedRequiredFields.map(field =>
                                         <FormField
                                             routeCode={routeCode}
                                             key={field}

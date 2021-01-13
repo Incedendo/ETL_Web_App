@@ -6,6 +6,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Spinner from 'react-bootstrap/Spinner';
 import DataCatalogModal from './DataCatalogModal';
+import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import axios from 'axios';
 import * as yup from 'yup'; // for everything
@@ -19,7 +20,9 @@ const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7
 
 const DropDown = ({ 
     target, currentVal, menus, table, 
-    setState, setShownModalUponChangingTable, setCommingFromLink, setTableLoaded, disabled
+    setState, setShownModalUponChangingTable, 
+    setCommingFromLink, setTableLoaded, setCurrentSearchCriteria,
+    disabled
 }) => {
     return (
         <DropdownButton
@@ -35,12 +38,12 @@ const DropDown = ({
                             setShownModalUponChangingTable(true);
                             setCommingFromLink(false);
                             setTableLoaded(false);
+                            setCurrentSearchCriteria({});
                         }
                     }}
                 >
                     {item}
                 </Dropdown.Item>
-
             )
             )}
         </DropdownButton>
@@ -86,6 +89,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
         database, schema,
         table, setTable,
         columns, columnsLoaded,
+        tableLoading,
         tableLoaded,setTableLoaded,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
@@ -102,14 +106,17 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
     const [insertError, setInsertError] = useState('');
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
+    const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
 
     useEffect(() =>{
         if(linkState !== undefined){
             console.log(linkState);
             setTable(linkState['table']);
             setCommingFromLink(true);
+
         }else{
-            console.log("linkstate is undefined...");
+            //linkstate is undefined, show default first table and show the search modal.
+            // console.log("linkstate is undefined...");
             setTable('DATA_DOMAIN');
             setShownModalUponChangingTable(true);
 
@@ -436,52 +443,82 @@ const DatCat_ControlPanel = ({ linkState }) => {
             console.log(searchStmt);
             console.log(primaryKey);
             axiosCallToGetTableRows(searchStmt, primaryKey);
+
+
+            //display origin table:
+            const origin = linkState['filterState'];
+            
         }
     }, [loadedConfig, comingFromLink]);
 
     return (
-        <div>
+        <>
             {/* DatCat_ControlPanel */}
-            <div style={{ 'float': 'left' }}>
-                Select Catalog table:
-                <DropDown 
-                    target='Table' 
-                    currentVal={table} 
-                    menus={[ 
-                        'DATA_DOMAIN',
-                        'DATA_STEWARD', 
-                        'DATA_STEWARD_DOMAIN',
-                        'CATALOG_ENTITY_DOMAIN',
-                        'CATALOG_ENTITIES',
-                        'CATALOG_ITEMS',
-                        'CATALOG_ENTITY_LINEAGE',
-                    ]}
-                    table={table}
-                    setState={setTable}
-                    setShownModalUponChangingTable={setShownModalUponChangingTable}
-                    setCommingFromLink={setCommingFromLink}
-                    setTableLoaded={setTableLoaded}
-                    disabled={!columnsLoaded}
-                />
-            </div>
+            <div style={{'display': 'flex'}}>
+                <div style={{ 'float': 'left' }}>
+                    Select Catalog table:
+                    <DropDown 
+                        target='Table' 
+                        currentVal={table} 
+                        menus={[ 
+                            'DATA_DOMAIN',
+                            'DATA_STEWARD', 
+                            'DATA_STEWARD_DOMAIN',
+                            'CATALOG_ENTITY_DOMAIN',
+                            'CATALOG_ENTITIES',
+                            'CATALOG_ITEMS',
+                            'CATALOG_ENTITY_LINEAGE',
+                        ]}
+                        table={table}
+                        setState={setTable}
+                        setShownModalUponChangingTable={setShownModalUponChangingTable}
+                        setCommingFromLink={setCommingFromLink}
+                        setTableLoaded={setTableLoaded}
+                        setCurrentSearchCriteria={setCurrentSearchCriteria}
+                        disabled={!columnsLoaded}
+                    />
+                </div>
 
-            {loadedConfig && 
-                <DataCatalogModal
-                    table={table}
-                    fields={fields}
-                    schema={datCatSchema}
-                    loadedConfig={loadedConfig}
-                    codeFields={codeFields}
-                    dropdownFields={dropdownFields}
-                    dropdownObject={dropdownObject}
-                    setInsertError={setInsertError}
-                />
-            }
-                
-            <div style={{ 'padding-top': '10px', 'float': 'left' }}>
-                { (Object.keys(compositeTables)).indexOf(table) < 0  
-                    ?
-                        !columnsLoaded
+                {loadedConfig && 
+                    <DataCatalogModal
+                        table={table}
+                        fields={fields}
+                        schema={datCatSchema}
+                        loadedConfig={loadedConfig}
+                        codeFields={codeFields}
+                        dropdownFields={dropdownFields}
+                        dropdownObject={dropdownObject}
+                        setInsertError={setInsertError}
+                    />
+                }
+                    
+                <div style={{ 'paddingTop': '10px', 'float': 'left' }}>
+                    { (Object.keys(compositeTables)).indexOf(table) < 0  
+                        ?
+                            !columnsLoaded
+                                ?<div style={{'padding': '5px'}}>
+                                    <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />
+                                    <span style={{ 'marginLeft': '5px' }}>loading columns...</span>
+                                </div>
+                                : 
+                                <SearchModal
+                                    database={database} 
+                                    schema={schema} 
+                                    table={table} 
+                                    groupIDColumn={'GroupID Not applicable for Catalog'}
+                                    username={username} 
+                                    columns={columns}
+                                    shown={shownModalUponChangingTable}
+                                    setCurrentSearchCriteria={setCurrentSearchCriteria}
+                                />
+                        : 
+                            !loadedConfig
                             ?<div style={{'padding': '5px'}}>
                                 <Spinner
                                     as="span"
@@ -490,47 +527,113 @@ const DatCat_ControlPanel = ({ linkState }) => {
                                     role="status"
                                     aria-hidden="true"
                                 />
-                                <span style={{ 'marginLeft': '5px' }}>loading columns...</span>
+                                <span style={{ 'marginLeft': '5px' }}>loading config...</span>
                             </div>
-                            : 
-                            <SearchModal
+                            :<SearchModal
                                 database={database} 
                                 schema={schema} 
                                 table={table} 
                                 groupIDColumn={'GroupID Not applicable for Catalog'}
                                 username={username} 
-                                columns={columns}
+                                columns={Object.keys(dropdownObject)}
                                 shown={shownModalUponChangingTable}
+                                setCurrentSearchCriteria={setCurrentSearchCriteria}
                             />
-                    : 
-                        !loadedConfig
-                        ?<div style={{'padding': '5px'}}>
-                            <Spinner
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                            />
-                            <span style={{ 'marginLeft': '5px' }}>loading config...</span>
-                        </div>
-                        :<SearchModal
-                            database={database} 
-                            schema={schema} 
-                            table={table} 
-                            groupIDColumn={'GroupID Not applicable for Catalog'}
-                            username={username} 
-                            columns={Object.keys(dropdownObject)}
-                            shown={shownModalUponChangingTable}
-                        />
-                }
-                    
+                    }
+                        
+                </div>
             </div>
 
-    
+            
+
+            {tableLoading && 
+                <div style={{
+                    "position":"relative",
+                    "display": "inline-block",
+                    "alignItems": "center",
+                }}>
+                    <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                    />
+                    <span style={{ 'marginLeft': '5px' }}>loading Table {table}...</span>
+                </div>
+            }
+
+            { tableLoaded && 
+                <>
+                    <div style={{
+                        'fontWeight': 'bold',
+                        "textAlign": "left",
+                        "marginBottom": "10px"
+                    }}>
+                        Table: {table}
+                    </div>
+
+                    {comingFromLink &&
+                        <div style={{ 
+                            'display': 'flex', 
+                            'float': 'left',
+                            "marginBottom": "10px"
+                        }}>
+                            Linked from: { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
+                        </div>
+                    }
+
+                    {Object.keys(currentSearchCriteria).length > 0 &&
+                        <div style={{ 
+                            'display': 'flex', 
+                            'float': 'left',
+                            "marginBottom": "10px"
+                        }}>
+                            <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Filtered by: </span> 
+                            {/* {renderFilteredCriteria} */}
+
+
+                            {Object.keys(currentSearchCriteria).map(col => {
+                                if((Object.keys(currentSearchCriteria)).indexOf(col) === (Object.keys(currentSearchCriteria)).length -1 )
+                                    return(
+                                        <span 
+                                            key={col}
+                                            style={{ 'marginRight': '5px' }}
+                                        >
+                                            {col}: {currentSearchCriteria[col]} 
+                                        </span>
+                                    )
+                                else
+                                    return(
+                                        <span 
+                                            key={col}
+                                            style={{ 'marginRight': '5px' }}
+                                        >
+                                            {col}: {currentSearchCriteria[col]} | 
+                                        </span>
+                                    )
+                            })} 
+                        </div>
+                    }
+
+                    <ConfigurationGrid/> 
+                </>
+            }
+
+            {/* {currentSearchCriteria.length > 0 &&
+                <div style={{ 'float': 'left' }}>
+                    <span style={{ 'fontWeight': 'bold' }}>Filtered by:</span> {currentSearchCriteria.map(col => <span key={col}>{col} |</span>)}
+                </div>
+            }
+
+            {comingFromLink &&
+                <div>
+                    Linked from: { linkState['filterState']['table'] } : { linkState['filterState']['value'] }
+                </div>
+            } */}
 
             {insertError !== '' && insertError}
-        </div>
+        </>
 
 
     )

@@ -205,13 +205,13 @@ const DataStewardEditor = ({
                         noValidate
                         onSubmit={handleSubmit}>
 
-                        {fields.map(field =>
+                        {fields.sort().map(field =>
                             <FormField
                                 key={field}
                                 field={field}
                                 // required={requiredFields[field]}
                                 requiredFields={fields}
-                                values={values}
+                                values={dropdownFields}
                                 dataTypes={fieldTypesConfigs[table]["dataTypes"]}
                                 handleChange={handleChange}
                                 handleBlur={handleBlur}

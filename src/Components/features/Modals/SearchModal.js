@@ -11,7 +11,8 @@ import { search_multi_field,
     search_multi_field_catalog, 
     search_multi_field_catalog_with_Extra_columns_joined, 
     search_composite_DATA_STEWARD_DOMAIN, 
-    search_composite_CATALOG_ENTITY_DOMAIN 
+    search_composite_CATALOG_ENTITY_DOMAIN ,
+    search_CATALOG_ENTITIES_JOINED_DOMAIN
 } from '../../sql_statements';
 import { 
     select_all_etl_tables,
@@ -27,13 +28,19 @@ import { joinedTableDataCatalog, compositeTables } from '../../context/FieldType
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 
-const SearchModal = ({database, schema, table, groupIDColumn, username, columns, shown}) => {
+const nonSearchableColumns = [
+    'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
+    'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
+    'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID'
+];
+
+const SearchModal = ({database, schema, table, groupIDColumn, username, columns, shown, setCurrentSearchCriteria}) => {
 
     // const { authState, authService } = useOktaAuth();
     
     const {
         debug,
-        // database, schema, table, username,
+        // database, schema,  username,
         // columns,
         // axiosCallToGetTable,
         axiosCallToGetTableRows
@@ -42,40 +49,41 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
 
     // console.log(groupIDColumn);
 
-    const [show, setShow] = useState(shown);
+    const [show, setShow] = useState(false);
 
-    let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
-    ? columns.map(column => column.name)
-    : columns;
+    useEffect(()=>{
+        if(table !== 'ETLF_EXTRACT_CONFIG' && table !== 'ETLF_CUSTOM_CODE' && table !== 'ETLFCALL'){
+            setShow(shown);
+        }
+    }, []);
 
-    if(table === 'CATALOG_ENTITY_DOMAIN' 
-        || table === 'CATALOG_ITEMS'
-    ){
-        if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
-            searchFieldsFromDropdownArr.push('TARGET_DATABASE');
-        if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
-            searchFieldsFromDropdownArr.push('TARGET_SCHEMA');
-        if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
-            searchFieldsFromDropdownArr.push('TARGET_TABLE');
-        if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
-            searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
-    }
+    useEffect(() =>{
+        let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
+        ? columns.map(column => column.name)
+        : columns;
 
-    // if(table === 'CATALOG_ITEMS')
-    //     if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
-    //         searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
+        if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ENTITIES'
+            || table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'
+        ){
+            if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
+                searchFieldsFromDropdownArr.unshift('TARGET_TABLE');
+            if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
+                searchFieldsFromDropdownArr.unshift('TARGET_SCHEMA');
+            if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
+                searchFieldsFromDropdownArr.unshift('TARGET_DATABASE');
+            if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
+                searchFieldsFromDropdownArr.unshift('DOMAIN');
+            if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
+                searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
+        }
+        
+        for(let item of nonSearchableColumns){
+            if(searchFieldsFromDropdownArr.indexOf(item) > -1)
+                searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
+        }
 
-    let nonSearchableColumns = [
-        'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
-        'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
-        'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID'
-    ];
-
-    for(let item of nonSearchableColumns){
-        if(searchFieldsFromDropdownArr.indexOf(item) > -1)
-            searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
-    }
-
+        setRemainingColumns(searchFieldsFromDropdownArr);
+    }, [])
 
     // if(searchFieldsFromDropdownArr.indexOf("PRIVILEGE") > -1)
     //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("PRIVILEGE"),1);
@@ -85,19 +93,29 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
     //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE"),1);
     
     // console.log("search columns: " + searchFieldsFromDropdownArr);
-    const [remainingColumns, setRemainingColumns] = useState(searchFieldsFromDropdownArr);
+    const [remainingColumns, setRemainingColumns] = useState([]);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [errors, setErrors] = useState({});
 
+    // useEffect(() =>{
+    //     if( (Object.keys(currentSearchObj) !== 0)){
+    //         console.log("setting current search criteria... in Search modal")
+    //         setCurrentSearchCriteria(Object.keys(currentSearchObj));
+    //     }
+    // }, [currentSearchObj]);
+
     const handleAddSearchField = value => {
         //remove a primary keys fron the list of remaining columns
+        // let currentSearchKeys = Object.keys(currentSearchObj);
+        // currentSearchKeys.push(value);
+
         setRemainingColumns(remainingColumns.filter(item => item !== value));
         setCurrentSearchObj({ ...currentSearchObj, [value]: '' });
     }
 
-    const assignValueToSearchField = (field, event) => 
+    const assignValueToSearchField = (field, event) => {
         setCurrentSearchObj({...currentSearchObj, [field]: event.target.value.toUpperCase().trim()});
-    
+    }
 
     const handleRemoveSearchField = field => {
         setRemainingColumns([...remainingColumns, field]);
@@ -119,18 +137,20 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
         // const searchTable = 'ETLF_SYSTEM_CONFIG';
         console.log(table);
         if (verifySearchObj()) {
+            setCurrentSearchCriteria(currentSearchObj);
             let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
             let multiSearchSqlStatement = '';
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
                 multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
             }else if((Object.keys(joinedTableDataCatalog)).indexOf(table) >= 0){
-                
-                const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
-                const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
-                const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
+                //item and lineage tables
+                // const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
+                // const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
+                // const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
 
-                multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, joinedTable, joinedColumms, joinedCriterion); 
+                // multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, joinedTable, joinedColumms, joinedCriterion); 
+                multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(table, currentSearchObj); 
                 
             }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
                 if(table === 'DATA_STEWARD_DOMAIN'){
@@ -138,7 +158,10 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                 }else if(table === 'CATALOG_ENTITY_DOMAIN'){
                     multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
                 }
-            }else{
+            }else if(table === 'CATALOG_ENTITIES'){
+                multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
+            }   
+            else{
                 // console.log("table NOTTTTTT in ETLF Framework");
                 multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
             }
@@ -147,6 +170,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
 
             // console.log(primaryKey);
             axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
+            setShow(false);
         }
     }
 
@@ -165,16 +189,12 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
             else if(table === 'CATALOG_ENTITIES'){
                 // multiSearchSqlStatement = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
                 // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
-                multiSearchSqlStatement = `SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.COMMENTS, C1.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE
-                FROM
-                (
-                  SELECT A.*, B.DATA_DOMAIN_ID
-                  FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
-                  LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-                  ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
-                ) C1
+                multiSearchSqlStatement = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, 'READ/WRITE' AS PRIVILEGE 
+                FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+                ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID;`
+                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`
             }
             // else if(table === 'CATALOG_ITEMS'){
             //     searchStmt = sql_linking_catalogItems_To_catalogEntities(searchObj);
@@ -188,27 +208,32 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                 // const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
                 // multiSearchSqlStatement = select_all_multi_field_catalog_with_Extra_columns_joined(database, schema, table, joinedTable, joinedColumms, joinedCriterion); 
             else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-                multiSearchSqlStatement = `SELECT C2.DOMAIN, C2.TARGET_DATABASE, C2.TARGET_SCHEMA, C2.TARGET_TABLE, D.*,'READ/WRITE' AS PRIVILEGE
-                FROM(
-                  SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID
-                  FROM
-                  (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, A.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID
-                    FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
-                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-                    ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
-                  ) C1
-                  LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                  ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
-                )C2
-                RIGHT OUTER JOIN SHARED_TOOLS_DEV.ETL.` + table + ` D
-                ON D.CATALOG_ENTITIES_ID = C2.CATALOG_ENTITIES_ID;`;
+                multiSearchSqlStatement = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 'READ/WRITE' AS PRIVILEGE 
+                FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+                ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+                ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`;
 
             }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
                 if(table === 'DATA_STEWARD_DOMAIN'){
-                    multiSearchSqlStatement = select_all_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+                    // multiSearchSqlStatement = select_all_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+                    multiSearchSqlStatement = `SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, 'READ/WRITE' AS PRIVILEGE
+                    FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN E
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD B 
+                    ON (E.DATA_STEWARD_ID = B.DATA_STEWARD_ID)  
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                    ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`
                 }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-                    //fix this
-                    multiSearchSqlStatement = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+                    // multiSearchSqlStatement = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+                    multiSearchSqlStatement = `SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, 'READ/WRITE' AS PRIVILEGE 
+                    FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN E
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES B 
+                    ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                    ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`
                 }
             }else{
                 // console.log("table NOTTTTTT in ETLF Framework");
@@ -219,6 +244,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
 
             // console.log(primaryKey);
             axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
+            setShow(false);
         }
     }
 

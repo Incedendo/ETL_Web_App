@@ -13,7 +13,7 @@ import Route_Action_Modal from '../Modals/Route_Action_Modal';
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
 
-const WorkTab = () => {
+const WorkTab = ({ shownModalUponChangingTable }) => {
     const {
         debug, username,
         database, schema, table, 
@@ -28,6 +28,7 @@ const WorkTab = () => {
     // debug && console.log("Calling WorkTab with table ", table);
 
     const [searchObj, setSearchObj] = useState({});
+    const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
 
     // useEffect(() => {
     //     const abortController = new AbortController();
@@ -107,6 +108,8 @@ const WorkTab = () => {
                         groupIDColumn={groupIDColumn}
                         username={username} 
                         columns={columns}
+                        shown={shownModalUponChangingTable}
+                        setCurrentSearchCriteria={setCurrentSearchCriteria}
                     />
 
                     {/* CUSTOMcODE CATALOG */}
