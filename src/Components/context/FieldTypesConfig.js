@@ -243,18 +243,18 @@ export const compositeTables = {
     'CATALOG_ENTITY_DOMAIN':{},
 };
 
-export const joinedTableDataCatalog = {
-    'CATALOG_ITEMS': {
-        'joinedTable': 'CATALOG_ENTITIES',
-        'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
-        'joinedCriterion': 'CATALOG_ENTITIES_ID'
-    },
-    'CATALOG_ENTITY_LINEAGE': {
-        'joinedTable': 'CATALOG_ENTITIES',
-        'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
-        'joinedCriterion': 'CATALOG_ENTITIES_ID'
-    }
-};
+// export const joinedTableDataCatalog = {
+//     'CATALOG_ITEMS': {
+//         'joinedTable': 'CATALOG_ENTITIES',
+//         'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
+//         'joinedCriterion': 'CATALOG_ENTITIES_ID'
+//     },
+//     'CATALOG_ENTITY_LINEAGE': {
+//         'joinedTable': 'CATALOG_ENTITIES',
+//         'joinedColumns': ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'],
+//         'joinedCriterion': 'CATALOG_ENTITIES_ID'
+//     }
+// };
 
 // export const TABLES_NON_EDITABLE_COLUMNS = {
 //     "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID"],

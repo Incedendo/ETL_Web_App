@@ -64,65 +64,36 @@ export const search_multi_field_catalog = (db, schema, table, currentSearchObj, 
 return sql_statement;
 }
 
-export const search_multi_field_catalog_with_Extra_columns_joined = (
-    table, 
-    currentSearchObj, 
-    // joinedTable, joinedColumms, joinedCriterion
-) => {
+export const search_ItemsLineage_joined_Entity_Domain = (table, currentSearchObj) => {
     console.log(currentSearchObj);
-    // console.log(joinedColumms);
-    // SELECT joined.TARGET_DATABASE, joined.TARGET_SCHEMA, joined.TARGET_TABLE, ec.*, 'READ ONLY' AS PRIVILEGE
+    const DOMAIN = 'DOMAIN' in currentSearchObj ? currentSearchObj['DOMAIN'] : '';
 
-    // let extraJoinedColumns = '';
-    // joinedColumms.map(col => extraJoinedColumns += 'joined.' + col + ', ');
-    // console.log(extraJoinedColumns);
-
-    // let sql_statement = `SELECT ` + extraJoinedColumns + ` ec.*, 'READ/WRITE' AS PRIVILEGE
-    // FROM "`+ db + `"."` + schema + `"."` + table + `" ec ` + `
-    // INNER JOIN "`+ db + `"."` + schema + `"."` + joinedTable + `" joined ` + `
-    // ON ec.` + joinedCriterion + ' = joined.' + joinedCriterion + `
-    // WHERE ` + getSearchFieldValueJoinedColumns(currentSearchObj, ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'])
-    // // `ORDER BY joined.TARGET_DATABASE, joined.TARGET_SCHEMA, joined.TARGET_TABLE;`;
-
-    // let sql_statement = `SELECT C2.DOMAIN, C2.TARGET_DATABASE, C2.TARGET_SCHEMA, C2.TARGET_TABLE, D.*,'READ/WRITE' AS PRIVILEGE
-    // FROM(
-    //     SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
-    //     FROM
-    //         (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
-    //             FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
-    //             LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-    //             ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
-    //             WHERE ` + getMultiCompositeValues(currentSearchObj, 'A', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE']) + 
-    //         `) C1
-    //         LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-    //     ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
-    //     WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + `
-    // ) C2
-    // RIGHT OUTER JOIN SHARED_TOOLS_DEV.ETL.` + table + ` D
-    // ON D.CATALOG_ENTITIES_ID = C2.CATALOG_ENTITIES_ID `
-    // + getSearchFieldValueExcludingColumns(currentSearchObj, ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'DOMAIN'], 'D');
-
-    // WHERE ` + getSearchFieldValueJoinedColumns(currentSearchObj, ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'DOMAIN']);
+    let sql_statement = `SELECT J.DOMAINS AS DOMAIN, J.*
+    FROM (
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 'READ/WRITE' AS PRIVILEGE 
+        FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
+        INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID
+            AND ` + getMultiCompositeValues(currentSearchObj, 'E', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE']) + `)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        WHERE ` + `UPPER(TRIM(DOMAINS)) LIKE UPPER(TRIM('%` + DOMAIN + `%'))
+        ` + getSearchFieldValueExcludingColumns(currentSearchObj, ['DOMAIN', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'], 'I') + `
+    ) J`
     
-    let sql_statement = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 'READ/WRITE' AS PRIVILEGE 
-    FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
-    INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-    ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID
-        AND ` + getMultiCompositeValues(currentSearchObj, 'E', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE']) + `)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-    ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-    ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
-        AND ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + `
-       )
-    ` + getSearchFieldValueExcludingColumns(currentSearchObj, ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'DOMAIN'], 'I')
-    + `;`;
     
     return sql_statement;
 }
 
 export const search_CATALOG_ENTITIES_JOINED_DOMAIN = currentSearchObj =>{
     console.log(currentSearchObj);
+
+    const DOMAIN = 'DOMAIN' in currentSearchObj ? currentSearchObj['DOMAIN'] : '';
+    const TARGET_DATABASE = 'TARGET_DATABASE' in currentSearchObj ? currentSearchObj['TARGET_DATABASE'] : '';
+    const TARGET_SCHEMA = 'TARGET_SCHEMA' in currentSearchObj ? currentSearchObj['TARGET_SCHEMA'] : '';
+    const TARGET_TABLE = 'TARGET_TABLE' in currentSearchObj ? currentSearchObj['TARGET_TABLE'] : '';
 
     // let sql_statement = `SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
     // FROM
@@ -136,14 +107,20 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = currentSearchObj =>{
     // ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
     // WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + ';';
 
-    let sql_statement = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, 'READ/WRITE' AS PRIVILEGE 
-    FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-    ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
-        AND ` + getMultiCompositeValues(currentSearchObj, 'E', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE']) + `)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-    ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
-        AND ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + `);`
+    let sql_statement = 
+    `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE 
+    FROM (
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.* 
+        FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
+        WHERE UPPER(TRIM(E.TARGET_DATABASE)) LIKE UPPER(TRIM('%` + TARGET_DATABASE + `%'))
+        AND UPPER(TRIM(E.TARGET_SCHEMA)) LIKE UPPER(TRIM('%` + TARGET_SCHEMA + `%'))
+        AND UPPER(TRIM(E.TARGET_TABLE)) LIKE UPPER(TRIM('%` + TARGET_TABLE + `%'))
+        AND UPPER(TRIM(DOMAINS)) LIKE UPPER(TRIM('%` + DOMAIN + `%'))
+    ) J;`
 
     return sql_statement;
 }
@@ -204,17 +181,19 @@ const getSearchFieldValueExcludingColumns = (currentSearchObj, excludedFields, t
     if(validColumns.length === 0)
         return '';
     
-    let res = 'WHERE ';
+    let res = '';
     for(let item of validColumns){
         let value = item in currentSearchObj ? currentSearchObj[item] : '';
-        if(validColumns.indexOf(item) > 0){
+        res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))
+`;
+        // if(validColumns.indexOf(item) > 0){
         
-            res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))
-            `;
-        }else{
-            res += `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))
-            `;
-        }
+        //     res += `AND UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))
+        //     `;
+        // }else{
+        //     res += `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))
+        //     `;
+        // }
     }
 
     return res;

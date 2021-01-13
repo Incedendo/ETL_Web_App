@@ -137,6 +137,11 @@ const DatCat_ControlPanel = ({ linkState }) => {
         console.log(dropdownObject);
     }, [dropdownFields,dropdownObject]);
 
+    // useEffect(() =>{
+    //     if((Object.keys(currentSearchCriteria)).length == 0)
+    //         setCommingFromLink(false);
+    // }, [currentSearchCriteria]);
+
     // Set dropdown for composite tables
     useEffect(() => {
         setLoadedConfig(false);
@@ -573,13 +578,14 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         Table: {table}
                     </div>
 
-                    {comingFromLink &&
+                    {comingFromLink && Object.keys(currentSearchCriteria).length === 0 &&
                         <div style={{ 
                             'display': 'flex', 
                             'float': 'left',
                             "marginBottom": "10px"
                         }}>
-                            Linked from: { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
+                            <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Linked from: </span>
+                            { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
                         </div>
                     }
 
