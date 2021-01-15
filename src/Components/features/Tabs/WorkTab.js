@@ -31,6 +31,11 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
 
     // useEffect(() => {
+    //     console.log('[WorkTab] shownModalUponChangingTable: '+ shownModalUponChangingTable);
+    //     setShowSearchModal(shownModalUponChangingTable);
+    // }, [shownModalUponChangingTable]);
+
+    // useEffect(() => {
     //     const abortController = new AbortController();
         
     //     setPrimaryKeys(table_primaryKeys[table]);
@@ -54,18 +59,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
             }}>
                 {/* <PrimaryKeysPanel /> */}
                 {table === "ETLF_EXTRACT_CONFIG" && <ETLF_EXTRACT_CONFIG_ModalPanels />}
-                {table === "ETLFCALL" && 
-                    <>
-                        <JobModal
-                            data={{}}
-                            //for later check when insert or update row
-                            uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
-                            dataTypes={columnDataTypes}
-                        />
-
-                        <LoadableSearchModal groupIDColumn={'WORK_GROUP_ID'} /> 
-                    </>
-                } 
+                {table === "ETLFCALL" && <ETLFCALL_ModalPanels />} 
             </div>
         </div>
     )
@@ -85,8 +79,23 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
         </>
     )
 
+    const ETLFCALL_ModalPanels = () => (
+        // <div className="modal-button">
+        <>
+            <JobModal
+                data={{}}
+                //for later check when insert or update row
+                uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
+                dataTypes={columnDataTypes}
+            />
+
+            <LoadableSearchModal groupIDColumn={'WORK_GROUP_ID'} /> 
+        </>
+    )
+
     const LoadableSearchModal = ({ groupIDColumn }) => (
         <div style={{ 'float': 'left' }}>
+            {/* <div style={{'display': 'flex', 'justifyContent': 'center'}}>Loading configurations...</div> */}
             { !columnsLoaded ? 
                 <div style={{ 'float': 'left' }} className="central-spinning-div">
                     <Spinner
@@ -112,8 +121,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                         setCurrentSearchCriteria={setCurrentSearchCriteria}
                     />
 
-                    {/* CUSTOMcODE CATALOG */}
-                    <SearchModal_CustomCode /> 
+                    {table === 'ETLF_EXTRACT_CONFIG' && <SearchModal_CustomCode /> }
                 </>
             }
         </div>
@@ -187,6 +195,46 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
             <InsertStatus />
             <UpdateStatus />
 
+            {tableLoaded && 
+                <>
+                    {Object.keys(currentSearchCriteria).length > 0 &&
+                        <div style={{ 
+                            'display': 'flex', 
+                            'float': 'left',
+                            "marginBottom": "10px"
+                        }}>
+                            <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Filtered by: </span> 
+                            {/* {renderFilteredCriteria} */}
+
+
+                            {Object.keys(currentSearchCriteria).map(col => {
+                                if((Object.keys(currentSearchCriteria)).indexOf(col) === (Object.keys(currentSearchCriteria)).length -1 )
+                                    return(
+                                        <span 
+                                            key={col}
+                                            style={{ 'marginRight': '5px' }}
+                                        >
+                                            {col}: {currentSearchCriteria[col]} 
+                                        </span>
+                                    )
+                                else
+                                    return(
+                                        <span 
+                                            key={col}
+                                            style={{ 'marginRight': '5px' }}
+                                        >
+                                            {col}: {currentSearchCriteria[col]} | 
+                                        </span>
+                                    )
+                            })} 
+                        </div>
+                    }
+
+                    <ConfigurationGrid/>
+                </>
+            
+            }
+
             {tableSearching && <div>seaching...</div>}
 
             {tableSearching &&
@@ -206,7 +254,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                 </div>
             }
 
-            { tableLoaded && <ConfigurationGrid/> }
+            {/* { tableLoaded && <ConfigurationGrid/> } */}
         </div>
     )
 }

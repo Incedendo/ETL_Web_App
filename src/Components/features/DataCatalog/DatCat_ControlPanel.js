@@ -415,7 +415,16 @@ const DatCat_ControlPanel = ({ linkState }) => {
                             type: "required",
                             params: ["this field is required"]
                         }
+                        
                     ];
+
+                    if(col === 'EMAIL'){
+                        custom_config.validations.push({
+                            type: "email",
+                            params: ["Please enter a valid email"]
+                        })
+                    }
+                    
                 }
                 formValidationsInfo.push(custom_config);
             });

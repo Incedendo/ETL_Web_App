@@ -50,14 +50,12 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
     // console.log(groupIDColumn);
 
     const [show, setShow] = useState(false);
+    // console.log("search columns: " + searchFieldsFromDropdownArr);
+    const [remainingColumns, setRemainingColumns] = useState([]);
+    const [currentSearchObj, setCurrentSearchObj] = useState({});
+    const [errors, setErrors] = useState({});
 
     useEffect(()=>{
-        if(table !== 'ETLF_EXTRACT_CONFIG' && table !== 'ETLF_CUSTOM_CODE' && table !== 'ETLFCALL'){
-            setShow(shown);
-        }
-    }, []);
-
-    useEffect(() =>{
         let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
         ? columns.map(column => column.name)
         : columns;
@@ -83,7 +81,41 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
         }
 
         setRemainingColumns(searchFieldsFromDropdownArr);
-    }, [])
+
+        // if(table !== 'ETLF_EXTRACT_CONFIG' && table !== 'ETLF_CUSTOM_CODE' && table !== 'ETLFCALL'){
+        //     setShow(shown);
+        // }
+        setShow(shown);
+        console.log(currentSearchObj);
+    }, []);
+
+    // useEffect(() =>{
+    //     let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
+    //     ? columns.map(column => column.name)
+    //     : columns;
+
+    //     if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ENTITIES'
+    //         || table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'
+    //     ){
+    //         if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
+    //             searchFieldsFromDropdownArr.unshift('TARGET_TABLE');
+    //         if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
+    //             searchFieldsFromDropdownArr.unshift('TARGET_SCHEMA');
+    //         if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
+    //             searchFieldsFromDropdownArr.unshift('TARGET_DATABASE');
+    //         if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
+    //             searchFieldsFromDropdownArr.unshift('DOMAIN');
+    //         if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
+    //             searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
+    //     }
+        
+    //     for(let item of nonSearchableColumns){
+    //         if(searchFieldsFromDropdownArr.indexOf(item) > -1)
+    //             searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
+    //     }
+
+    //     setRemainingColumns(searchFieldsFromDropdownArr);
+    // }, [])
 
     // if(searchFieldsFromDropdownArr.indexOf("PRIVILEGE") > -1)
     //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("PRIVILEGE"),1);
@@ -91,11 +123,6 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
     //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("CREATEDDATE"),1);
     // if(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE") > -1)
     //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE"),1);
-    
-    // console.log("search columns: " + searchFieldsFromDropdownArr);
-    const [remainingColumns, setRemainingColumns] = useState([]);
-    const [currentSearchObj, setCurrentSearchObj] = useState({});
-    const [errors, setErrors] = useState({});
 
     // useEffect(() =>{
     //     if( (Object.keys(currentSearchObj) !== 0)){
@@ -136,42 +163,56 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
         let end = 100;
         // const searchTable = 'ETLF_SYSTEM_CONFIG';
         console.log(table);
-        if (verifySearchObj()) {
-            setCurrentSearchCriteria(currentSearchObj);
-            let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
-            let multiSearchSqlStatement = '';
-            if(ETLF_tables.indexOf(table) >= 0){
-                // console.log("table is in ETLF Framework");
-                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
-            }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-                //item and lineage tables
-                // const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
-                // const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
-                // const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
+        // if (verifySearchObj()) {
+        setCurrentSearchCriteria(currentSearchObj);
+        let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
+        let multiSearchSqlStatement = '';
+        if(ETLF_tables.indexOf(table) >= 0){
+            // console.log("table is in ETLF Framework");
+            if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
 
-                // multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, joinedTable, joinedColumms, joinedCriterion); 
-                multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(table, currentSearchObj); 
-                
-            }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
-                if(table === 'DATA_STEWARD_DOMAIN'){
-                    multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
-                }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-                    multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
-                }
-            }else if(table === 'CATALOG_ENTITIES'){
-                multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
-            }   
-            else{
-                // console.log("table NOTTTTTT in ETLF Framework");
-                multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
+                //update 'GROUP_ID'  to 'WORK_GROUP_ID' in searchObject
+                let newSearchObj = {}
+                Object.keys(currentSearchObj).map(col => col !== 'GROUP_ID' 
+                    ? newSearchObj[col] = currentSearchObj[col]
+                    : newSearchObj['WORK_GROUP_ID'] = currentSearchObj[col]
+                )
+
+                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, newSearchObj, start, end);
+            }else{
+                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end);
             }
-                
-            // debug && console.log(multiSearchSqlStatement);
 
-            // console.log(primaryKey);
-            axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
-            setShow(false);
+            
+        }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
+            //item and lineage tables
+            // const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
+            // const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
+            // const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
+
+            // multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, joinedTable, joinedColumms, joinedCriterion); 
+            multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(table, currentSearchObj); 
+            
+        }else if((Object.keys(compositeTables)).indexOf(table) >= 0){
+            if(table === 'DATA_STEWARD_DOMAIN'){
+                multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+            }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+                multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+            }
+        }else if(table === 'CATALOG_ENTITIES'){
+            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
+        }   
+        else{
+            // console.log("table NOTTTTTT in ETLF Framework");
+            multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
         }
+            
+        // debug && console.log(multiSearchSqlStatement);
+
+        // console.log(primaryKey);
+        axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
+        setShow(false);
+        // }
     }
 
     const selectAll = () => {

@@ -36,6 +36,13 @@ export const get_custom_table = (db, schema, table, username, start, end) => {
 }
 
 export const search_multi_field = (username, db, schema, table, groupIDColumn, currentSearchObj, start, end) => {
+    
+    // console.log(currentSearchObj);
+    // if(table === 'ETLFCALL' && 'GROUP_ID' in currentSearchObj){
+    //     currentSearchObj['WORK_GROUP_ID'] = currentSearchObj['GROUP_ID'];
+    //     delete currentSearchObj['WORK_GROUP_ID'];
+    // }
+    
     let sql_statement = 
     // `SELECT * FROM(
     `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,

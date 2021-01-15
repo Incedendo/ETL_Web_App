@@ -12,7 +12,7 @@ import '../../../css/forms.scss';
 
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 
-const CustomCodeForm = ({ table, data,  routeCode }) => {
+const CustomCodeForm = ({ table, data,  routeCode, setShow }) => {
 
     const {
         debug,
@@ -137,7 +137,8 @@ const CustomCodeForm = ({ table, data,  routeCode }) => {
         
         debug && console.log(sqlInsertStatement);
 
-        insertUsingMergeStatement(sqlInsertStatement, { GROUP_ID: 'Not Applicable' }, setValidating, false);
+        insertUsingMergeStatement(sqlInsertStatement, { GROUP_ID: 'Not Applicable' }, setValidating, true);
+        setShow(false);
     }
 
     return (

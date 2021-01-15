@@ -5,7 +5,8 @@ export const fieldTypesConfigs = {
             JSON_PARAM: 'Enter your code here...',
         },
         dropdownFields: {
-            WORK_GROUP_ID: [],
+            // WORK_GROUP_ID: [],
+            GROUP_ID: [],
             INGESTION_STATUS: ['PENDING'],
         },
         'links':{

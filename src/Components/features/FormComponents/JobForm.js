@@ -21,6 +21,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     const {
         debug,
         appIDs, table, tableLoaded, columnsLoaded,
+        gridConfigs,
         columnDataTypes, sourceTableList,
         setInsertError,
         insertUsingMergeStatement,
@@ -34,7 +35,8 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
         JSON_PARAM: "",
         WAREHOUSE: "WH_GR_GP_XS",
         RUN_MODE: "C",
-        WORK_GROUP_ID: appIDs[0],
+        // WORK_GROUP_ID: appIDs[0],
+        GROUP_ID: appIDs[0],
         INGESTION_STATUS: 'submitted'
     });
     const [fields, setFields] = useState([]);
@@ -63,13 +65,14 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     ]
 
     useEffect(() => {
+        debug && console.log(gridConfigs);
         debug && console.log(codeFields);
         debug && console.log(dropdownFields);
         debug && console.log(columnDataTypes);
     }, [])
 
     useEffect(() => {
-        fieldTypesConfigs[table]['dropdownFields']['WORK_GROUP_ID'] = appIDs;
+        fieldTypesConfigs[table]['dropdownFields']['GROUP_ID'] = appIDs;
         setDropdownFields(fieldTypesConfigs[table]['dropdownFields']);
     }, [appIDs]);
 
@@ -90,6 +93,16 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
             debug && console.log(columnDataTypes);
             let all_fields = Object.keys(columnDataTypes);
             let fields = all_fields.filter(col => excludedFields.indexOf(col) < 0);
+            
+            //set SOURCE_TABLE to be 2nd to display
+            fields.splice(fields.indexOf('SOURCE_TABLE'), 1);
+            fields.unshift('SOURCE_TABLE');
+
+            //set WORK_GROUP_ID to be 1st to display
+            fields.splice(fields.indexOf('GROUP_ID'), 1);
+            fields.unshift('GROUP_ID');
+
+
             debug && console.log(fields);
             setFields(fields);
 
@@ -147,7 +160,10 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
         values['LAST_UPDATE_DATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         
         const primaryKeys = ['ETLFCALL_ID'].concat(uniqueCols);
-        const columns = Object.keys(values);
+        const columns = Object.keys(values).map(col => col !== 'GROUP_ID' ? col : 'WORK_GROUP_ID');
+        values['WORK_GROUP_ID'] = values['GROUP_ID'];
+        delete(values['GROUP_ID']);
+
         const sqlInsertStatement = generateMergeStatement(
             'SHARED_TOOLS_DEV',
             'ETL',
@@ -184,7 +200,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
             ) as ETLF_ID,
             (
                 SELECT COUNT(1) FROM "SHARED_TOOLS_DEV"."ETL"."ETLFCALL"
-                WHERE WORK_GROUP_ID = ` + values['WORK_GROUP_ID'] + `
+                WHERE WORK_GROUP_ID = ` + values['GROUP_ID'] + `
                 AND '` + values['SOURCE_TABLE']+ `' = NVL(SOURCE_TABLE,'')
             ) as Combi;`;
 

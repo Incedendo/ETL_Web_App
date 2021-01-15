@@ -44,78 +44,81 @@ const FormField = ({
     // if (field === 'ROUTE_ID' || field === 'ACTION_ID') console.log("RouteID: ", values[field])
 
     return (
-        <Form.Group key={field} as={Row} controlId={"formGroup" + field}>
-            {/* <Form.Label column sm={sm_left}>{field}{required === 'Y' ? "*" : ""} </Form.Label> */}
-            <Form.Label column sm={sm_left}>
-                {field}
-                {/* {requiredFields.indexOf(field) >= 0 ? "*" : ""}  */}
-            </Form.Label>
-            <Col sm={sm_right}>
+        // <Row>
+            <Form.Group key={field} as={Col} controlId={"formGroup" + field}>
+                {/* <Form.Label column sm={sm_left}>{field}{required === 'Y' ? "*" : ""} </Form.Label> */}
+                <Form.Label>
+                    {field}
+                    {/* {requiredFields.indexOf(field) >= 0 ? "*" : ""}  */}
+                </Form.Label>
+                {/* <Col sm={sm_right}> */}
 
-                {(fieldType === "text") &&
-                    <>
+                    {(fieldType === "text") &&
+                        <>
+                            <Form.Control
+                                type="text"
+                                // id={field}
+                                name={field}
+                                value={values[field]}
+                                onChange={e => {
+                                    handleChange(e);
+                                }}
+                                onBlur={handleBlur}
+                                // placeholder={required === 'Y' ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
+                                // placeholder={requiredFields.indexOf(field) >= 0 ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
+                                disabled={disabled}
+                                isValid={touched[field] && !errors[field]}
+                                isInvalid={errors[field]}
+                            />
+                            <a href=''></a>
+                        </>
+                    }
+
+                    {(fieldType === 'dropdown') &&
                         <Form.Control
-                            type="text"
-                            // id={field}
+                            as="select"
                             name={field}
                             value={values[field]}
-                            onChange={e => {
+                            onChange={(e) => {
                                 handleChange(e);
                             }}
                             onBlur={handleBlur}
-                            // placeholder={required === 'Y' ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
-                            // placeholder={requiredFields.indexOf(field) >= 0 ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
+                            //Only RECREATE for TGT_TABLE_ACTION in R4A1
+                            // disabled={disabled || (field === 'TGT_TABLE_ACTION' && routeCode === 'R4A1')}
                             disabled={disabled}
                             isValid={touched[field] && !errors[field]}
                             isInvalid={errors[field]}
+                        >   
+                            {dropdownOptions}
+                            {/* {dropdownFields[field].map(groupID => <option key={groupID} value={groupID} >{groupID}</option>)} */}
+                        </Form.Control>
+                        
+                    }
+
+                    {(fieldType === 'multiSelect') &&
+                        <MultiSelectField
+                            field={field}
+                            dropdownFields={dropdownFields}
+                            touched={touched}
+                            errors={errors}
                         />
-                        <a href=''></a>
-                    </>
-                }
+                    }
 
-                {(fieldType === 'dropdown') &&
-                    <Form.Control
-                        as="select"
-                        name={field}
-                        value={values[field]}
-                        onChange={(e) => {
-                            handleChange(e);
-                        }}
-                        onBlur={handleBlur}
-                        //Only RECREATE for TGT_TABLE_ACTION in R4A1
-                        // disabled={disabled || (field === 'TGT_TABLE_ACTION' && routeCode === 'R4A1')}
-                        disabled={disabled}
-                        isValid={touched[field] && !errors[field]}
-                        isInvalid={errors[field]}
-                    >   
-                        {dropdownOptions}
-                        {/* {dropdownFields[field].map(groupID => <option key={groupID} value={groupID} >{groupID}</option>)} */}
-                    </Form.Control>
-                }
+                    {(fieldType === 'code') &&
+                        <FormEditableField
+                            field={field}
+                            value={codeFields[field]}
+                            touched={touched}
+                            errors={errors}
+                        />
+                    }
 
-                {(fieldType === 'multiSelect') &&
-                    <MultiSelectField
-                        field={field}
-                        dropdownFields={dropdownFields}
-                        touched={touched}
-                        errors={errors}
-                    />
-                }
-
-                {(fieldType === 'code') &&
-                    <FormEditableField
-                        field={field}
-                        value={codeFields[field]}
-                        touched={touched}
-                        errors={errors}
-                    />
-                }
-
-                <Form.Control.Feedback type="invalid">
-                    {errors[field]}
-                </Form.Control.Feedback>
-            </Col>
-        </Form.Group>
+                    <Form.Control.Feedback type="invalid">
+                        {errors[field]}
+                    </Form.Control.Feedback>
+                {/* </Col> */}
+            </Form.Group>
+        // </Row> 
     )
 }
 

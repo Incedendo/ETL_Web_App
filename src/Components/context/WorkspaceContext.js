@@ -18,7 +18,7 @@ const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:90291922337
 export const WorkspaceProvider = (props) => {
     const { authState, authService } = useOktaAuth();
     
-    const [gridConfigs, setGridConfigs] = useState({});
+    
 
     const [debug, setDebug] = useState(false);
     
@@ -72,6 +72,7 @@ export const WorkspaceProvider = (props) => {
     const [numberColumns, setNumberColumns] = useState([]);
 
     //React Xtreme dev Grid
+    const [gridConfigs, setGridConfigs] = useState({});
     const [headers, setHeaders] = useState([]);
     const [columns, setColumns] = useState([]);
     const [columnsLoaded, setColumnsLoaded] = useState(false);
@@ -79,16 +80,15 @@ export const WorkspaceProvider = (props) => {
     const [addedRows, setAddedRows] = useState([]);
     const [privilege, setPrivilege] = useState([]);
     const [editingStateColumnExtensions, setEditingStateColumnExtensions] = useState([]);
-
+    const [columnDataTypes, setColumnDataTypes] = useState({});
+    const [columnWidths, setColumnWidths] = useState([]);
     const [tableColumnExtensions, setTableColumnExtensions] = useState([]);
     const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);
     
-    const [columnDataTypes, setColumnDataTypes] = useState({});
-    const [columnWidths, setColumnWidths] = useState([]);
+    
     
     //Prepare data for the 'Configure Route' Modal in ETLFramework Comp
     const [system_configs, setSystem_configs] = useState({});
-    
     const [etlColumnConfigs, setColumnEtlConfigs] = useState([]);
     const [etlRowConfigs, setRowEtlConfigs] = useState([]);
     const [routeConfigs, setRouteConfigs] = useState({});
@@ -642,7 +642,12 @@ export const WorkspaceProvider = (props) => {
             }
             if(headers.length === 0 )
                 return;
-            const columns = headers.map(header => ({
+
+            if(table === 'ETLFCALL'){
+                headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
+            }
+            
+            let columns = headers.map(header => ({
                 name: header,
                 title: header
             }))
@@ -662,15 +667,22 @@ export const WorkspaceProvider = (props) => {
                 direction: 'asc'
             }))
 
-            const numericColumns = data.map(row => {
-                if (row.DATA_TYPE === 'NUMBER') return row.COLUMN_NAME;
-            })
+            let numericColumns = data.map(row => 
+                row.DATA_TYPE === 'NUMBER' ? row.COLUMN_NAME : ''
+            )
+
+            if(table === 'ETLFCALL'){
+                numericColumns[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
+            }
 
             //derive an array of types of item in above array.
             let dataTypeObj = {}
             for (let id in data) {
                 let column_name = data[id].COLUMN_NAME
+                if(column_name === 'WORK_GROUP_ID') column_name = 'GROUP_ID';
+                
                 let column_type = data[id].DATA_TYPE
+                
                 if (column_type === 'TEXT') {
                     dataTypeObj[column_name] = "string"
                 } else if (column_type === 'TIMESTAMP_NTZ') {
@@ -690,7 +702,6 @@ export const WorkspaceProvider = (props) => {
                 dataTypeObj,
             }
 
-            let tableName = table;
             console.log("current table to set Config:", table);
             setGridConfigs({
                 ...gridConfigs,
@@ -804,16 +815,17 @@ export const WorkspaceProvider = (props) => {
                 // returning the data here allows the caller to get it through another .then(...)
                 // console.log('---------GET RESPONSE-----------');
                 
-                let rows = response.data;
-                if(rows.length > 0 && (Object.keys(rows[0])).indexOf('CATALOG_ENTITIES_HASH') > -1){
-                    rows = rows.map(row => {
-                        let newObj ={...rows};
-                        delete newObj['CATALOG_ENTITIES_HASH']
-                        return newObj;
-                    });
-                }
                 
+                let rows = response.data;
                 debug && console.log(rows);
+                
+                // if(rows.length > 0 && (Object.keys(rows[0])).indexOf('CATALOG_ENTITIES_HASH') > -1){
+                //     rows = rows.map(row => {
+                //         let newObj ={...rows};
+                //         delete newObj['CATALOG_ENTITIES_HASH']
+                //         return newObj;
+                //     });
+                // }
 
                 loadTableRows(rows, primaryKey); 
             })
@@ -1006,11 +1018,13 @@ export const WorkspaceProvider = (props) => {
                                 console.log(insertedRows);
                             }else{
                                 // if(performReload) setReloadTable(true);
-                                values['PRIVILEGE'] = 'READ/WRITE';
+                                values['PRIVILEGE'] = 'READ/WRITE';       
                                                             
-                                                            
-                                //CONVER ALL VAL TO UPPER CASE B4 SAVING:    
-                                (Object.keys(values)).map(col => values[col] = values[col].toUpperCase().trim());
+                                //CONVER ALL NON-NUMERIC VAL TO UPPER CASE B4 SAVING:    
+                                (Object.keys(values)).map(col => {
+                                    if(isNaN(values[col]))
+                                        values[col] = values[col].toUpperCase().trim();
+                                })
                                 console.log(values);
                                 newRows.push(values);
                             }
@@ -1019,11 +1033,11 @@ export const WorkspaceProvider = (props) => {
 
                             insert_status = "SUCCESS";
                         }
-                        else if (response.data[0]['number of rows inserted'] === 0 && table !=='ETLF_CUSTOM_CODE') {
-                            debug && console.log("Insert Error: App ID ", values.GROUP_ID, " has no WRITE Privilege");
-                            setInsertSuccess(false);
-                            setInsertError("Insert Error: App ID ", values.GROUP_ID, " has no WRITE Privilege");
-                        }
+                        // else if (response.data[0]['number of rows inserted'] === 0 && table !=='ETLF_CUSTOM_CODE') {
+                        //     debug && console.log("Insert Error: App ID ", values.GROUP_ID, " has no WRITE Privilege");
+                        //     setInsertSuccess(false);
+                        //     setInsertError("Insert Error: App ID ", values.GROUP_ID, " has no WRITE Privilege");
+                        // }
                     }
                 })
                 .catch(err => {
@@ -1125,6 +1139,7 @@ export const WorkspaceProvider = (props) => {
         addedRows, setAddedRows,
         privilege, setPrivilege,
         editingStateColumnExtensions, setEditingStateColumnExtensions,
+        gridConfigs,
 
         tableColumnExtensions, setTableColumnExtensions,
         sortingStates, setSortingStates,

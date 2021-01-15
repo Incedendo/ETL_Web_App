@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Formik } from 'formik';
 import Form from 'react-bootstrap/Form'
+import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import FormField from '../FormComponents/FormField';
@@ -13,11 +14,9 @@ import '../../../css/forms.scss';
 const TEST_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/test';
 
 const RouteForm = ({ 
-    routeCode, extractConfigID, states,
+    extractConfigID, states,
     requiredFields, optionalFields, validationSchema, 
-    helper_route, 
-    setShow,
-    dropdownFields 
+    helper_route, setShow, dropdownFields , disabled
 }) => {
 
     const {
@@ -29,12 +28,12 @@ const RouteForm = ({
         columnDataTypes,
         routeConfigs,
         codeFields,
-        appIDs
     } = useContext(WorkspaceContext);
 
     // console.log("R1A1: current Action: ",states['ACTION_ID']);
-    debug && console.log("current RouteCode: ", routeCode);
+    debug && console.log("current states: ", states);
     debug && console.log("Extract Config ID: ", extractConfigID);
+    debug && console.log("routeConfigs: ", routeConfigs);
     debug && console.log(requiredFields);
 
     const [validating, setValidating] = useState(false);
@@ -112,13 +111,13 @@ const RouteForm = ({
         }
     };
 
-    const orderedRequiredFields = (Object.keys(requiredFields)).sort();
+    const allFieldsFromDataLoader = (Object.keys(requiredFields)).sort();
+    const orderedRequiredFields = allFieldsFromDataLoader.filter(col => col !== 'ACTION_ID' && col !== 'ROUTE_ID');
 
     const renderOrderFields = requiredFields =>{
         for(let field in requiredFields)
             return(
                 <FormField
-                    routeCode={routeCode}
                     key={field}
                     field={field}
                     required={requiredFields[field]}
@@ -137,7 +136,7 @@ const RouteForm = ({
     }
 
     return (
-        <div>
+        <>
             {insertMessage !== '' && 
                 <div className="errorSignal">
                     {insertMessage}
@@ -151,73 +150,69 @@ const RouteForm = ({
                 <button onClick={()=>console.log(routeCode)}>Print routecode</button>
             </div> */}
             
-            {!Object.keys(requiredFields).length
-                ?
-                <div>Loading configurations...</div>
-                :
-                <div>
-                    <Formik
-                        validationSchema={validationSchema}
+            
+              
+            <Formik
+                validationSchema={validationSchema}
 
-                        //destructure the action obj into {setSubmitting}
-                        onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
-                            //have to update the values manually here:
-                            setValidating(true);
+                //destructure the action obj into {setSubmitting}
+                onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
+                    //have to update the values manually here:
+                    setValidating(true);
+                    
+                    //merge values into states bc states has the latest updates
+                    const updatedValues = {
+                        ...states, ...values
+                    };
+
+                    updatedValues["EXTRACT_CONFIG_ID"] = states["EXTRACT_CONFIG_ID"];
+                    debug && console.log('updatedValues: ', updatedValues);
+                    test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
+                }}
+                initialValues={states}
+            >
+                {({
+                    handleSubmit, isSubmitting,
+                    handleChange,
+                    handleBlur,
+                    values,
+                    touched,
+                    errors,
+                }) => (
+                        <Form
+                            noValidate
+                            onSubmit={handleSubmit}>
                             
-                            //merge values into states bc states has the latest updates
-                            const updatedValues = {
-                                ...states, ...values
-                            };
+                            {orderedRequiredFields.map(field =>
+                                <FormField
+                                    key={field}
+                                    field={field}
+                                    required={requiredFields[field]}
+                                    requiredFields={Object.keys(requiredFields)}
+                                    values={values}
+                                    dataTypes={columnDataTypes}
+                                    handleChange={handleChange}
+                                    handleBlur={handleBlur}
+                                    touched={touched}
+                                    errors={errors}
+                                    disabled={validating}
+                                    codeFields={codeFields}
+                                    dropdownFields={dropdownFields}
+                                />
+                            )}
 
-                            updatedValues["EXTRACT_CONFIG_ID"] = states["EXTRACT_CONFIG_ID"];
-
-                            debug && console.log('updatedValues: ', updatedValues);
-                            test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
-                        }}
-                        initialValues={states}
-                    >
-                        {({
-                            handleSubmit, isSubmitting,
-                            handleChange,
-                            handleBlur,
-                            values,
-                            touched,
-                            errors,
-                        }) => (
-                                <Form
-                                    noValidate
-                                    onSubmit={handleSubmit}>
-                                    
-                                    {orderedRequiredFields.map(field =>
-                                        <FormField
-                                            routeCode={routeCode}
-                                            key={field}
-                                            field={field}
-                                            required={requiredFields[field]}
-                                            requiredFields={Object.keys(requiredFields)}
-                                            values={values}
-                                            dataTypes={columnDataTypes}
-                                            handleChange={handleChange}
-                                            handleBlur={handleBlur}
-                                            touched={touched}
-                                            errors={errors}
-                                            disabled={validating}
-                                            codeFields={codeFields}
-                                            dropdownFields={dropdownFields}
-                                        />
-                                    )}
-
-                                    <Form.Group controlId="formBasicCheckbox">
-                                        <Form.Check 
-                                            type="checkbox" 
-                                            label="Optional Fields" 
-                                            onChange={()=>toggleOptional(!showOptional)}
-                                        />
-                                    </Form.Group>
-
+                            <Form.Group as={Col} controlId="formBasicCheckbox">
+                                <Form.Check 
+                                    type="checkbox" 
+                                    label="Optional Fields" 
+                                    onChange={()=>toggleOptional(!showOptional)}
+                                />
+                            </Form.Group>
+                            
+                            {!disabled &&
+                                <>
                                     {showOptional && Object.keys(optionalFields).map(field =>
                                         <FormField
-                                            routeCode={routeCode}
                                             key={field}
                                             field={field}
                                             required={requiredFields[field]}
@@ -256,14 +251,14 @@ const RouteForm = ({
                                             }
                                         </Button>
                                     </div>
+                                </>
+                            }
+                            
 
-                                </Form>
-                            )}
-                    </Formik>
-                </div>
-                
-            }
-        </div>
+                        </Form>
+                    )}
+            </Formik>
+        </>
     )
 }
 

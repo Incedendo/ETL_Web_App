@@ -45,7 +45,6 @@ const CustomCodeModal = ({ table, data, uniqueCols, routeCode }) => {
                     <CustomCodeForm
                         table={table}
                         data={data}
-                        uniqueCols={uniqueCols}
                         setShow={setShow}
                         routeCode={routeCode}
                     />

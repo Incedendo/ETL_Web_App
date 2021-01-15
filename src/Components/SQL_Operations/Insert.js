@@ -212,10 +212,11 @@ const getSelectClause = (rowOjb, columns) => {
     
     let selectClause = ''
     for (let id in columns){
-        selectClause += values[id] + ' as ' + columns[id] 
+        let value = isNaN(values[id]) ? values[id].toUpperCase().trim() : values[id];
+        selectClause += value + ' as ' + columns[id];
         if (id < columns.length - 1){
             selectClause += `, 
-                  `  
+                  `;
         }
     }
     return selectClause
@@ -235,7 +236,7 @@ const getUpdateClause = (columns) => {
 const getInsertValues = (columns) => {
     let values = ''
     for (let id in columns){
-        values += 'st.' + columns[id]
+        values += 'st.' + isNaN(columns[id]) ? columns[id].toUpperCase().trim() : columns[id]
         if (id < columns.length - 1){
             values += ', ';
         }
@@ -267,12 +268,12 @@ export const generateAuditStmt = values => {
     let stmt = `INSERT INTO SHARED_TOOLS_DEV.ETL.ETLF_AUDIT 
 (USERNAME, ACTION, TABLE_NAME, PRIMARY_KEY, SQL_CODE, STATUS )
 SELECT `+ 
-        "'" + values.USERNAME +"', " +
-        "'" + values.ACTION +"', " +
-        "'" + values.TABLE_NAME +"', " +
+        "UPPER(TRIM('" + values.USERNAME +"')), " +
+        "UPPER(TRIM('" + values.ACTION +"')), " +
+        "UPPER(TRIM('" + values.TABLE_NAME +"')), " +
         " parse_json('" + JSON.stringify(values.PRIMARY_KEY) + "'), " +
-        "'" + values.SQL_CODE.replace(re, "''") +"', " +
-        "'" + values.STATUS +"';";
+        "UPPER(TRIM('" + values.SQL_CODE.replace(re, "''") +"')), " +
+        "UPPER(TRIM('" + values.STATUS +"'));";
 
     console.log("audit statement: ", stmt);
     return stmt;

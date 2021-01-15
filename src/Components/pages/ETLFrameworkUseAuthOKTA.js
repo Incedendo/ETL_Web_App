@@ -20,28 +20,6 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
     const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
-    console.log(props);
-
-    const { authState, authService } = useOktaAuth();
-
-    const login = async () => {
-        // Redirect to '/' after login
-        authService.login('/');
-    }
-
-    const logout = async () => {
-
-        const idToken = authState.idToken;
-        await authService.logout('/');
-
-        // Clear remote session
-        window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
-    }
-
-    const [loadingAppIDs, setLoadingAppIDs] = useState(false);
-    const [etlTabClicked, setEtlTabClicked] = useState(false);
-    const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
-
     const {
         debug,
         username, setUsername,
@@ -60,14 +38,44 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
+    console.log(props);
+
+    const { authState, authService } = useOktaAuth();
+    const [loadingAppIDs, setLoadingAppIDs] = useState(false);
+    const [etlTabClicked, setEtlTabClicked] = useState(false);
+    const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
+
+    const login = async () => {
+        // Redirect to '/' after login
+        authService.login('/');
+    }
+
+    const logout = async () => {
+
+        const idToken = authState.idToken;
+        await authService.logout('/');
+
+        // Clear remote session
+        window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
+    }    
+
     useEffect(() => {
         setLoadingAppIDs(false);
         debug && console.log('APP IDs', appIDs);
-    }, [appIDs])
+    }, [appIDs]);
+
+    useEffect(() => {
+        console.log('[ETL Framework] shownModalUponChangingTable: '+ shownModalUponChangingTable);
+    }, [shownModalUponChangingTable]);
+
+    useEffect(()=>{
+        //upon clicking the ETL Framework Tab, set the table to ETLF by default??????
+        setTable("ETLF_EXTRACT_CONFIG");
+    }, [])
 
     useEffect(()=>{
         if(etlTabClicked || props['location']['state'] === undefined){
-            setShownModalUponChangingTable(true);
+            // setShownModalUponChangingTable(true);
             setTableLoaded(false);
             // setCommingFromLink(false);
         }else if(props['location']['state'] !== undefined ){
