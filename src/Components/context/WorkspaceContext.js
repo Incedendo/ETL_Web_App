@@ -17,8 +17,6 @@ const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:90291922337
 
 export const WorkspaceProvider = (props) => {
     const { authState, authService } = useOktaAuth();
-    
-    
 
     const [debug, setDebug] = useState(false);
     
@@ -57,6 +55,9 @@ export const WorkspaceProvider = (props) => {
     //update
     const [enabledEdit, setEnabledEdit] = useState(false);
     const [primaryKeys, setPrimaryKeys] = useState([]);
+
+    const [nonEditableColumns, setNonEditableColumns] = useState([]);
+
     const [remainingPrimaryKeys, setRemainingPrimaryKeys] = useState([]);
 
     //for Search Box:
@@ -772,8 +773,11 @@ export const WorkspaceProvider = (props) => {
     // }
 
     const axiosCallToGetTableRows = (get_statenent, primaryKey) => {
-        if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) >= 0)
+        if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) >= 0){
             setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
+            setNonEditableColumns(TABLES_NON_EDITABLE_COLUMNS[table]);
+        }
+        
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
         console.log(gridConfigs);
@@ -844,8 +848,10 @@ export const WorkspaceProvider = (props) => {
     }
 
     const axiosCallToGetTable = (isMounted, proposed_get_statenent, primaryKey) => {
-        if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) > 0)
+        if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) > 0){
             setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
+            setNonEditableColumns(TABLES_NON_EDITABLE_COLUMNS[table]);
+        }
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
         console.log(gridConfigs);
@@ -998,8 +1004,9 @@ export const WorkspaceProvider = (props) => {
             axios.post(INSERT_URL, data, options)
                 .then(response => {
                     // returning the data here allows the caller to get it through another .then(...)
+                    debug && console.log(response);
                     debug && console.log(response.data);
-                    debug && console.log(response.status);
+                    debug && console.log("Status: ", response.status);
                     if (response.status === 200) {
                         if (response.data[0]['number of rows inserted'] > 0) {
                             setInsertSuccess(true);
@@ -1038,6 +1045,8 @@ export const WorkspaceProvider = (props) => {
                         //     setInsertSuccess(false);
                         //     setInsertError("Insert Error: App ID ", values.GROUP_ID, " has no WRITE Privilege");
                         // }
+                    }else{
+                        console.log("status is not 200");
                     }
                 })
                 .catch(err => {
@@ -1122,6 +1131,7 @@ export const WorkspaceProvider = (props) => {
         enabledEdit, setEnabledEdit,
 
         primaryKeys, setPrimaryKeys,
+        nonEditableColumns, setNonEditableColumns,
         remainingPrimaryKeys, setRemainingPrimaryKeys,
 
         searchCriteria, setSearchCriteria,

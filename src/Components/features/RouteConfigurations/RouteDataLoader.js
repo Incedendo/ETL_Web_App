@@ -124,12 +124,6 @@ ORDER BY 1 `;
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
                     console.log('ROute options: ', response.data);
-                    // let defaultOption = [{
-                    //     ACTION_ID: 0,
-                    //     CHOICE_OPTION: 'Select Route',
-                    //     ROUTE_ID: 0,
-                    // }]
-                    // setRouteOptions([...defaultOption,...response.data]);
 
                     setRouteOptions(response.data)
                 })
@@ -455,14 +449,6 @@ ORDER BY 1 `;
 
             setTargetID((system_id_desc[0].split('-')[0]) * 1);
 
-            // Update the Dropdown fields for the following Form based on Route and Action
-            // updateDropdownFields(target, system_id_desc);
-            // debug && console.log("set Id for route: ", route, " ,system_type: ", system_type);
-        // } else {
-        //     setTargetID(0);
-        //     debug && console.log('Null Target to setIDs dropdowns');
-        // }
-
         updateDropdownFields(target, system_id_desc);
     }
 
@@ -638,7 +624,6 @@ ORDER BY 1 `;
         debug && console.log(required_Fields_Obj);
 
         createYupSchemaForRoute(required_Fields_Obj);
-        // updateInitialValuesForRoute();
         setVerified(true);
     }
 
@@ -692,33 +677,6 @@ ORDER BY 1 `;
         setValidationSchema(yup_schema);
     }
 
-    function updateInitialValuesForRoute(){
-        // debug && console.log("State's Action_ID:", routeConfigs[helper_route]['actions'][action]['ACTION_ID']);
-        // const 
-        console.log("update after switch route")
-        console.log(routeID);
-        console.log(actionID);
-        console.log(sourceID);
-        console.log(targetID);
-        let initialStateForRoute = {
-            ROUTE_ID: routeID,
-            ACTION_ID: actionID,
-            ACTIVE: 'Y',
-            DIEONMISMATCH: 'N',
-            NOTIFICATIONEMAILS: username,
-            GROUP_ID: appIDs[0],
-            SOURCE_SYSTEM_ID: sourceID,
-            TARGET_SYSTEM_ID: targetID,
-            EXTRACT_CONFIG_ID: extractConfigID,
-        }
-
-        console.log("calling updateInitialStates: ");
-        console.log(initialStateForRoute)
-
-        // debug && console.log("Update the Initial State Object in RouteDataLoader....")
-        setInitialStates(initialStateForRoute);
-    }
-
     const selectRouteOptions = Object.values(routeOptions).map(route => route['CHOICE_OPTION']);
     selectRouteOptions.unshift('Select Route');
 
@@ -756,88 +714,32 @@ ORDER BY 1 `;
                         <Form
                             noValidate
                             onSubmit={handleSubmit}>
-                            {/* <Row></Row> */}
-                                <Form.Group as={Col} controlId="exampleForm.ControlSelect1">
-                                    <Form.Label>Route Option:</Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        name="route"
-                                        onChange={e => {
-                                            handleChange(e);
-                                            setRoute(e.target.value);
-                                            getRouteColumns(e.target.value);
-                                        }}
-                                        isValid={touched.route && !errors.route}
-                                        isInvalid={touched.route && !!errors.route}
-                                    // disabled={!fields.length}
-                                    >
-                                        {routeOptions !== undefined && selectRouteOptions.map(route =>
-                                            <option key={route}>
-                                                {/* {routeOptions[route]['CHOICE_OPTION']} */}
-                                                {route}
-                                            </option>
-                                        )}
-                                    </Form.Control>
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.route}
-                                    </Form.Control.Feedback>
-                                </Form.Group>
-
-                            {/* <Row>
-                                <Form.Group as={Col} controlId="exampleForm.ControlSelect1">
-                                    <Form.Label>Route:</Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        name="route"
-                                        onChange={e => {
-                                            handleChange(e);
-                                            setHelperRoute(e.target.value);
-                                            setAction("");
-                                            setVerified(false);
-                                        }}
-                                        isValid={touched.route && !errors.route}
-                                        isInvalid={touched.route && !!errors.route}
-                                    // disabled={!fields.length}
-                                    >
-                                        {Object.keys(routeConfigs).map(route =>
-                                            <option key={route}>
-                                                {route}
-                                            </option>
-                                        )}
-                                    </Form.Control>
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.route}
-                                    </Form.Control.Feedback>
-                                </Form.Group>
                                 
-                                <Form.Group as={Col} controlId="exampleForm.ControlSelect1">
-                                    <Form.Label>Action:</Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        name="action"
-                                        onChange={(e) => {
-                                            handleChange(e);
-                                            let action = e.target.value;
-                                            setAction(action);
-                                            setVerified(false);
-                                            // setRouteCode(routeConfigs[helper_route]['actions'][action]['code']);
-                                        }}
-                                        value={action}
-                                        isValid={touched.action && !errors.action}
-                                        isInvalid={touched.action && !!errors.action}
-                                        // disabled={!fields.length}
-                                        // defaultValue={routes_config['Oracle to Snowflake'][0]}
-                                    >
-                                        {Object.keys(routeConfigs[helper_route]['actions']).map(action => <option key={action} >{action}</option>)}
-                                    </Form.Control>
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.action}
-                                    </Form.Control.Feedback>
-                                </Form.Group>
-                                
-                            </Row> */}
-
-                            
+                            <Form.Group as={Col} controlId="exampleForm.ControlSelect1">
+                                <Form.Label>Route Option:</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    name="route"
+                                    onChange={e => {
+                                        handleChange(e);
+                                        setRoute(e.target.value);
+                                        getRouteColumns(e.target.value);
+                                    }}
+                                    isValid={touched.route && !errors.route}
+                                    isInvalid={touched.route && !!errors.route}
+                                // disabled={!fields.length}
+                                >
+                                    {routeOptions !== undefined && selectRouteOptions.map(route =>
+                                        <option key={route}>
+                                            {/* {routeOptions[route]['CHOICE_OPTION']} */}
+                                            {route}
+                                        </option>
+                                    )}
+                                </Form.Control>
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.route}
+                                </Form.Control.Feedback>
+                            </Form.Group>                            
 
                             {extractConfigID === 0 && 
                                 <div className="central-spinning-div">

@@ -6,14 +6,14 @@ import '../../../css/rowExpansion.scss';
 import CustomCodeForm from '../FormComponents/CustomCodeForm';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 
-const CustomCodeModal = ({ table, data, uniqueCols, routeCode }) => {
+const CustomCodeModal = ({ table, EXTRACT_CONFIG_ID, privilege, uniqueCols, routeCode, insertUsingMergeStatement }) => {
     const {
         debug
     } = useContext(WorkspaceContext);
 
     const [show, setShow] = useState(false);
 
-    debug && console.log(data);
+    debug && console.log(EXTRACT_CONFIG_ID);
 
     return (
         <div className="job-modal">
@@ -21,7 +21,7 @@ const CustomCodeModal = ({ table, data, uniqueCols, routeCode }) => {
                 <Button 
                     className="button-margin"
                     variant="primary"
-                    disabled={data.PRIVILEGE === 'READ ONLY' }
+                    disabled={privilege === 'READ ONLY' }
                     onClick={() => setShow(true)}
                 >
                     New Custom Code
@@ -44,9 +44,10 @@ const CustomCodeModal = ({ table, data, uniqueCols, routeCode }) => {
                 <Modal.Body>
                     <CustomCodeForm
                         table={table}
-                        data={data}
+                        EXTRACT_CONFIG_ID={EXTRACT_CONFIG_ID}
                         setShow={setShow}
                         routeCode={routeCode}
+                        insertUsingMergeStatement={insertUsingMergeStatement}
                     />
                 </Modal.Body>
             </Modal>

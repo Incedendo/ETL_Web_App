@@ -7,7 +7,7 @@ export const fieldTypesConfigs = {
         dropdownFields: {
             // WORK_GROUP_ID: [],
             GROUP_ID: [],
-            INGESTION_STATUS: ['PENDING'],
+            // INGESTION_STATUS: ['PENDING'],
         },
         'links':{
             
@@ -271,7 +271,7 @@ export const compositeTables = {
 
 export const TABLES_NON_EDITABLE_COLUMNS = {
     "ETLF_EXTRACT_CONFIG": ["EXTRACT_CONFIG_ID"],
-    "ETLFCALL": ["ETLFCALL_ID"],
+    "ETLFCALL": ["ETLFCALL_ID", 'INGESTION_STATUS', 'SOURCE_TABLE', 'WORK_GROUP_ID', 'CREATEDDATE', 'LAST_UPDATE_DATE','CREATED_DATE', 'LASTMODIFIEDDATE'],
     "DATA_STEWARD": ["DATA_STEWARD_ID", 'EMAIL'],
     "DATA_DOMAIN": ["DATA_DOMAIN_ID", 'DOMAIN'],
     "CATALOG_ENTITIES": ["CATALOG_ENTITIES_ID", 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE', 'DOMAIN'],

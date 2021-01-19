@@ -18,6 +18,7 @@ import { getSearchFieldValue } from '../sql_statements';
 
 const ETLFrameworkUseAuthOKTA = ( props ) => {
     const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
+    const ISSUER_UAT = `https://uataigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
     const {
@@ -57,6 +58,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
 
         // Clear remote session
         window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
+        // window.location.href = `${ISSUER_UAT}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
     }    
 
     useEffect(() => {

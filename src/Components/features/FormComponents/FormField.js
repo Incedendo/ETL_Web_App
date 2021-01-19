@@ -38,7 +38,7 @@ const FormField = ({
 
     let dropdownOptions = [<option key='base' value='' >Select an item</option>];
     if(field in dropdownFields){
-        dropdownFields[field].map(groupID => dropdownOptions.push(<option key={groupID} value={groupID} >{groupID}</option>));
+        dropdownFields[field].map(item => dropdownOptions.push(<option key={item} value={item}>{item}</option>));
     }
     
     // if (field === 'ROUTE_ID' || field === 'ACTION_ID') console.log("RouteID: ", values[field])

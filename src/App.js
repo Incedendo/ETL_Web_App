@@ -20,6 +20,9 @@ import './App.css';
 const CLIENT_ID = '0oao1og6ygsQEgZP00h7' || process.env.CLIENT_ID;
 const ISSUER = `https://devaigtech.oktapreview.com/oauth2/default`;
 //------------------------------------------------------------------
+const CLIENT_ID_UAT = '0oawespq8lDugPOxB0h7' || process.env.CLIENT_ID;
+const ISSUER_UAT = `https://uataigtech.oktapreview.com/oauth2/default`;
+//------------------------------------------------------------------
 
 const CALLBACK_PATH = '/implicit/callback';
 // const CALLBACK_PATH = '/index.html';
@@ -52,6 +55,8 @@ const App = () => {
       <Security
         issuer={ISSUER}
         clientId={CLIENT_ID}
+        // issuer={ISSUER_UAT}
+        // clientId={CLIENT_ID_UAT}
         pkce={true}
         redirectUri={REDIRECT_URI}
       >

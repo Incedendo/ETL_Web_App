@@ -12,11 +12,12 @@ import '../../../css/forms.scss';
 
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 
-const CustomCodeForm = ({ table, data,  routeCode, setShow }) => {
+const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertUsingMergeStatement }) => {
 
     const {
         debug,
-        insertUsingMergeStatement, genericTableDataTypeObj
+        // insertUsingMergeStatement, 
+        genericTableDataTypeObj
     } = useContext(WorkspaceContext);
 
     const codeFields = fieldTypesConfigs[table]['codeFields'];
@@ -28,7 +29,7 @@ const CustomCodeForm = ({ table, data,  routeCode, setShow }) => {
     const [schema, setSchema] = useState([]);
     const [initialStates, setInitialStates] = useState({
         ACTIVE: 'Y',
-        EXTRACT_CONFIG_ID: data['EXTRACT_CONFIG_ID'], 
+        EXTRACT_CONFIG_ID: EXTRACT_CONFIG_ID, 
         CODE_TYPE: 'ADHOC_QUERY',
         EXEC_SEQ: 1,
         CODE_DESCRIPTION: '',

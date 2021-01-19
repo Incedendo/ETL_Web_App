@@ -66,6 +66,8 @@ const RowExpansion = ({ row }) => {
     const [isLoading, setLoading] = useState(false);
 
     const[diff, setDiff] = useState({});
+
+    const [lastSubmittedTime, setLastSubmittedTime] = useState('');
     
     const [route, setRoute] = useState("");
     const [action, setAction] = useState("");
@@ -92,6 +94,11 @@ const RowExpansion = ({ row }) => {
         delete differenceBetweenRowAndState['ID'];
         if('EXTRACT_CONFIG_ID' in state){
             differenceBetweenRowAndState['EXTRACT_CONFIG_ID'] = state['EXTRACT_CONFIG_ID']
+        }
+        if(table ==='ETLFCALL'){
+            differenceBetweenRowAndState['ETLFCALL_ID'] = state['ETLFCALL_ID'];
+            differenceBetweenRowAndState['SOURCE_TABLE'] = state['SOURCE_TABLE'];
+            differenceBetweenRowAndState['WORK_GROUP_ID'] = state['WORK_GROUP_ID'];
         }
         
 
@@ -234,7 +241,7 @@ const RowExpansion = ({ row }) => {
 
     const getUpdateStatementForDataCatalog = (row, diff) => {
         let updateStatement = '';
-        let primaryKey = TABLES_NON_EDITABLE_COLUMNS[table][0];
+        // let primaryKey = TABLES_NON_EDITABLE_COLUMNS[table][0];
 
         console.log(row); // row is the old record
         console.log(state); // state is the updated record
@@ -263,21 +270,48 @@ const RowExpansion = ({ row }) => {
 
     const performUpdate = (isSubscribed) => {
         //get the ID columns in the array of non_editable columns:
-        let primaryKey = TABLES_NON_EDITABLE_COLUMNS[table][0];
+        let primaryKey = fieldTypesConfigs[table]['primaryKeys'][0];
         let sqlMergeStatement = '';
         const diffCols = Object.keys(diff);
 
-        if(table in TABLES_NON_EDITABLE_COLUMNS){
+        if(table in DATA_CATALOG_TABLE){
             console.log("generate update for DATCAT");
             sqlMergeStatement = getUpdateStatementForDataCatalog(row, diff);
         }else{
-            sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
+            if(table === 'ETLFCALL'){
+                let primaryKeysForETLFCALL = ['ETLFCALL_ID', 'SOURCE_TABLE', 'WORK_GROUP_ID'];
+                
+                // sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeysForETLFCALL, diffCols, diff);
+                sqlMergeStatement = `merge into SHARED_TOOLS_DEV.ETL.ETLFCALL tt
+                using (
+                    select 'ABC' as JSON_PARAM, 
+                          'EA9CE554-DC37-499B-9A9E-C5DC26B1B7F6' as ETLFCALL_ID, 
+                          'KIET_TEST' as SOURCE_TABLE, 
+                          2099 as WORK_GROUP_ID
+                   from dual
+                ) st on (tt.ETLFCALL_ID= st.ETLFCALL_ID AND tt.SOURCE_TABLE= st.SOURCE_TABLE AND tt.WORK_GROUP_ID= st.WORK_GROUP_ID)
+                when matched then
+                update set 
+                  tt.JSON_PARAM = st.JSON_PARAM, 
+                  tt.ETLFCALL_ID = st.ETLFCALL_ID, 
+                  tt.SOURCE_TABLE = st.SOURCE_TABLE, 
+                  tt.WORK_GROUP_ID = st.WORK_GROUP_ID 
+                ;`
+
+                sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
+                
+            
+            }else{
+                sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
+            }
             // console.log(database);
             // console.log(schema);
             // console.log(table);
             // console.log(primaryKeys);
-            console.log("EXTRACT_CONFIG_ID: "+ row['EXTRACT_CONFIG_ID']);
+            // console.log("EXTRACT_CONFIG_ID: "+ row['EXTRACT_CONFIG_ID']);
         }
+
+        console.log(sqlMergeStatement);
 
         console.log(row);
         console.log(state);
@@ -384,6 +418,62 @@ const RowExpansion = ({ row }) => {
         </button>
     )
 
+    const submitJob = () => {
+        let primaryKey = fieldTypesConfigs[table]['primaryKeys'][0];
+        let sqlMergeStatement = `UPDATE SHARED_TOOLS_DEV.ETL.ETLFCALL
+        SET 
+        INGESTION_STATUS = 'PENDING',
+        LAST_UPDATE_DATE = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ
+        WHERE UPPER(TRIM(ETLFCALL_ID)) = UPPER(TRIM('` + row['ETLFCALL_ID'] + `'));`;
+        let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
+        
+        setRows(newRows);
+
+
+        let update_status = "FAILURE";
+        // Can't use performEditOperation in Context
+        // bc need to ASYNCHRONOUSLY setLoading to false
+        // after AXIOS call
+        const data = {
+            sqlUpdateStatement: sqlMergeStatement,
+        };
+
+        const userConfirmed = " Please confirm Update SQL statement: " + sqlMergeStatement;
+
+        if (window.confirm(userConfirmed)) {
+            axios.put(UPDATE_URL, data, options)
+                .then(response => {
+                    // returning the data here allows the caller to get it through another .then(...)
+                    debug && console.log(response.data);
+                    debug && console.log(response.status);
+                    if (response.status === 200) {
+                        setEditSuccess(true);
+                        setEditError('');
+                        update_status = 'SUCCESS';
+                    }else {
+                        setEditSuccess(false);
+                        setEditError('Failed to Schedule job');
+                    }
+                })
+                .catch(err => {
+                    debug && console.log(err);
+                    setEditError('Failed to Schedule job');
+                    setEditSuccess(false);
+                })
+                .finally(() => {
+                    // setReloadTable(true);
+                    
+                    setLoading(false);
+                    setChanged(false);
+
+                    performAuditOperation('UPDATE', primaryKeys, state, sqlMergeStatement, update_status)
+                    
+                });
+        } else {
+            setLoading(false);
+        }
+    }
+
     const renderFieldByType = () => {
         let primaryGroups = {};
         let dropdownGroups = {};
@@ -421,8 +511,6 @@ const RowExpansion = ({ row }) => {
                         // codeGroups[field] = key[1];
                         codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
                     }
-
-                    
                 } 
 
                 allDisplayedKeys.push(field);
@@ -444,13 +532,22 @@ const RowExpansion = ({ row }) => {
                     //     // primaryKeys={primaryKeys}
                     //     fieldArray={key} 
                     // />
-
-                    <PrimaryKeyField 
-                        key={key[0]}
-                        row={key}
-                        primaryKeys={primaryKeys}
-                        fieldArray={key} 
-                    />
+                    <div 
+                        // style={{'display': 'inline'}}
+                    >
+                        <PrimaryKeyField 
+                            key={key[0]}
+                            row={key}
+                            primaryKeys={primaryKeys}
+                            fieldArray={key} 
+                        />
+                        {key[0] === 'INGESTION_STATUS' &&
+                            <button onClick={submitJob}>
+                                Schedule Job
+                            </button>
+                        }
+                    </div>
+                    
                 )}
 
                 {Object.entries(codeGroups).map((key, index) => 
@@ -499,6 +596,7 @@ const RowExpansion = ({ row }) => {
                     //     disabled={row.PRIVILEGE === 'READ ONLY'}
                     //     setEditMessage={setEditError}
                     //     />
+                    
                     <DropdownField
                         key={key[0]}
                         field={key[0]}
@@ -508,6 +606,8 @@ const RowExpansion = ({ row }) => {
                         dropdownFields={dropdownFields}
                         route={route}
                     />
+                        
+                    
                     :<CodeField 
                         key={key[0]}
                         setState={setState}
@@ -531,10 +631,11 @@ const RowExpansion = ({ row }) => {
                         <GenericTableModal
                             modalName={'ETLF_CUSTOM_CODE'}
                             tableName={'ETLF_CUSTOM_CODE'}
-                            data={row}
-                            uniqueCols={[]}
+                            // data={row}
                             routeCode={routeCode}
                             route={route}
+                            EXTRACT_CONFIG_ID={row['EXTRACT_CONFIG_ID']}
+                            privilege={row['PRIVILEGE']}
                         />
                     </div>
                 }

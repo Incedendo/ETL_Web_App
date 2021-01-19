@@ -36,13 +36,13 @@ const GenericRowExpansion = ({ row, ...rest }) => {
 
     debug && console.log(row);
 
-    const route = row.metaData.route;
+    let route = '';
+    if('metaData' in row) route = row.metaData.route;
     //remove PRIVILEGE from row:
     let modifiedRow = {...row};
-    delete modifiedRow.id;
-    delete modifiedRow.metaData;
+    if('id' in modifiedRow) delete modifiedRow.id;
+    if('metaData' in modifiedRow) delete modifiedRow.metaData;
     // delete modifiedRow.PRIVILEGE;
-    
 
     let originalColumns = Object.keys(row).filter(key => ['id', 'PRIVILEGE', 'metaData'].indexOf(key) < 0);
 

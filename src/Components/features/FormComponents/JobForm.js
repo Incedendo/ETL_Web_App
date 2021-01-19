@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Formik, Field } from 'formik';
 import * as yup from 'yup'; // for everything
+import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
-
+import Col from 'react-bootstrap/Col';
 import FormField from './FormField';
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
 import { getDataType } from './FormUtils';
@@ -15,6 +16,7 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 // import { createYupSchema } from "./yupSchemaCreator";
 import { generateMergeStatement } from '../../SQL_Operations/Insert';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
+import { TABLESNOWFLAKE_URL } from '../../context/url';
 
 const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
@@ -31,17 +33,21 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     //Jobs Configurations
     const [schema, setSchema] = useState([]);
     const [initialStates, setInitialStates] = useState({
-        ETLFCALL_ID: "",
+        // ETLFCALL_ID: uuidv4(),
+        // ETLFCALL_ID: 'dummyStr',
         JSON_PARAM: "",
         WAREHOUSE: "WH_GR_GP_XS",
         RUN_MODE: "C",
         // WORK_GROUP_ID: appIDs[0],
         GROUP_ID: appIDs[0],
-        INGESTION_STATUS: 'submitted'
+        // INGESTION_STATUS: 'NOT SCHEDULED'
     });
     const [fields, setFields] = useState([]);
     const [validating, setValidating] = useState(false);
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]['dropdownFields']);
+    const [groupID, setGroupID] = useState(appIDs[0]);
+    const [sourceTable, setSourceTable] = useState('');
+    const [sourceTableOptions, setSourceTableOptions] = useState(['Select an item']);
 
     //NOT DISPLAYING the following fields on the Job Form
     const excludedFields = [
@@ -62,7 +68,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
         "ETLFCALL_ID",
         "WORK_GROUP_ID",
         "WAREHOUSE"
-    ]
+    ];
 
     useEffect(() => {
         debug && console.log(gridConfigs);
@@ -101,7 +107,8 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
             //set WORK_GROUP_ID to be 1st to display
             fields.splice(fields.indexOf('GROUP_ID'), 1);
             fields.unshift('GROUP_ID');
-
+            
+            fields.splice(fields.indexOf('ETLFCALL_ID'), 1);
 
             debug && console.log(fields);
             setFields(fields);
@@ -115,12 +122,14 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                 custom_config.validationType = getDataType(columnDataTypes[col]);
 
                 //Set up NON-REQUIRED fields for Job Form (still displayed on the form)
-                if ( ["SOURCE_TABLE", "JSON_PARAM"].indexOf(col) < 0 ){
+                if ( ["JSON_PARAM"].indexOf(col) < 0 ){
                     custom_config.validations = [{
                         type: "required",
                         params: ["this field is required"]
                     }];
                 }
+
+
 
                 if (col === "ETLFCALL_ID"){
                     custom_config.validations = custom_config.validations.concat([
@@ -153,13 +162,40 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     }, [columnsLoaded]);
     // }, [ tableLoaded]);
 
+    useEffect(() =>{
+        const sql = `SELECT SOURCE_TABLE FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG"
+        WHERE GROUP_ID = ` + groupID;
+
+        axios.get(TABLESNOWFLAKE_URL, {
+            params: {
+                sql_statement: sql,
+                tableName: "ETLF_EXTRACT_CONFIG",
+                database: "SHARED_TOOLS_DEV",
+                schema: "ETL",
+            }
+        })
+            //have to setState in .then() due to asynchronous opetaions
+            .then(response => {
+                // debug && console.log(response.data.rows);
+                const sourceTables = response.data.rows.map(item => item.SOURCE_TABLE);
+                console.log(sourceTables);
+                
+                setSourceTableOptions([
+                    'Select an item',
+                    ...sourceTables
+                ])
+            })
+            .catch(err => debug && console.log("error from loading ETLF_SYSTEM_CONFIG:", err.message))
+    }, [groupID]);
+
     //have to Account for field that were intentionally leave out of the form
     function getMergeStatement(values) {
         // debug && console.log(values);
         values['CREATED_DATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         values['LAST_UPDATE_DATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         
-        const primaryKeys = ['ETLFCALL_ID'].concat(uniqueCols);
+        // const primaryKeys = ['ETLFCALL_ID'].concat(uniqueCols);
+        const primaryKeys = uniqueCols;
         const columns = Object.keys(values).map(col => col !== 'GROUP_ID' ? col : 'WORK_GROUP_ID');
         values['WORK_GROUP_ID'] = values['GROUP_ID'];
         delete(values['GROUP_ID']);
@@ -232,6 +268,14 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
         setShow(false);
     };
 
+    let GroupIDOptions = [<option key='base' value='' >Select an item</option>];
+    appIDs.map(item => GroupIDOptions.push(<option key={item} value={item}>{item}</option>));
+    
+    console.log(dropdownFields['GROUP_ID']);
+
+    let updatedFields = [...fields];
+    updatedFields.splice(updatedFields.indexOf('GROUP_ID'), 1);
+    updatedFields.splice(updatedFields.indexOf('SOURCE_TABLE'), 1);
 
     return (
         <div>
@@ -269,7 +313,52 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                 noValidate
                                 onSubmit={handleSubmit}>
 
-                                {fields.map(field =>
+                                <Form.Group key={'GROUP ID'} as={Col} controlId={"formGroup" + 'GROUP ID'}>
+                                    <Form.Label>
+                                        GROUP ID
+                                    </Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        name='GROUP ID'
+                                        value={groupID}
+                                        onChange={(e) => {
+                                            handleChange(e);
+                                            setGroupID(e.target.value);
+                                            // getSourceTableList(e.target.value);
+                                        }}
+                                        onBlur={handleBlur}
+                                        disabled={false}
+                                        isValid={touched['GROUP_ID'] && !errors['GROUP_ID']}
+                                        isInvalid={errors['GROUP_ID']}
+                                    >   
+                                        {GroupIDOptions}
+                                    </Form.Control>
+                                </Form.Group>
+
+                                <Form.Group key={'SOURCE_TABLE'} as={Col} controlId={"formGroup" + 'SOURCE_TABLE'}>
+                                    <Form.Label>
+                                        SOURCE TABLE
+                                    </Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        name={'SOURCE_TABLE'}
+                                        value={sourceTable}
+                                        onChange={(e) => {
+                                            handleChange(e);
+                                            setSourceTable(e.target.value);
+                                        }}
+                                        onBlur={handleBlur}
+                                        disabled={false}
+                                        isValid={touched['SOURCE_TABLE'] && !errors['SOURCE_TABLE']}
+                                        isInvalid={errors['SOURCE_TABLE']}
+                                    >   
+                                        {sourceTableOptions.map(option => 
+                                            <option key={option} value={option} >{option}</option>
+                                        )}
+                                    </Form.Control>
+                                </Form.Group>
+
+                                {updatedFields.map(field =>
                                     <FormField
                                         key={field}
                                         field={field}
