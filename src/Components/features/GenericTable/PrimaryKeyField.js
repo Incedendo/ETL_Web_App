@@ -1,8 +1,9 @@
 import React from 'react';
 
 const PrimaryKeyField = ({  
-    fieldArray 
+    fieldArray, pending 
 }) => {
+
     console.log('non-editable Comp: ', fieldArray)
     return (
         <div key={fieldArray} style={{ 
@@ -10,7 +11,11 @@ const PrimaryKeyField = ({
             "textAlign": "left", "color": "red" 
         }}>
             <span style={{ "fontWeight": "bold" }}>{fieldArray[0]}: </span>
-            {fieldArray[1]}
+            {fieldArray[0] === 'INGESTION_STATUS' 
+                && (pending ? 'PENDING' : fieldArray[1])
+            }
+
+            {fieldArray[0] !== 'INGESTION_STATUS' && fieldArray[1]}
         </div>
     )
 }

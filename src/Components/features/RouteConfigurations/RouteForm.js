@@ -14,7 +14,7 @@ import '../../../css/forms.scss';
 const TEST_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/test';
 
 const RouteForm = ({ 
-    extractConfigID, states,
+    routeOptions, route, states,
     requiredFields, optionalFields, validationSchema, 
     helper_route, setShow, dropdownFields , disabled
 }) => {
@@ -32,8 +32,7 @@ const RouteForm = ({
 
     // console.log("R1A1: current Action: ",states['ACTION_ID']);
     debug && console.log("current states: ", states);
-    debug && console.log("Extract Config ID: ", extractConfigID);
-    debug && console.log("routeConfigs: ", routeConfigs);
+    debug && console.log("routeOptions: ", routeOptions);
     debug && console.log(requiredFields);
 
     const [validating, setValidating] = useState(false);
@@ -43,17 +42,29 @@ const RouteForm = ({
     function getMergeStatement(values) {
         debug && console.log(values);
         debug && console.log(helper_route);
-        debug && console.log(routeConfigs[helper_route]);
+        debug && console.log(routeOptions[helper_route]);
         values['CREATEDDT'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         values['LASTMODIFIEDDT'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         
-        if (routeConfigs[helper_route]['source'] !== null){
+        // if (routeConfigs[helper_route]['source'] !== null){
+        //     if (typeof(values.SOURCE_SYSTEM_ID) === 'string'){
+        //         values.SOURCE_SYSTEM_ID = values.SOURCE_SYSTEM_ID.split('-')[0].trim()*1;
+        //     }
+        // }
+            
+        // if (routeConfigs[helper_route]['target'] !== null){
+        //     if (typeof (values.TARGET_SYSTEM_ID) === 'string'){
+        //         values.TARGET_SYSTEM_ID = values.TARGET_SYSTEM_ID.split('-')[0].trim()*1;
+        //     }
+        // }
+
+        if (routeOptions[route]['SRC_TECH'] !== null){
             if (typeof(values.SOURCE_SYSTEM_ID) === 'string'){
                 values.SOURCE_SYSTEM_ID = values.SOURCE_SYSTEM_ID.split('-')[0].trim()*1;
             }
         }
             
-        if (routeConfigs[helper_route]['target'] !== null){
+        if (routeOptions[route]['TGT_TECH'] !== null){
             if (typeof (values.TARGET_SYSTEM_ID) === 'string'){
                 values.TARGET_SYSTEM_ID = values.TARGET_SYSTEM_ID.split('-')[0].trim()*1;
             }
@@ -144,11 +155,6 @@ const RouteForm = ({
                     --------------------------------------------------------------
                 </div>
             } 
-
-            {/* <div>
-                <button onClick={()=>{console.log(states)}}>Print States</button>
-                <button onClick={()=>console.log(routeCode)}>Print routecode</button>
-            </div> */}
             
             
               

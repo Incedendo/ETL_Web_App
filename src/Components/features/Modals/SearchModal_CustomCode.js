@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { WorkspaceContext } from '../../context/WorkspaceContext';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
-import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { search_multi_field, search_multi_field_catalog } from '../../sql_statements';
 import '../../../css/mymodal.scss';
 import UpArrow8 from '../../../media/LinkIcon/up-arrow_8.svg';
@@ -40,12 +40,8 @@ const SearchModal_CustomCode = () => {
     }
 
     const multiSearch_CUSTOM_CODE = () => {
-//         let searchStmt = 
-// `SELECT * FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" WHERE EXTRACT_CONFIG_ID IN (
-//     SELECT EXTRACT_CONFIG_ID FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE"
-//     WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')
-// );`;
-        let searchStmt = `SELECT B.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+
+        let searchStmt = `SELECT A.SOURCE_TABLE, B.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
         FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" A
         LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
         ON A.GROUP_ID = auth.APP_ID 
@@ -59,6 +55,8 @@ const SearchModal_CustomCode = () => {
         debug && console.log(searchStmt)
 
         setTable('ETLF_CUSTOM_CODE');
+        
+        //wait till table === 'ETLF_CUSTOM_CODE'
         axiosCallToGetTableRows( searchStmt, ['CUSTOM_CODE_ID'] );
     }
 

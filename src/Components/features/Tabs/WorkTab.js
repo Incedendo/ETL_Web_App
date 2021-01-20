@@ -9,7 +9,6 @@ import SearchModal_CustomCode from '../Modals/SearchModal_CustomCode';
 import JobModal from '../Modals/JobModal';
 import Route_Action_Modal from '../Modals/Route_Action_Modal';
 
-
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
 
@@ -69,7 +68,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
         <>
             {
                 (Object.keys(system_configs).length !== 0 && system_configs.constructor === Object) &&
-                (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
+                // (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
                 <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
                     <Route_Action_Modal />
                 </div>

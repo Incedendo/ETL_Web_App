@@ -203,6 +203,7 @@ const sql_linking_ItemsLineage_To_CatalogEntities = searchObj => {
         ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
         WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'))
     ) J`;
+    
     return sql;
 }
 
@@ -381,7 +382,7 @@ const CustomizedLink = ({ row }) => {
                         <Link 
                             to={{
                                 // pathname: '/datacataloglinked',
-                                pathname: '/datacatalog',
+                                pathname: DATA_CATALOG_TABLE.indexOf(destinationTable) >= 0 ? '/datacatalog' : '/etlframework',
                                 state: {
                                     'table': destinationTable,
                                     'searchObj': searchObj,

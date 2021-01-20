@@ -158,8 +158,32 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setLoadedConfig(true);
         }
 
-        updateDropdownBasedOnTable();
+        updateYupSchemaBasedOnTable();
     }, [table]);
+
+    useEffect(()=>{
+        // if(linkState !== undefined){
+        if(loadedConfig && comingFromLink){
+            console.log("Immediately get linked result based on Link state's params");
+
+            // let searchStmt = 
+            // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+            // FROM "SHARED_TOOLS_DEV"."ETL"."` + table + `" ec
+            // WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
+            // ;`;
+
+            const searchStmt = linkState['searchStmt'];
+            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
+            console.log(searchStmt);
+            console.log(primaryKey);
+            axiosCallToGetTableRows(searchStmt, primaryKey);
+
+
+            //display origin table:
+            const origin = linkState['filterState'];
+            
+        }
+    }, [loadedConfig, comingFromLink]);
 
     const prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN = () => {
         if (authState.isAuthenticated && username !== '') {
@@ -371,7 +395,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
         }
     }
 
-    const updateDropdownBasedOnTable = () => {
+    const updateYupSchemaBasedOnTable = () => {
         
         console.log(table);
 
@@ -440,30 +464,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
         }
     };
-
-    useEffect(()=>{
-        // if(linkState !== undefined){
-        if(loadedConfig && comingFromLink){
-            console.log("Immediately get linked result based on Link state's params");
-
-            // let searchStmt = 
-            // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
-            // FROM "SHARED_TOOLS_DEV"."ETL"."` + table + `" ec
-            // WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
-            // ;`;
-
-            const searchStmt = linkState['searchStmt'];
-            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
-            console.log(searchStmt);
-            console.log(primaryKey);
-            axiosCallToGetTableRows(searchStmt, primaryKey);
-
-
-            //display origin table:
-            const origin = linkState['filterState'];
-            
-        }
-    }, [loadedConfig, comingFromLink]);
 
     return (
         <>

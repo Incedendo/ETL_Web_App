@@ -126,12 +126,12 @@ export const WorkspaceProvider = (props) => {
             load_ETFL_System_Config_Using_TableSnowflakeAPI();
     }, [authState]);
 
-    useEffect(()=>{
-        debug && console.log(authState);
-        if(authState.isAuthenticated)
-            load_ETL_ROUTE_METADATA_Using_TableSnowflakeAPI();
+    // useEffect(()=>{
+    //     debug && console.log(authState);
+    //     if(authState.isAuthenticated)
+    //         load_ETL_ROUTE_METADATA_Using_TableSnowflakeAPI();
     
-    }, [authState]);
+    // }, [authState]);
 
     useEffect(()=>{
         debug && console.log(authState);
@@ -183,6 +183,8 @@ export const WorkspaceProvider = (props) => {
         if (authState.isAuthenticated && table !== '' && username !== '') {
             setTableLoaded(false);
             setColumnsLoaded(false);
+            setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
+            setNonEditableColumns(TABLES_NON_EDITABLE_COLUMNS[table]);
             // Use Username to generate Get Statement Inner Join
             // with Authorization table.
             let sqlGetColumnsStmt =
@@ -205,7 +207,12 @@ export const WorkspaceProvider = (props) => {
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
                     // debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
-                    prepareGridConfig(response.data);
+                    if(table in gridConfigs){
+                        reloadGridConfig();
+                    }else{
+                        prepareGridConfig(response.data);
+                    }
+                    
                     setColumnsLoaded(true);
                 })
                 .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
@@ -218,105 +225,34 @@ export const WorkspaceProvider = (props) => {
 
     }, [authState, username, table]);
 
-    //get the Data Type of each columns in the row for Route Configuration in ETL Framework Job Configuration
-    //
-    //      for JOB TAB => dropdown
-    //
-    // useEffect(() => {
-    //     if(appIDs['Read-Write'] !== undefined && table !== ''){
-    //         update_GroupID_DropdownFields();
-    //     }
-        
-    // }, [appIDs, table]);
-
-    // function update_GroupID_DropdownFields(){
-    //     //------------------Update GROUP ID for Row Expansion and Form---------------------------------------
-    //     let updatedDropdownFields = fieldTypesConfigs[table]['dropdownFields'];
-    //     let groupID = "GROUP_ID"; //default table is ETLF_EXTRACT_CONFIG
-
-    //     if(table === "ETLFCALL") groupID = "WORK_GROUP_ID";
-
-    //     updatedDropdownFields[groupID] = appIDs['Read-Write'];
-    //     console.log("Updated Dropdown Fields:", updatedDropdownFields);
-
-    //     setDropdownFields(updatedDropdownFields);
-    // }
-
-
-    // useEffect(() => {
-    //     let isMounted = true;
-
-    //     debug && console.log('Current Table: ', table)
-    //     // if (accessToken !== '' && table !== '' && username !== '') {
-    //     if (authState.isAuthenticated && table !== '' && username !== '') {
-    //         // Use Username to generate Get Statement Inner Join
-    //         // with Authorization table.
-    //         let proposed_get_statenent = get_custom_table(
-    //             database, schema,
-    //             table,
-    //             username,
-    //             0, 100
-    //         )
-    //         axiosCallToGetTable(isMounted, proposed_get_statenent);
-            
-    //     } else {
-    //         setTableLoaded(false);
-    //         setColumns([]);
-    //         setRows([]);
-    //         setSearchCriteria([]);
-    //     }
-
-    //     return () => {
-    //         isMounted = false;
-    //     };
-
-    // }, [authState, username, table]);
-
     useEffect(() => {
         debug && console.log("Primary keys: ", primaryKeys);
     }, [primaryKeys])
 
-    // useEffect(() => {
-    //     let isMounted = true;
-    //     if (reloadTable) {
-    //         debug && console.log('Current Table: ', table)
-    //         if (table !== '') {
-    //             // Use Username to generate Get Statement Inner Join
-    //             // with Authorization table.
-    //             let proposed_get_statenent = get_custom_table(
-    //                 database, schema,
-    //                 table,
-    //                 username,
-    //                 0, 100
-    //             )
-                
-    //             // axiosCallToReloadTable(isMounted, proposed_get_statenent);
-    //             axiosCallToGetTable(isMounted, proposed_get_statenent);
-    //         }
-    //         setReloadTable(false);
-    //     }
-
-    //     return () => {
-    //         isMounted = false;
-    //     };
-    // }, [reloadTable]);
-
     useEffect(() => {
         console.log("Current Gridconfigs: ", gridConfigs);
+        
         reloadGridConfig();
-        // if (gridConfigs[table]) {
-        //     setHeaders(gridConfigs[table]["headers"]);
-        //     setColumns(gridConfigs[table]["columns"]);
-        //     setColumnWidths(gridConfigs[table]["columnWidths"]);
-        //     setTableColumnExtensions(gridConfigs[table]["tableColumnExtensions"]);
-        //     // setSortingStates(gridConfigs[table]["sortingStates"]);
-        //     setNumberColumns(gridConfigs[table]["numericColumns"]);
-        //     setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
-        // }
     }, [gridConfigs]);
 
+    const clearGridConfig = () => {
+        
+        console.log("CLEARING existing gridconfig for table: " + table);
+        setHeaders([]);
+        setColumns([]);
+        setColumnWidths([]);
+        setTableColumnExtensions([]);
+        // setSortingStates(gridConfigs[table]["sortingStates"]);
+        setNumberColumns([]);
+        setColumnDataTypes([]);
+        
+    }
+
     const reloadGridConfig = () => {
-        if (gridConfigs[table]) {
+        clearGridConfig();
+        if (table in gridConfigs) {
+            console.log("only reloading existing gridconfig for table: " + table);
+            console.log(gridConfigs[table]);
             setHeaders(gridConfigs[table]["headers"]);
             setColumns(gridConfigs[table]["columns"]);
             setColumnWidths(gridConfigs[table]["columnWidths"]);
@@ -326,6 +262,98 @@ export const WorkspaceProvider = (props) => {
             setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
         }
     }
+
+        //saving configs 
+        const prepareGridConfig = (data) => {
+            if(data.length != 0){
+                console.log("prepare grid config for table: "+ table);
+                // console.log(data);
+                let headers = data.map(row => row.COLUMN_NAME)
+                //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
+                headers.push("PRIVILEGE");
+                if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
+                    console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
+                    headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
+                }
+                if(headers.length === 0 )
+                    return;
+    
+                if(table === 'ETLFCALL'){
+                    headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
+                }else if(table === 'ETLF_CUSTOM_CODE'){
+                    headers.unshift('SOURCE_TABLE');
+                }//add extra columns to the grid for these tables
+                else if(table === 'CATALOG_ENTITIES'){
+                    headers.unshift('DOMAIN');
+                }else if(['CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) > -1 ){
+                    headers.unshift('TARGET_TABLE');
+                    headers.unshift('TARGET_SCHEMA');
+                    headers.unshift('TARGET_DATABASE');
+                    headers.unshift('DOMAIN');
+                }
+                
+                let columns = headers.map(header => ({
+                    name: header,
+                    title: header
+                }))
+    
+                const columnWidths = headers.map(header => ({
+                    columnName: header,
+                    width: 150
+                }))
+    
+                const tableColumnExtensions = headers.map(header => ({
+                    columnName: header,
+                    align: 'center'
+                }))
+    
+                const sortingStates = headers.map(header => ({
+                    columnName: header,
+                    direction: 'asc'
+                }))
+    
+                let numericColumns = data.map(row => 
+                    row.DATA_TYPE === 'NUMBER' ? row.COLUMN_NAME : ''
+                )
+    
+                if(table === 'ETLFCALL'){
+                    numericColumns[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
+                }
+    
+                //derive an array of types of item in above array.
+                let dataTypeObj = {}
+                for (let id in data) {
+                    let column_name = data[id].COLUMN_NAME
+                    if(column_name === 'WORK_GROUP_ID') column_name = 'GROUP_ID';
+                    
+                    let column_type = data[id].DATA_TYPE
+                    
+                    if (column_type === 'TEXT') {
+                        dataTypeObj[column_name] = "string"
+                    } else if (column_type === 'TIMESTAMP_NTZ') {
+                        dataTypeObj[column_name] = "timestamp"
+                    } else {
+                        dataTypeObj[column_name] = "number"
+                    }
+                }
+    
+                const tableGridConfig = {
+                    headers,
+                    columns,
+                    columnWidths,
+                    tableColumnExtensions,
+                    sortingStates,
+                    numericColumns,
+                    dataTypeObj,
+                }
+    
+                console.log("current table to set Config:", table);
+                setGridConfigs({
+                    ...gridConfigs,
+                    [table]: tableGridConfig
+                })
+            }
+        }
 
     //'EXTRACT_CONFIG_ID'
     const loadTableRows = (dbTableRows, primaryKey) => {
@@ -465,69 +493,129 @@ export const WorkspaceProvider = (props) => {
     }
 
     const load_ETLF_EXTRACT_CONFIG_REQUIREMENTS_Using_SelectAPI = () => {
-        const proposed_get_statenent = 'SELECT * FROM SHARED_TOOLS_DEV.ETL.ETLF_EXTRACT_CONFIG_REQUIREMENTS;';        
+
+        const getRouteNamesSQL = `SELECT DISTINCT ROUTE_NAME, SRC_TECH, TGT_TECH
+        FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A;`
+
+        let routeConfigs = {};
+
+        axios.get(SELECT_URL, {
+            // headers: {
+            //     'type': 'TOKEN',
+            //     'methodArn': ARN_APIGW_GET_SELECT,
+            //     'authorizorToken': accessToken
+            // },
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: getRouteNamesSQL,
+            }
+        })
+        //have to setState in .then() due to asynchronous opetaions
+        .then(response => {
+            debug && console.log(response.data);
+            response.data.map(item => routeConfigs[item.ROUTE_NAME] = {
+                'SRC_TECH': item.SRC_TECH,
+                'TGT_TECH': item.TGT_TECH
+            });
+        })
+
+        debug && console.log(routeConfigs);
+
+        const proposed_get_statenent = `SELECT A.*, B.DATA_TYPE
+        FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A
+        INNER JOIN (
+            SELECT COLUMN_NAME, DATA_TYPE FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS"
+            WHERE TABLE_SCHEMA = 'ETL'
+            AND TABLE_NAME='ETLF_EXTRACT_CONFIG'
+        ) B
+        ON A.COLUMN_NAME = B.COLUMN_NAME;`;        
         const { accessToken } = authState;
-            // debug && console.log("ACcess token ETLF_EXTRACT_CONFIG_REQUIREMENTS: ", accessToken);
-            axios.get(SELECT_URL, {
-                    // headers: {
-                    //     'type': 'TOKEN',
-                    //     'methodArn': ARN_APIGW_GET_SELECT,
-                    //     'authorizorToken': accessToken
-                    // },
-                    //params maps to event.queryStringParameters in lambda
-                    params: {
-                        sqlStatement: proposed_get_statenent,
+        // debug && console.log("ACcess token ETLF_EXTRACT_CONFIG_REQUIREMENTS: ", accessToken);
+        axios.get(SELECT_URL, {
+                // headers: {
+                //     'type': 'TOKEN',
+                //     'methodArn': ARN_APIGW_GET_SELECT,
+                //     'authorizorToken': accessToken
+                // },
+                //params maps to event.queryStringParameters in lambda
+                params: {
+                    sqlStatement: proposed_get_statenent,
+                }
+            })
+            //have to setState in .then() due to asynchronous opetaions
+            .then(response => {
+                debug && console.log(response.data);
+
+                response.data.map(item =>{
+                    
+                    const actionID = item.ACTION_ID;
+                    const routeName = item.ROUTE_NAME;
+                    if(actionID in routeConfigs[routeName]){
+                        routeConfigs[routeName][actionID].push({
+                            'COLUMN_NAME': item.COLUMN_NAME,
+                            'DATA_TYPE': item.DATA_TYPE,
+                            'REQUIRED': item.REQUIRED,
+                            'CHECK_STR': item.CHECK_STR
+                        });
+                    }else{
+                        routeConfigs[routeName][actionID] = [];
+                        routeConfigs[routeName][actionID].push({
+                            'COLUMN_NAME': item.COLUMN_NAME,
+                            'DATA_TYPE': item.DATA_TYPE,
+                            'REQUIRED': item.REQUIRED,
+                            'CHECK_STR': item.CHECK_STR
+                        });
                     }
+                    
                 })
-                //have to setState in .then() due to asynchronous opetaions
-                .then(response => {
-                    // debug && console.log(response.data);
-                    setRowEtlConfigs(response.data);
-                })
-                .catch(err => debug && console.log("error from loading ETLF_EXTRACT_CONFIG_REQUIREMENTS:", err.message))
+
+                console.log(routeConfigs);
+                setRouteConfigs(routeConfigs);
+            })
+            .catch(err => debug && console.log("error from loading ETLF_EXTRACT_CONFIG_REQUIREMENTS:", err.message))
     }
 
     //*********************************************************************************************************************************************/
     //
     //  Prepare the Route Config Object from the GR_DEV.USER_SPACE.KIET_ETL_ROUTE_METADATA table
     //
-    function generateRouteConfigs(data) {
-        debug && console.log(data);
-        let routes_config = {}
+    // function generateRouteConfigs(data) {
+    //     debug && console.log(data);
+    //     let routes_config = {}
 
-        //track array routes
-        let routes = [];
-        data.map(row => {
-            // console.log(row.ROUTE);
+    //     //track array routes
+    //     let routes = [];
+    //     data.map(row => {
+    //         // console.log(row.ROUTE);
             
-            // only add unique Route 
-            if (routes.indexOf(row.ROUTE) < 0) {
-                routes.push(row.ROUTE);
-                routes_config[row.ROUTE] = {
-                    'source': row.SOURCE,
-                    'target': row.TARGET,
-                    // 'code': row.RT_CODE,
-                    'id': row.ROUTE_ID,
-                    // 'actions': ['Select Action'],
-                    'actions': {
-                        [row.ACTION]: {
-                            'ACTION_ID': row.ACTION_ID,
-                            'code': row.RT_CODE,
-                        }
-                    }
-                }
-            }else{
-                // console.log(row.ROUTE + " : "+ row.ACTION);
-                routes_config[row.ROUTE]['actions'][row.ACTION] = {
-                    'ACTION_ID': row.ACTION_ID,
-                    'code': row.RT_CODE,
-                }
-            }
-        })
+    //         // only add unique Route 
+    //         if (routes.indexOf(row.ROUTE) < 0) {
+    //             routes.push(row.ROUTE);
+    //             routes_config[row.ROUTE] = {
+    //                 'source': row.SOURCE,
+    //                 'target': row.TARGET,
+    //                 // 'code': row.RT_CODE,
+    //                 'id': row.ROUTE_ID,
+    //                 // 'actions': ['Select Action'],
+    //                 'actions': {
+    //                     [row.ACTION]: {
+    //                         'ACTION_ID': row.ACTION_ID,
+    //                         'code': row.RT_CODE,
+    //                     }
+    //                 }
+    //             }
+    //         }else{
+    //             // console.log(row.ROUTE + " : "+ row.ACTION);
+    //             routes_config[row.ROUTE]['actions'][row.ACTION] = {
+    //                 'ACTION_ID': row.ACTION_ID,
+    //                 'code': row.RT_CODE,
+    //             }
+    //         }
+    //     })
 
-        // debug && console.log(routes_config);
-        setRouteConfigs(routes_config);
-    }
+    //     // debug && console.log(routes_config);
+    //     setRouteConfigs(routes_config);
+    // }
 
     //
     //  Prepare the ACTION Config Object from the GR_DEV.USER_SPACE.KIET_ETL_ROUTE_METADATA table
@@ -630,86 +718,7 @@ export const WorkspaceProvider = (props) => {
     //     return result;
     // }
 
-    //saving configs 
-    const prepareGridConfig = (data) => {
-        if(data.length != 0){
-            // console.log(data);
-            let headers = data.map(row => row.COLUMN_NAME)
-            //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
-            headers.push("PRIVILEGE");
-            if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
-                console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
-                headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
-            }
-            if(headers.length === 0 )
-                return;
-
-            if(table === 'ETLFCALL'){
-                headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
-            }
-            
-            let columns = headers.map(header => ({
-                name: header,
-                title: header
-            }))
-
-            const columnWidths = headers.map(header => ({
-                columnName: header,
-                width: 150
-            }))
-
-            const tableColumnExtensions = headers.map(header => ({
-                columnName: header,
-                align: 'center'
-            }))
-
-            const sortingStates = headers.map(header => ({
-                columnName: header,
-                direction: 'asc'
-            }))
-
-            let numericColumns = data.map(row => 
-                row.DATA_TYPE === 'NUMBER' ? row.COLUMN_NAME : ''
-            )
-
-            if(table === 'ETLFCALL'){
-                numericColumns[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
-            }
-
-            //derive an array of types of item in above array.
-            let dataTypeObj = {}
-            for (let id in data) {
-                let column_name = data[id].COLUMN_NAME
-                if(column_name === 'WORK_GROUP_ID') column_name = 'GROUP_ID';
-                
-                let column_type = data[id].DATA_TYPE
-                
-                if (column_type === 'TEXT') {
-                    dataTypeObj[column_name] = "string"
-                } else if (column_type === 'TIMESTAMP_NTZ') {
-                    dataTypeObj[column_name] = "timestamp"
-                } else {
-                    dataTypeObj[column_name] = "number"
-                }
-            }
-
-            const tableGridConfig = {
-                headers,
-                columns,
-                columnWidths,
-                tableColumnExtensions,
-                sortingStates,
-                numericColumns,
-                dataTypeObj,
-            }
-
-            console.log("current table to set Config:", table);
-            setGridConfigs({
-                ...gridConfigs,
-                [table]: tableGridConfig
-            })
-        }
-    } 
+ 
 
     // const axiosCallToReloadTable = (isMounted, proposed_get_statenent) => {
 
@@ -773,10 +782,7 @@ export const WorkspaceProvider = (props) => {
     // }
 
     const axiosCallToGetTableRows = (get_statenent, primaryKey) => {
-        if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) >= 0){
-            setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
-            setNonEditableColumns(TABLES_NON_EDITABLE_COLUMNS[table]);
-        }
+        console.log("calling axiosCallToGetTableRows on table: ", table);
         
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
@@ -847,7 +853,10 @@ export const WorkspaceProvider = (props) => {
             });
     }
 
-    const axiosCallToGetTable = (isMounted, proposed_get_statenent, primaryKey) => {
+    const axiosCallToGetTable = ( proposed_get_statenent, primaryKey) => {
+
+        console.log("calling axiosCallToGetTable on table: ", table);
+
         if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) > 0){
             setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
             setNonEditableColumns(TABLES_NON_EDITABLE_COLUMNS[table]);

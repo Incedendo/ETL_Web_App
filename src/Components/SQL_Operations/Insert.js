@@ -143,6 +143,31 @@ export const generateMergeStatement = (database, schema, table, primaryKeys, col
     return sqlMergeStmt
 }
 
+export const generateMergeUpdateStatement = (database, schema, table, primaryKeys, columns, rowOjb) => {
+    const selectClause = getSelectClause(rowOjb, columns);
+    const updateClause = getUpdateClause(columns);
+
+    // const insertCols = getInsertCols(columns);
+    // const insertValues = getInsertValues(columns);
+    const primarykeyClause = getPrimaryKeysClause(primaryKeys);
+
+    const sqlMergeStmt = `
+    MERGE INTO ` + database + '.' + schema + '.' + table + ` tt
+    USING (
+        SELECT ` + selectClause
+    +    
+    `
+    FROM DUAL
+    ) st ON (` + primarykeyClause + `)
+    WHEN matched THEN
+    UPDATE SET 
+    ` + updateClause + `;`
+
+    console.log('SQL merge Statement: ', sqlMergeStmt)
+
+    return sqlMergeStmt
+}
+
 // export const generateMergeStatementDataCatalog = (database, schema, table, columns, rowOjb) => {
 //     const selectClause = getSelectClause(rowOjb, columns);
 //     const updateClause = getUpdateClause(columns);
@@ -180,7 +205,7 @@ export const generateMergeStatement = (database, schema, table, primaryKeys, col
 const getPrimaryKeysClause = (primaryKeys) => {
     let primarykeyClause = ''
     for(let id in primaryKeys){
-        primarykeyClause += `tt.` + primaryKeys[id] + '= st.' + primaryKeys[id]
+        primarykeyClause += `UPPER(tt.` + primaryKeys[id] + ') = UPPER(st.' + primaryKeys[id] + ')'
 
         if(id < primaryKeys.length - 1){
             primarykeyClause += ' AND '

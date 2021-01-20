@@ -81,9 +81,15 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
             setTableLoaded(false);
             // setCommingFromLink(false);
         }else if(props['location']['state'] !== undefined ){
-            setTable('ETLF_EXTRACT_CONFIG');
+
+            console.log("COming from Linked Component, what to do now???")
+
+            const linkedState = props['location']['state'];
+            console.log(linkedState);
+
+            setTable(linkedState['table']);
             
-            let currentSearchObj=  props['location']['state']['searchObj'];
+            let currentSearchObj=  linkedState['searchObj'];
 
             console.log("use search sstatement to fetch only target value")
             

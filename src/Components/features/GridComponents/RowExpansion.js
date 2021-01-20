@@ -6,7 +6,9 @@ import CustomizedLink from './CustomizedLink';
 import DisplayField from '../GenericTable/DisplayField';
 import axios from 'axios';
 import { getDataType, getFieldType } from '../FormComponents/FormUtils';
-import { generateMergeStatement, generateAuditStmt } from '../../SQL_Operations/Insert';
+import { generateMergeStatement, 
+    generateMergeUpdateStatement,
+    generateAuditStmt } from '../../SQL_Operations/Insert';
 import '../../../css/rowExpansion.scss';
 import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, DATA_CATALOG_TABLE } from '../../context/FieldTypesConfig';
 import { 
@@ -40,6 +42,7 @@ const RowExpansion = ({ row }) => {
         debug,
         database, schema, table, appIDs, 
         rows, setRows,
+        nonEditableColumns,
         primaryKeys, searchCriteria, columnDataTypes,
         setEditSuccess, setEditError,
         setReloadTable,
@@ -64,10 +67,9 @@ const RowExpansion = ({ row }) => {
     const [updatedStates, setUpdatedStates] = useState({});
     const [changed, setChanged] = useState(false);
     const [isLoading, setLoading] = useState(false);
+    const [showPending, setShowPending] = useState(false);
 
     const[diff, setDiff] = useState({});
-
-    const [lastSubmittedTime, setLastSubmittedTime] = useState('');
     
     const [route, setRoute] = useState("");
     const [action, setAction] = useState("");
@@ -281,24 +283,24 @@ const RowExpansion = ({ row }) => {
             if(table === 'ETLFCALL'){
                 let primaryKeysForETLFCALL = ['ETLFCALL_ID', 'SOURCE_TABLE', 'WORK_GROUP_ID'];
                 
-                // sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeysForETLFCALL, diffCols, diff);
-                sqlMergeStatement = `merge into SHARED_TOOLS_DEV.ETL.ETLFCALL tt
-                using (
-                    select 'ABC' as JSON_PARAM, 
-                          'EA9CE554-DC37-499B-9A9E-C5DC26B1B7F6' as ETLFCALL_ID, 
-                          'KIET_TEST' as SOURCE_TABLE, 
-                          2099 as WORK_GROUP_ID
-                   from dual
-                ) st on (tt.ETLFCALL_ID= st.ETLFCALL_ID AND tt.SOURCE_TABLE= st.SOURCE_TABLE AND tt.WORK_GROUP_ID= st.WORK_GROUP_ID)
-                when matched then
-                update set 
-                  tt.JSON_PARAM = st.JSON_PARAM, 
-                  tt.ETLFCALL_ID = st.ETLFCALL_ID, 
-                  tt.SOURCE_TABLE = st.SOURCE_TABLE, 
-                  tt.WORK_GROUP_ID = st.WORK_GROUP_ID 
-                ;`
+                sqlMergeStatement = generateMergeUpdateStatement(database, schema, table, primaryKeysForETLFCALL, diffCols, diff);
+                // sqlMergeStatement = `merge into SHARED_TOOLS_DEV.ETL.ETLFCALL tt
+                // using (
+                //     select 'ABC' as JSON_PARAM, 
+                //           'EA9CE554-DC37-499B-9A9E-C5DC26B1B7F6' as ETLFCALL_ID, 
+                //           'KIET_TEST' as SOURCE_TABLE, 
+                //           2099 as WORK_GROUP_ID
+                //    from dual
+                // ) st on (tt.ETLFCALL_ID= st.ETLFCALL_ID AND tt.SOURCE_TABLE= st.SOURCE_TABLE AND tt.WORK_GROUP_ID= st.WORK_GROUP_ID)
+                // when matched then
+                // update set 
+                //   tt.JSON_PARAM = st.JSON_PARAM, 
+                //   tt.ETLFCALL_ID = st.ETLFCALL_ID, 
+                //   tt.SOURCE_TABLE = st.SOURCE_TABLE, 
+                //   tt.WORK_GROUP_ID = st.WORK_GROUP_ID 
+                // ;`
 
-                sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
+                // sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
                 
             
             }else{
@@ -419,6 +421,7 @@ const RowExpansion = ({ row }) => {
     )
 
     const submitJob = () => {
+        setShowPending(true);
         let primaryKey = fieldTypesConfigs[table]['primaryKeys'][0];
         let sqlMergeStatement = `UPDATE SHARED_TOOLS_DEV.ETL.ETLFCALL
         SET 
@@ -480,17 +483,20 @@ const RowExpansion = ({ row }) => {
         let codeGroups = {};
         let allDisplayedKeys = [];
 
+        //GENERAL FOR ALL TABLE, IDEALLY FOR JUST ID COLUMNS THAT NEVER WANT TO SHOW
         const excludedFields = [
             "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
-            'EXTRACT_CONFIG_ID', 
+            'CREATEDDT', 'LASTMODIFIEDDT',
+            'EXTRACT_CONFIG_ID', 'CUSTOM_CODE_ID', 'ETLFCALL_ID',
             "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
-            'CREATEDDATE', 'LASTMODIFIEDDATE', 'DOMAINS'
+            'CREATEDDATE', 'LASTMODIFIEDDATE', 
+            'DOMAINS', //duplicate of DOMAIN
             // "ROUTE_ID", 'ACTION_ID'
         ];
 
-        console.log(primaryKeys);
-        console.log(codeFields);
-        console.log(dropdownFields);
+        console.log(nonEditableColumns);
+        // console.log(codeFields);
+        // console.log(dropdownFields);
         
         console.log(row);
         Object.entries(row).map((key, index) =>{
@@ -501,7 +507,7 @@ const RowExpansion = ({ row }) => {
                 const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
                 console.log(field + ": " + fieldType);
 
-                if(primaryKeys.indexOf(field) >= 0){
+                if(nonEditableColumns.indexOf(field) >= 0){
                     primaryGroups[field] = key[1];
                 }else{
                     if(fieldType === "dropdown" ){
@@ -519,8 +525,8 @@ const RowExpansion = ({ row }) => {
         });
 
         console.log(primaryGroups);
-        console.log(dropdownGroups);
-        console.log(codeGroups);
+        // console.log(dropdownGroups);
+        // console.log(codeGroups);
 
         return(
             <>
@@ -536,10 +542,8 @@ const RowExpansion = ({ row }) => {
                         // style={{'display': 'inline'}}
                     >
                         <PrimaryKeyField 
-                            key={key[0]}
-                            row={key}
-                            primaryKeys={primaryKeys}
-                            fieldArray={key} 
+                            fieldArray={key}
+                            pending={showPending}
                         />
                         {key[0] === 'INGESTION_STATUS' &&
                             <button onClick={submitJob}>
@@ -680,49 +684,3 @@ const RowExpansion = ({ row }) => {
 }
 
 export default RowExpansion;
-
-// {key[0] in primaryGroups &&
-//     <PrimaryKeyField 
-//         key={key[0]}
-//         row={row}
-//         primaryKeys={primaryKeys}
-//         fieldArray={key} 
-//     />
-// }
-
-// {key[0] in dropdownGroups
-// ?
-//     row.PRIVILEGE !== 'READ ONLY'
-//     ?<DropdownField
-//         key={key[0]}
-//         field={key[0]}
-//         value={key[1]}
-//         dropdownFields={dropdownFields}
-//         setChanged={setChanged}
-//         setState={setState}
-//         route={route}
-//     />
-//     :<CodeField 
-//         key={key[0]}
-//         setState={setState}
-//         setChanged={setChanged}
-//         fieldArray={key}
-//         columnDataTypes={columnDataTypes}
-//         disabled={row.PRIVILEGE === 'READ ONLY'}
-//         setEditMessage={setEditError}
-//     />
-// : null
-// }
-
-// { key[0] in codeGroups
-// &&
-//     <CodeField 
-//         key={key[0]}
-//         setState={setState}
-//         setChanged={setChanged}
-//         fieldArray={fieldArray}
-//         columnDataTypes={columnDataTypes}
-//         disabled={row.PRIVILEGE === 'READ ONLY'}
-//         setEditMessage={setEditError}
-//     />
-// }

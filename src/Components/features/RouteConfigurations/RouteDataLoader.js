@@ -43,7 +43,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
     const [helper_route, setHelperRoute] = useState('Oracle to Snowflake');
     const [route, setRoute] = useState('Select Route');
-    const [action, setAction] = useState(Object.keys(routeConfigs[helper_route]['actions'])[0]);
+    // const [action, setAction] = useState(Object.keys(routeConfigs[helper_route]['actions'])[0]);
     
     const [routeID, setRouteID] = useState(null);
     const [actionID, setActionID] = useState(null);
@@ -68,8 +68,6 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         DIEONMISMATCH: 'N',
         NOTIFICATIONEMAILS: username,
         GROUP_ID: appIDs[0],
-        SOURCE_SYSTEM_ID: sourceID,
-        TARGET_SYSTEM_ID: targetID,
         EXTRACT_CONFIG_ID: extractConfigID,
     });
     const [verified, setVerified] = useState(false);
@@ -101,11 +99,13 @@ const RouteDataLoader = ({ setActionModalShow }) => {
             debug && console.log("Access token from authState: ", accessToken);
             
             const SELECT_ROUTE = `SELECT DISTINCT
-CONCAT(route_name,' : Route ',route_id,' - ', 'Action ',action_id) choice_option,
+CONCAT('Route ',route_id,' - ', 'Action ',action_id, ': ', route_name) choice_option,
         route_id,
-        action_id
+        action_id,
+        SRC_TECH,
+        TGT_TECH
 FROM ETLF_ROUTE_COLUMNS
-ORDER BY 1 `;
+ORDER BY route_id `;
             
             debug && console.log(SELECT_ROUTE);
             
@@ -124,8 +124,17 @@ ORDER BY 1 `;
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
                     console.log('ROute options: ', response.data);
-
-                    setRouteOptions(response.data)
+                    let routes = {};
+                    response.data.map(route =>{
+                        routes[route.CHOICE_OPTION] = {
+                            'ROUTE_ID': route.ROUTE_ID,
+                            'ACTION_ID': route.ACTION_ID,
+                            'SRC_TECH': route.SRC_TECH,
+                            'TGT_TECH': route.TGT_TECH
+                        }
+                    })
+                    console.log(routes);
+                    setRouteOptions(routes);
                 })
                 .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
         }
@@ -254,24 +263,24 @@ ORDER BY 1 `;
     }, [actionID]);
 
 
-    useEffect(() => {
-        if(routeID !== 0){
-            setInitialStates(prevState => {
-                return { 
-                  ...prevState, 
-                  'ROUTE_ID': routeID,
-                  'ACTION_ID': actionID,
-                  'SOURCE_SYSTEM_ID': sourceID,
-                  'TARGET_SYSTEM_ID': targetID
-                }
-            })
-        }
-        console.log(routeID);
-        console.log(actionID);
-        console.log(sourceID);
-        console.log(targetID);
+    // useEffect(() => {
+    //     if(routeID !== 0){
+    //         setInitialStates(prevState => {
+    //             return { 
+    //               ...prevState, 
+    //               'ROUTE_ID': routeID,
+    //               'ACTION_ID': actionID,
+    //               'SOURCE_SYSTEM_ID': sourceID,
+    //               'TARGET_SYSTEM_ID': targetID
+    //             }
+    //         })
+    //     }
+    //     console.log(routeID);
+    //     console.log(actionID);
+    //     console.log(sourceID);
+    //     console.log(targetID);
 
-    }, [routeID,actionID,sourceID,targetID]);
+    // }, [routeID,actionID,sourceID,targetID]);
 
     let required_Fields_Obj = {};
     let formValidationsInfo = [];
@@ -462,60 +471,61 @@ ORDER BY 1 `;
         setDropdownFields(fieldTypesConfigs[table]['dropdownFields']);
     }
 
-    function getInitialValuesForRouteCode(){
-        // debug && console.log("State's Action_ID:", routeConfigs[helper_route]['actions'][action]['ACTION_ID']);
+    // function getInitialValuesForRouteCode(){
+    //     // debug && console.log("State's Action_ID:", routeConfigs[helper_route]['actions'][action]['ACTION_ID']);
 
-        let initialStateForRouteCode = {
-            ROUTE_ID: routeConfigs[helper_route]['id'],
-            ACTION_ID: routeConfigs[helper_route]['actions'][action]['ACTION_ID'],
-            ACTIVE: 'Y',
-            DIEONMISMATCH: 'N',
-            NOTIFICATIONEMAILS: username,
-            GROUP_ID: appIDs[0],
-            ROUTE_ID: routeConfigs[helper_route]['id'],
-            ACTION_ID: routeConfigs[helper_route]['actions'][action]['ACTION_ID'],
-            SOURCE_SYSTEM_ID: sourceID,
-            TARGET_SYSTEM_ID: targetID,
-            EXTRACT_CONFIG_ID: extractConfigID,
-        }
+    //     let initialStateForRouteCode = {
+    //         ROUTE_ID: routeConfigs[helper_route]['id'],
+    //         ACTION_ID: routeConfigs[helper_route]['actions'][action]['ACTION_ID'],
+    //         ACTIVE: 'Y',
+    //         DIEONMISMATCH: 'N',
+    //         NOTIFICATIONEMAILS: username,
+    //         GROUP_ID: appIDs[0],
+    //         ROUTE_ID: routeConfigs[helper_route]['id'],
+    //         ACTION_ID: routeConfigs[helper_route]['actions'][action]['ACTION_ID'],
+    //         SOURCE_SYSTEM_ID: sourceID,
+    //         TARGET_SYSTEM_ID: targetID,
+    //         EXTRACT_CONFIG_ID: extractConfigID,
+    //     }
 
-        switch(routeCode){
-            case "R1A1":
-                initialStateForRouteCode['CURSOR_SIZE'] = 1000;
-                initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-                break;
-            case "R1A2":
-                initialStateForRouteCode['CURSOR_SIZE'] = 1000;
-                initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-                break;
-            case "R1A3":
-                initialStateForRouteCode['CURSOR_SIZE'] = 1000;
-                initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-                initialStateForRouteCode['PX_PARALLELEXECNUM'] = fieldTypesConfigs[table]['dropdownFields']['PX_PARALLELEXECNUM'][0];
-                initialStateForRouteCode['PX_SPLITNUM'] = fieldTypesConfigs[table]['dropdownFields']['PX_SPLITNUM'][0];
-                break;
-            case "R2A2":
-                break;
-            case "R4A1":
-                initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-                initialStateForRouteCode['SOURCE_FILE_TYPE'] = fieldTypesConfigs[table]['dropdownFields']['SOURCE_FILE_TYPE'][0];
-                break;
-            case "R5A2":
-                break;
-            case "R6A2":
-                initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-                break;
-            case "R12A1":
-                break;
-            default:
-                break;
-        }
+    //     switch(routeCode){
+    //         case "R1A1":
+    //             initialStateForRouteCode['CURSOR_SIZE'] = 1000;
+    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
+    //             break;
+    //         case "R1A2":
+    //             initialStateForRouteCode['CURSOR_SIZE'] = 1000;
+    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
+    //             break;
+    //         case "R1A3":
+    //             initialStateForRouteCode['CURSOR_SIZE'] = 1000;
+    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
+    //             initialStateForRouteCode['PX_PARALLELEXECNUM'] = fieldTypesConfigs[table]['dropdownFields']['PX_PARALLELEXECNUM'][0];
+    //             initialStateForRouteCode['PX_SPLITNUM'] = fieldTypesConfigs[table]['dropdownFields']['PX_SPLITNUM'][0];
+    //             break;
+    //         case "R2A2":
+    //             break;
+    //         case "R4A1":
+    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
+    //             initialStateForRouteCode['SOURCE_FILE_TYPE'] = fieldTypesConfigs[table]['dropdownFields']['SOURCE_FILE_TYPE'][0];
+    //             break;
+    //         case "R5A2":
+    //             break;
+    //         case "R6A2":
+    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
+    //             break;
+    //         case "R12A1":
+    //             break;
+    //         default:
+    //             break;
+    //     }
 
-        // debug && console.log("Update the Initial State Object in RouteDataLoader....")
-        setInitialStates(initialStateForRouteCode);
-    }
+    //     // debug && console.log("Update the Initial State Object in RouteDataLoader....")
+    //     setInitialStates(initialStateForRouteCode);
+    // }
 
     const getRouteColumns = value => {
+        console.log(routeConfigs);
         console.log(value);
 
         setRequiredFields({});
@@ -528,63 +538,59 @@ ORDER BY 1 `;
             setRouteID(0);
             return;
         }
-            
     
         const { accessToken } = authState;
 
         console.log(value);
-        let routeName = '';
-        let routeID = '';
-        let actionID = '';
 
-        routeOptions.map(route =>{
-            console.log(route);
-            if(route['CHOICE_OPTION'] === value){
-                routeName = route['CHOICE_OPTION'];
-                actionID = route['ACTION_ID'];
-                routeID = route['ROUTE_ID'];
-            }
-        })
+        let routeID = routeOptions[value].ROUTE_ID;
+        let actionID = routeOptions[value].ACTION_ID;
+
+        const route = (value.split(':'))[1].trim();
+        console.log(route);
 
         setRouteID(routeID);
-        setActionID(actionID); 
+        setActionID(actionID);
 
-        const routeSplittedBySpace = routeName.split(" ");
-        console.log("route: " + routeName + " , splited string: " + routeSplittedBySpace);
+        getSystemIDs(routeConfigs[route].SRC_TECH, 'source', setSourceID);
+        getSystemIDs(routeConfigs[route].TGT_TECH, 'target', setTargetID);
 
-        getSystemIDs(routeSplittedBySpace[0], 'source', setSourceID);
-        getSystemIDs(routeSplittedBySpace[2], 'target', setTargetID);
+        // getSystemIDs(routeOptions[value].SRC_TECH, 'source', setSourceID);
+        // getSystemIDs(routeOptions[value].TGT_TECH, 'target', setTargetID);
 
-        const SELECT_ROUTE = `SELECT A.COLUMN_NAME, B.DATA_TYPE, A.REQUIRED, A.CHECK_STR FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A
-        INNER JOIN (
-            SELECT COLUMN_NAME, DATA_TYPE FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS"
-            WHERE TABLE_SCHEMA = 'ETL'
-            AND TABLE_NAME='ETLF_EXTRACT_CONFIG'
-        ) B
-        ON A.COLUMN_NAME = B.COLUMN_NAME
-        WHERE ROUTE_ID = `+ routeID +` AND ACTION_ID = ` + actionID +';';
+        prepareRequiredFields(routeConfigs[route][actionID]);
+
+        // const SELECT_REQUIRED_FIELDS_SQL = `SELECT A.COLUMN_NAME, B.DATA_TYPE, A.REQUIRED, A.CHECK_STR 
+        // FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A
+        // INNER JOIN (
+        //     SELECT COLUMN_NAME, DATA_TYPE FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS"
+        //     WHERE TABLE_SCHEMA = 'ETL'
+        //     AND TABLE_NAME='ETLF_EXTRACT_CONFIG'
+        // ) B
+        // ON A.COLUMN_NAME = B.COLUMN_NAME
+        // WHERE ROUTE_ID = `+ routeID +` AND ACTION_ID = ` + actionID +';';
             
-        debug && console.log(SELECT_ROUTE);
+        // debug && console.log(SELECT_REQUIRED_FIELDS_SQL);
         
-        axios.get(SELECT_URL, {
-            headers: {
-                'type': 'TOKEN',
-                'methodArn': ARN_APIGW_GET_SELECT,
-                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                'authorizorToken': accessToken
-            },
-            //params maps to event.queryStringParameters in lambda
-            params: {
-                sqlStatement: SELECT_ROUTE,
-            }
-        })
-        //have to setState in .then() due to asynchronous opetaions
-        .then(response => {
-            console.log('ROute options: ', response.data);
-            prepareRequiredFields(response.data);
-            setLoadingRouteConfig(false);
-        })
-        .catch(err => debug && console.log("error from loading required columns:", err.message))
+        // axios.get(SELECT_URL, {
+        //     headers: {
+        //         'type': 'TOKEN',
+        //         'methodArn': ARN_APIGW_GET_SELECT,
+        //         // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+        //         'authorizorToken': accessToken
+        //     },
+        //     //params maps to event.queryStringParameters in lambda
+        //     params: {
+        //         sqlStatement: SELECT_REQUIRED_FIELDS_SQL,
+        //     }
+        // })
+        // //have to setState in .then() due to asynchronous opetaions
+        // .then(response => {
+        //     console.log('Required fields for route: ', response.data);
+        //     prepareRequiredFields(response.data);
+        //     setLoadingRouteConfig(false);
+        // })
+        // .catch(err => debug && console.log("error from loading required columns:", err.message))
         
     }
 
@@ -625,6 +631,7 @@ ORDER BY 1 `;
 
         createYupSchemaForRoute(required_Fields_Obj);
         setVerified(true);
+        setLoadingRouteConfig(false);
     }
 
     function createYupSchemaForRoute(required_Fields_Obj){
@@ -677,29 +684,16 @@ ORDER BY 1 `;
         setValidationSchema(yup_schema);
     }
 
-    const selectRouteOptions = Object.values(routeOptions).map(route => route['CHOICE_OPTION']);
+    const selectRouteOptions = Object.keys(routeOptions);
     selectRouteOptions.unshift('Select Route');
 
     return (
         <div>
             <Formik
                 validationSchema={route_schema}
-
-                //destructure the action obj into {setSubmitting}
-                // onSubmit={(values, errors) => {
-                //     getInitialValuesForRouteCode();
-                //     // debug && console.log("Route code: ", routeCode);
-                // }}
-
-                // initialValues={{
-                //     route: helper_route,
-                //     action: action,
-                // }}
-
                 initialValues={{
                     'route': ''
                 }}
-            // validate={validate_R1A1}
             >
                 {({
                     handleSubmit, isSubmitting,
@@ -714,7 +708,7 @@ ORDER BY 1 `;
                         <Form
                             noValidate
                             onSubmit={handleSubmit}>
-                                
+
                             <Form.Group as={Col} controlId="exampleForm.ControlSelect1">
                                 <Form.Label>Route Option:</Form.Label>
                                 <Form.Control
@@ -731,7 +725,6 @@ ORDER BY 1 `;
                                 >
                                     {routeOptions !== undefined && selectRouteOptions.map(route =>
                                         <option key={route}>
-                                            {/* {routeOptions[route]['CHOICE_OPTION']} */}
                                             {route}
                                         </option>
                                     )}
@@ -767,14 +760,14 @@ ORDER BY 1 `;
             {extractConfigID > 0 && 
             !loadingRouteConfig &&    
                 <RouteForm
-                    routeCode={routeCode}
-                    extractConfigID={extractConfigID}
+                    routeOptions={routeOptions}
+                    route={route}
                     states={initialStates}
                     requiredFields={requiredFields}
                     optionalFields={optionalFields}
                     fields={fields}
                     validationSchema={validationSchema}
-                    helper_route={helper_route}
+                    // helper_route={helper_route}
                     setShow={setActionModalShow}
                     dropdownFields={dropdownFields}
                     disabled={route === 'Select Route'}
