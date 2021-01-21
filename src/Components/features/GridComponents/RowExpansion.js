@@ -28,6 +28,7 @@ import DropdownField from '../GenericTable/DropdownField';
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
 
+
 const options = {
     headers: {
         'Content-Type': 'application/json'
@@ -84,6 +85,17 @@ const RowExpansion = ({ row }) => {
         "ETLF_EXTRACT_CONFIG": "GROUP_ID",
         "ETLFCALL": "WORK_GROUP_ID"
     }
+
+    //GENERAL FOR ALL TABLE, IDEALLY FOR JUST ID COLUMNS THAT NEVER WANT TO SHOW
+    const excludedFields = [
+        "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
+        'CREATEDDT', 'LASTMODIFIEDDT',
+        'EXTRACT_CONFIG_ID', 'CUSTOM_CODE_ID', 'ETLFCALL_ID',
+        "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
+        'CREATEDDATE', 'LASTMODIFIEDDATE', 
+        'DOMAINS', //duplicate of DOMAIN
+        // "ROUTE_ID", 'ACTION_ID'
+    ];
 
     useEffect(()=>{
         let differenceBetweenRowAndState = Object.keys(state).reduce((diff, key) => {
@@ -477,22 +489,110 @@ const RowExpansion = ({ row }) => {
         }
     }
 
-    const renderFieldByType = () => {
+    const renderFieldByTypeETLF = () =>{
         let primaryGroups = {};
         let dropdownGroups = {};
         let codeGroups = {};
         let allDisplayedKeys = [];
 
-        //GENERAL FOR ALL TABLE, IDEALLY FOR JUST ID COLUMNS THAT NEVER WANT TO SHOW
-        const excludedFields = [
-            "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
-            'CREATEDDT', 'LASTMODIFIEDDT',
-            'EXTRACT_CONFIG_ID', 'CUSTOM_CODE_ID', 'ETLFCALL_ID',
-            "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
-            'CREATEDDATE', 'LASTMODIFIEDDATE', 
-            'DOMAINS', //duplicate of DOMAIN
-            // "ROUTE_ID", 'ACTION_ID'
-        ];
+        console.log(nonEditableColumns);
+        // console.log(codeFields);
+        // console.log(dropdownFields);
+        
+        console.log(row);
+        const ACTION_ID = row.ACTION_ID;
+        const ROUTE_ID = row.ROUTE_ID;
+
+
+        Object.entries(row).map((key, index) =>{
+            console.log(key);
+            const field = key[0];
+            if (excludedFields.indexOf(field) < 0) {
+                
+                const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
+                console.log(field + ": " + fieldType);
+
+                if(nonEditableColumns.indexOf(field) >= 0){
+                    primaryGroups[field] = key[1];
+                }else{
+                    if(fieldType === "dropdown" ){
+                        // dropdownGroups[field] = key[1];
+                        dropdownGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+                    }else{
+                        // codeGroups[field] = key[1];
+                        codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+                    }
+                } 
+
+                allDisplayedKeys.push(field);
+            }
+            
+        });
+
+        console.log(primaryGroups);
+        console.log(dropdownGroups);
+        console.log(codeGroups);
+
+        return(
+            <>
+                {Object.entries(primaryGroups).map((key, index) =>      
+                    <div>
+                        <PrimaryKeyField 
+                            fieldArray={key}
+                            pending={showPending}
+                        />
+                        {key[0] === 'INGESTION_STATUS' &&
+                            <button onClick={submitJob}>
+                                Schedule Job
+                            </button>
+                        }
+                    </div>
+                    
+                )}
+
+                {Object.entries(codeGroups).map((key, index) => 
+                    <CodeField 
+                        key={key[0]}
+                        setState={setState}
+                        setChanged={setChanged}
+                        fieldArray={key}
+                        columnDataTypes={columnDataTypes}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
+                        setEditMessage={setEditError}
+                    />
+                        
+                )}
+
+                {Object.entries(dropdownGroups).map((key, index) => 
+                    key.PRIVILEGE !== 'READ ONLY'
+                    ? <DropdownField
+                        key={key[0]}
+                        field={key[0]}
+                        value={key[1]}
+                        setState={setState}
+                        setChanged={setChanged}
+                        dropdownFields={dropdownFields}
+                        route={route}
+                    />
+                    :<CodeField 
+                        key={key[0]}
+                        setState={setState}
+                        setChanged={setChanged}
+                        fieldArray={key}
+                        columnDataTypes={columnDataTypes}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
+                        setEditMessage={setEditError}
+                    />   
+                )}
+            </>
+        )
+    }
+
+    const renderFieldByType = () => {
+        let primaryGroups = {};
+        let dropdownGroups = {};
+        let codeGroups = {};
+        let allDisplayedKeys = [];
 
         console.log(nonEditableColumns);
         // console.log(codeFields);
@@ -531,16 +631,7 @@ const RowExpansion = ({ row }) => {
         return(
             <>
                 {Object.entries(primaryGroups).map((key, index) =>      
-                    // <WrapperField
-                    //     type={'primaryKey'}
-                    //     field={key[0]}
-                    //     row={key}
-                    //     // primaryKeys={primaryKeys}
-                    //     fieldArray={key} 
-                    // />
-                    <div 
-                        // style={{'display': 'inline'}}
-                    >
+                    <div>
                         <PrimaryKeyField 
                             fieldArray={key}
                             pending={showPending}
@@ -555,17 +646,6 @@ const RowExpansion = ({ row }) => {
                 )}
 
                 {Object.entries(codeGroups).map((key, index) => 
-                    // <WrapperField
-                    //     type={'code'}
-                    //     field={key[0]}
-                    //     setState={setState}
-                    //     setChanged={setChanged}
-                    //     fieldArray={key}
-                    //     columnDataTypes={columnDataTypes}
-                    //     disabled={row.PRIVILEGE === 'READ ONLY'}
-                    //     setEditMessage={setEditError}
-                    // />
-
                     <CodeField 
                         key={key[0]}
                         setState={setState}
@@ -580,28 +660,7 @@ const RowExpansion = ({ row }) => {
 
                 {Object.entries(dropdownGroups).map((key, index) => 
                     key.PRIVILEGE !== 'READ ONLY'
-                    ?
-                    // <WrapperField
-                    //     type={'dropdown'}
-                    //     field={key[0]}
-                    //     value={key[1]}
-                    //     setState={setState}
-                    //     setChanged={setChanged}
-                    //     dropdownFields={dropdownFields}
-                    //     route={route}
-                    //     />
-                    // :<WrapperField
-                    //     type={'code'}
-                    //     field={key[0]}
-                    //     setState={setState}
-                    //     setChanged={setChanged}
-                    //     fieldArray={key}
-                    //     columnDataTypes={columnDataTypes}
-                    //     disabled={row.PRIVILEGE === 'READ ONLY'}
-                    //     setEditMessage={setEditError}
-                    //     />
-                    
-                    <DropdownField
+                    ? <DropdownField
                         key={key[0]}
                         field={key[0]}
                         value={key[1]}
@@ -610,8 +669,6 @@ const RowExpansion = ({ row }) => {
                         dropdownFields={dropdownFields}
                         route={route}
                     />
-                        
-                    
                     :<CodeField 
                         key={key[0]}
                         setState={setState}
@@ -675,7 +732,7 @@ const RowExpansion = ({ row }) => {
                         />)
                 } */}
 
-                {renderFieldByType()}
+                {table === 'ETLF_EXTRACT_CONFIG' ? renderFieldByTypeETLF() : renderFieldByType()}
 
                 <CustomizedLink row = {row}/>
             </div>

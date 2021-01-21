@@ -68,7 +68,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         DIEONMISMATCH: 'N',
         NOTIFICATIONEMAILS: username,
         GROUP_ID: appIDs[0],
-        EXTRACT_CONFIG_ID: extractConfigID,
+        // EXTRACT_CONFIG_ID: extractConfigID,
     });
     const [verified, setVerified] = useState(false);
 
@@ -82,6 +82,38 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         route: yup.string().required(),
         action: yup.string().required()
     });
+
+    useEffect(() => {
+        if(verified){
+            console.log("Verified true...setLoadingRouteConfig(false);");
+
+            
+        }
+    }, [verified]);
+
+    useEffect(() => {
+        if(route !== 'Select Route'){
+            console.log("current route: ", route);
+
+            const currentRoute = (route.split(':'))[1].trim();
+
+            let routeID = routeOptions[route].ROUTE_ID;
+            let actionID = routeOptions[route].ACTION_ID;
+
+            setRouteID(routeID);
+            setActionID(actionID);
+
+            // getSystemIDs(routeOptions[value].SRC_TECH, 'source', setSourceID);
+            // getSystemIDs(routeOptions[value].TGT_TECH, 'target', setTargetID);
+
+            getSystemIDs(routeConfigs[currentRoute].SRC_TECH, 'source', setSourceID);
+            getSystemIDs(routeConfigs[currentRoute].TGT_TECH, 'target', setTargetID);
+
+            prepareRequiredFields(routeConfigs[currentRoute][actionID]);
+
+            setLoadingRouteConfig(false);
+        }
+    }, [route]);
 
     useEffect(() => {
         debug && console.log("states updated: ", initialStates);
@@ -526,11 +558,13 @@ ORDER BY route_id `;
 
     const getRouteColumns = value => {
         console.log(routeConfigs);
+        console.log(routeOptions);
         console.log(value);
 
         setRequiredFields({});
         setOptionalFields({});
         setFields([]);
+        setVerified(false);
         setLoadingRouteConfig(true);
 
         if(value === 'Select Route'){
@@ -543,22 +577,24 @@ ORDER BY route_id `;
 
         console.log(value);
 
+        const route = (value.split(':'))[1].trim();
+
         let routeID = routeOptions[value].ROUTE_ID;
         let actionID = routeOptions[value].ACTION_ID;
-
-        const route = (value.split(':'))[1].trim();
-        console.log(route);
 
         setRouteID(routeID);
         setActionID(actionID);
 
-        getSystemIDs(routeConfigs[route].SRC_TECH, 'source', setSourceID);
-        getSystemIDs(routeConfigs[route].TGT_TECH, 'target', setTargetID);
-
         // getSystemIDs(routeOptions[value].SRC_TECH, 'source', setSourceID);
         // getSystemIDs(routeOptions[value].TGT_TECH, 'target', setTargetID);
 
+        getSystemIDs(routeConfigs[route].SRC_TECH, 'source', setSourceID);
+        getSystemIDs(routeConfigs[route].TGT_TECH, 'target', setTargetID);
+
         prepareRequiredFields(routeConfigs[route][actionID]);
+        
+
+        console.log(routeConfigs[route][actionID]);
 
         // const SELECT_REQUIRED_FIELDS_SQL = `SELECT A.COLUMN_NAME, B.DATA_TYPE, A.REQUIRED, A.CHECK_STR 
         // FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A
@@ -630,8 +666,6 @@ ORDER BY route_id `;
         debug && console.log(required_Fields_Obj);
 
         createYupSchemaForRoute(required_Fields_Obj);
-        setVerified(true);
-        setLoadingRouteConfig(false);
     }
 
     function createYupSchemaForRoute(required_Fields_Obj){
@@ -716,8 +750,10 @@ ORDER BY route_id `;
                                     name="route"
                                     onChange={e => {
                                         handleChange(e);
+                                        setLoadingRouteConfig(true);
                                         setRoute(e.target.value);
-                                        getRouteColumns(e.target.value);
+                                        
+                                        // getRouteColumns(e.target.value);
                                     }}
                                     isValid={touched.route && !errors.route}
                                     isInvalid={touched.route && !!errors.route}

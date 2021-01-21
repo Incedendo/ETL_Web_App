@@ -494,7 +494,7 @@ export const WorkspaceProvider = (props) => {
 
     const load_ETLF_EXTRACT_CONFIG_REQUIREMENTS_Using_SelectAPI = () => {
 
-        const getRouteNamesSQL = `SELECT DISTINCT ROUTE_NAME, SRC_TECH, TGT_TECH
+        const getRouteNamesSQL = `SELECT DISTINCT ROUTE_NAME, SRC_TECH, TGT_TECH, ROUTE_ID
         FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A;`
 
         let routeConfigs = {};
@@ -547,9 +547,9 @@ export const WorkspaceProvider = (props) => {
                 debug && console.log(response.data);
 
                 response.data.map(item =>{
-                    
-                    const actionID = item.ACTION_ID;
                     const routeName = item.ROUTE_NAME;
+                    const routeID = item.ROUTE_ID;
+                    const actionID = item.ACTION_ID;
                     if(actionID in routeConfigs[routeName]){
                         routeConfigs[routeName][actionID].push({
                             'COLUMN_NAME': item.COLUMN_NAME,
