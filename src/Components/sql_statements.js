@@ -163,7 +163,20 @@ export const search_composite_CATALOG_ENTITY_DOMAIN = currentSearchObj =>{
     WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + ';';
     return sql_statement;
 }
-           
+
+export const getSearchFieldValueExact = (currentSearchObj) => {
+    let res = ''
+    for (let item in currentSearchObj){
+        if(Object.keys(currentSearchObj).indexOf(item) > 0){
+            res += `AND UPPER(TRIM(ec.` + item + `)) = UPPER(TRIM('` + currentSearchObj[item] + `'))
+            `;
+        }else{
+            res += `UPPER(TRIM(ec.` + item + `)) = UPPER(TRIM('` + currentSearchObj[item] + `'))
+            `;
+        }
+    }
+    return res;
+}
 
 export const getSearchFieldValue = (currentSearchObj) => {
     let res = ''

@@ -14,7 +14,7 @@ const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:51613192638
 const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
 const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
 
-const GenericTableModal = ({ modalName, tableName, routeCode, route, EXTRACT_CONFIG_ID, privilege }) => {
+const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, privilege }) => {
 
     const { authState } = useOktaAuth();
     const {
@@ -28,7 +28,6 @@ const GenericTableModal = ({ modalName, tableName, routeCode, route, EXTRACT_CON
     
     const [show, setShow] = useState(false);
     debug && console.log("route code: ", tableName);
-    debug && console.log("route code: ", routeCode);
     debug && console.log("route: ", route);
 
     console.log(tableName);
@@ -369,7 +368,7 @@ const GenericTableModal = ({ modalName, tableName, routeCode, route, EXTRACT_CON
                             }else{
                                 // if(performReload) setReloadTable(true);
                                 values['PRIVILEGE'] = 'READ/WRITE';       
-                                                            
+                                values['route'] = route;                                
                                 //CONVER ALL NON-NUMERIC VAL TO UPPER CASE B4 SAVING:    
                                 (Object.keys(values)).map(col => {
                                     if(isNaN(values[col]))
@@ -432,7 +431,6 @@ const GenericTableModal = ({ modalName, tableName, routeCode, route, EXTRACT_CON
                         EXTRACT_CONFIG_ID={EXTRACT_CONFIG_ID}
                         privilege={privilege}
                         uniqueCols={[]}
-                        routeCode={routeCode}
                         insertUsingMergeStatement={insertUsingMergeStatement}
                     />
 

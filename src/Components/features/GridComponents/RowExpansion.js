@@ -23,6 +23,7 @@ import WrapperField from '../GenericTable/WrapperField';
 import PrimaryKeyField from '../GenericTable/PrimaryKeyField';
 import CodeField from '../GenericTable/CodeField';
 import DropdownField from '../GenericTable/DropdownField';
+import { isEmptyArray } from 'formik';
 
 // const url = "https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/update";
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
@@ -35,7 +36,7 @@ const options = {
     },
 }
 
-const RowExpansion = ({ row }) => {
+const RowExpansion = React.memo(({ row }) => {
 
     const { authState } = useOktaAuth();
 
@@ -49,6 +50,8 @@ const RowExpansion = ({ row }) => {
         setReloadTable,
 
         setGenericTableDataTypeObj,
+
+        routeOptions,
         routeConfigs,
 
         system_configs,
@@ -74,9 +77,8 @@ const RowExpansion = ({ row }) => {
     
     const [route, setRoute] = useState("");
     const [action, setAction] = useState("");
-    const [routeCode, setRouteCode] = useState("");
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]['dropdownFields']);
-    // const [customCodeDataTypeObj, setCustomCodeDataTypeObj] = useState({});
+    const [customCodeDataTypeObj, setCustomCodeDataTypeObj] = useState({});
 
     const initialValue = 1;
     // const semaphore = new Semaphore(initialValue);
@@ -128,63 +130,45 @@ const RowExpansion = ({ row }) => {
     // console.log("Imported DropdownFields from Context: ", dropdownFields);
 
     useEffect(() => {
-        debug && console.log(routeConfigs);
-        if (system_configs!== undefined){
-            Object.keys(routeConfigs).map(key => {
-                if (routeConfigs[key].id === row['ROUTE_ID']) {
-                    setRoute(key);
-                    
-                    //get the Action from routeConfig Obj:
-                    const actions = routeConfigs[key].actions;
-                    Object.keys(actions).map(action => {
-                        if(actions[action]['ACTION_ID']=== row['ACTION_ID']){
-                            setAction(action);
-                            setRouteCode(routeConfigs[key]['actions'][action]['code']);
-                        }
-                    })
+        if(table === 'ETLF_EXTRACT_CONFIG'){
+            const ACTION_ID = row.ACTION_ID;
+            const ROUTE_ID = row.ROUTE_ID;
 
-                    if (routeConfigs[key].source !== null){
-                        getSystemIDs(key, 'source');
-                    }else{
-                        updateDropdownFields('SOURCE_SYSTEM_ID', []);
-                    }
+            //extract the route from sw: i.e: Oracle to Snowflake????
+            let route_name = ''
+            Object.values(routeOptions).map(item =>{
+                if(item.ROUTE_ID === ROUTE_ID)
+                    route_name = (item.ROUTE_NAME).trim();
+            })
 
-                    if (routeConfigs[key].target !== null){
-                        getSystemIDs(key, 'target');
-                    } else {
-                        updateDropdownFields('TARGET_SYSTEM_ID', []);
-                    }
-                }
-            });
+            //extract the list of required fields of a specific route and action
+            console.log(route_name);
+            setRoute(route_name);
+            setAction(ACTION_ID);
         }
-    }, [system_configs]);
+    }, []);
 
     useEffect(() => {
-        switch (routeCode) {
-            case "R1A1":
-                updateDropdownFields('TGT_TABLE_ACTION', ['RECREATE', 'TRUNCATE']);
-                break;
-            case "R1A2":
-                updateDropdownFields('TGT_TABLE_ACTION', ['RECREATE', 'TRUNCATE']);
-                break;
-            case "R1A3":
-                updateDropdownFields('TGT_TABLE_ACTION', ['RECREATE', 'TRUNCATE']);
-                break;
-            case "R4A1":
-                updateDropdownFields('TGT_TABLE_ACTION', ['RECREATE']);
-                break;
-            case "R6A2":
-                updateDropdownFields('TGT_TABLE_ACTION', ['RECREATE', 'TRUNCATE', 'INSERT']);
-                break;
-            default:
-                updateDropdownFields('TGT_TABLE_ACTION', []);
-                break;
+        debug && console.log(routeConfigs);
+        if (table === 'ETLF_EXTRACT_CONFIG' && route !== ''){
+            console.log("Route: " + route);
+            if (routeConfigs[route].SRC_TECH !== 'File'){
+                getSystemIDs(route, 'SRC_TECH');
+            }else{
+                updateDropdownFields('SOURCE_SYSTEM_ID', []);
+            }
+
+            if (routeConfigs[route].TGT_TECH !== 'File'){
+                getSystemIDs(route, 'TGT_TECH');
+            } else {
+                updateDropdownFields('TARGET_SYSTEM_ID', []);
+            }
         }
-    }, [routeCode]);
+    }, [route]);
 
     function getSystemIDs(route, system_type) {
         //system_type is either 'source' or 'target'
-        const target = system_type === 'source' ? 'SOURCE_SYSTEM_ID' : 'TARGET_SYSTEM_ID'
+        const target = system_type === 'SRC_TECH' ? 'SOURCE_SYSTEM_ID' : 'TARGET_SYSTEM_ID'
 
         //set Target_SYSTEM_ID
         const system = routeConfigs[route][system_type].toLowerCase(); //'Oracle' or 'Snowflake' or 'Salesforce'
@@ -490,21 +474,34 @@ const RowExpansion = ({ row }) => {
     }
 
     const renderFieldByTypeETLF = () =>{
+        
+        console.log(row);
+        console.log(nonEditableColumns);
+        // console.log(codeFields);
+        // console.log(dropdownFields);
+
+        // //extract the list of required fields of a specific route and action
+        let fieldConfigs = routeConfigs[route][row.ACTION_ID];
+        console.log(fieldConfigs);
+
+        let modifiedRowBasedOnRouteAndAction = {}
+        //display only required = 'Y' or 'O' fields for this route-action
+        if(fieldConfigs !== undefined){
+            fieldConfigs.map(item => {
+                if(item.REQUIRED !== 'N'){
+                    modifiedRowBasedOnRouteAndAction[item.COLUMN_NAME] = row[item.COLUMN_NAME]
+                }
+            });
+        }
+
+        // console.log(Object.keys(modifiedRowBasedOnRouteAndAction).length);
+
         let primaryGroups = {};
         let dropdownGroups = {};
         let codeGroups = {};
         let allDisplayedKeys = [];
 
-        console.log(nonEditableColumns);
-        // console.log(codeFields);
-        // console.log(dropdownFields);
-        
-        console.log(row);
-        const ACTION_ID = row.ACTION_ID;
-        const ROUTE_ID = row.ROUTE_ID;
-
-
-        Object.entries(row).map((key, index) =>{
+        Object.entries(modifiedRowBasedOnRouteAndAction).map((key, index) =>{
             console.log(key);
             const field = key[0];
             if (excludedFields.indexOf(field) < 0) {
@@ -529,9 +526,11 @@ const RowExpansion = ({ row }) => {
             
         });
 
-        console.log(primaryGroups);
-        console.log(dropdownGroups);
-        console.log(codeGroups);
+        primaryGroups = Object.fromEntries(Object.entries(primaryGroups).sort());
+        dropdownGroups = Object.fromEntries(Object.entries(dropdownGroups).sort());
+        codeGroups = Object.fromEntries(Object.entries(codeGroups).sort());
+
+        Object.entries(dropdownGroups).map((key, index) => console.log(key));
 
         return(
             <>
@@ -564,8 +563,7 @@ const RowExpansion = ({ row }) => {
                 )}
 
                 {Object.entries(dropdownGroups).map((key, index) => 
-                    key.PRIVILEGE !== 'READ ONLY'
-                    ? <DropdownField
+                    <DropdownField
                         key={key[0]}
                         field={key[0]}
                         value={key[1]}
@@ -573,22 +571,16 @@ const RowExpansion = ({ row }) => {
                         setChanged={setChanged}
                         dropdownFields={dropdownFields}
                         route={route}
-                    />
-                    :<CodeField 
-                        key={key[0]}
-                        setState={setState}
-                        setChanged={setChanged}
-                        fieldArray={key}
-                        columnDataTypes={columnDataTypes}
                         disabled={row.PRIVILEGE === 'READ ONLY'}
-                        setEditMessage={setEditError}
-                    />   
+                    />  
                 )}
             </>
         )
     }
 
     const renderFieldByType = () => {
+
+        console.log("renderFieldByType for NON ETLF EXTRACT CONFIG")
         let primaryGroups = {};
         let dropdownGroups = {};
         let codeGroups = {};
@@ -623,6 +615,10 @@ const RowExpansion = ({ row }) => {
             }
             
         });
+
+        Object.fromEntries(Object.entries(primaryGroups).sort());
+        Object.fromEntries(Object.entries(dropdownGroups).sort());
+        Object.fromEntries(Object.entries(codeGroups).sort());
 
         console.log(primaryGroups);
         // console.log(dropdownGroups);
@@ -630,7 +626,7 @@ const RowExpansion = ({ row }) => {
 
         return(
             <>
-                {Object.entries(primaryGroups).map((key, index) =>      
+                {Object.entries(primaryGroups).sort().map((key, index) =>      
                     <div>
                         <PrimaryKeyField 
                             fieldArray={key}
@@ -645,7 +641,7 @@ const RowExpansion = ({ row }) => {
                     
                 )}
 
-                {Object.entries(codeGroups).map((key, index) => 
+                {Object.entries(codeGroups).sort().map((key, index) => 
                     <CodeField 
                         key={key[0]}
                         setState={setState}
@@ -659,8 +655,7 @@ const RowExpansion = ({ row }) => {
                 )}
 
                 {Object.entries(dropdownGroups).map((key, index) => 
-                    key.PRIVILEGE !== 'READ ONLY'
-                    ? <DropdownField
+                    <DropdownField
                         key={key[0]}
                         field={key[0]}
                         value={key[1]}
@@ -668,16 +663,8 @@ const RowExpansion = ({ row }) => {
                         setChanged={setChanged}
                         dropdownFields={dropdownFields}
                         route={route}
-                    />
-                    :<CodeField 
-                        key={key[0]}
-                        setState={setState}
-                        setChanged={setChanged}
-                        fieldArray={key}
-                        columnDataTypes={columnDataTypes}
                         disabled={row.PRIVILEGE === 'READ ONLY'}
-                        setEditMessage={setEditError}
-                    />   
+                    />  
                 )}
             </>
         )
@@ -693,13 +680,11 @@ const RowExpansion = ({ row }) => {
                             modalName={'ETLF_CUSTOM_CODE'}
                             tableName={'ETLF_CUSTOM_CODE'}
                             // data={row}
-                            routeCode={routeCode}
                             route={route}
                             EXTRACT_CONFIG_ID={row['EXTRACT_CONFIG_ID']}
                             privilege={row['PRIVILEGE']}
                         />
-                    </div>
-                }
+                    </div>}
 
                 {(changed && row['PRIVILEGE'] !=='READ ONLY') ? <LoadableUpdateButton /> : ""}
             </div>
@@ -713,31 +698,21 @@ const RowExpansion = ({ row }) => {
                     </>
                 }
 
-                {/* {Object.entries(row).map((key, index) =>
-                        <DisplayField
-                            setState={setState}
-                            setChanged={setChanged}
-                            key={index}
-                            row={row}
-                            primaryKeys={primaryKeys}
-                            //key in (key, index) is a 2-element array with format [field, value] 
-                            //where field is the attribute of the object
-                            //and value is the actual value of the attribute.
-                            fieldArray={key}
-                            columnDataTypes={columnDataTypes}
-                            setEditMessage={setEditError}
-                            codeFields={codeFields}
-                            dropdownFields={dropdownFields}
-                            route={route}
-                        />)
-                } */}
 
-                {table === 'ETLF_EXTRACT_CONFIG' ? renderFieldByTypeETLF() : renderFieldByType()}
+                {table === 'ETLF_EXTRACT_CONFIG' 
+                ? ( (routeConfigs !== undefined && route !=='') 
+                        ? renderFieldByTypeETLF() 
+                        : <div>loading route configurations...</div>
+                )
+                : renderFieldByType()}
+
 
                 <CustomizedLink row = {row}/>
             </div>
         </>
     )
-}
+});
 
 export default RowExpansion;
+
+            

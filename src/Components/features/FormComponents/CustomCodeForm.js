@@ -44,21 +44,21 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
     //     "EXEC_SEQ": "Y",
     // }
 
-    useEffect(() => {
-        debug && console.log("open CustomCOdeForm, reset DropdownFields");
-        if (routeCode === 'R2A1' || routeCode === 'R12A1'){
-            setDropdownFields({ ...dropdownFields,
-                ['CODE_TYPE']: ['BLOCK_FORMATION']
-            })
-            debug && console.log(dropdownFields);
+    // useEffect(() => {
+    //     debug && console.log("open CustomCOdeForm, reset DropdownFields");
+    //     if (routeCode === 'R2A1' || routeCode === 'R12A1'){
+    //         setDropdownFields({ ...dropdownFields,
+    //             ['CODE_TYPE']: ['BLOCK_FORMATION']
+    //         })
+    //         debug && console.log(dropdownFields);
 
-            setInitialStates({
-                ...initialStates,
-                'CODE_TYPE': 'BLOCK_FORMATION'
-            })
-        }
+    //         setInitialStates({
+    //             ...initialStates,
+    //             'CODE_TYPE': 'BLOCK_FORMATION'
+    //         })
+    //     }
 
-    }, []);
+    // }, []);
 
     useEffect(()=>{
         debug && console.log(validating)

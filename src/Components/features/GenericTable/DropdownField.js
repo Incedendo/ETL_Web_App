@@ -4,7 +4,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
 
 const DropdownField = ({ 
-    privilege, field, value, dropdownFields, setChanged, setState, route,
+    privilege, field, value, dropdownFields, setChanged, setState, route, disabled
 }) => {
 
     const {
@@ -42,7 +42,7 @@ const DropdownField = ({
                     disabled={
                         field === "ROUTE_ID" 
                         || field === 'ACTION_ID' 
-                        // || (field === 'CODE_TYPE' && route === 'Snowflake to Snowflake') 
+                        || disabled
                     }
                 >
                     {updated_dropdownFields[field].map(val =>

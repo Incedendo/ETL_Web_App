@@ -5,15 +5,25 @@ import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, DATA_CATALOG_TABLE } fr
 import { Link } from "react-router-dom";
 // import LinkLogo16 from '../../../media/LinkIcon/link16x16.svg';
 import LinkLogo12 from '../../../media/LinkIcon/link12x12.svg';
-import { getSearchFieldValue } from '../../sql_statements';
+import { getSearchFieldValueExact } from '../../sql_statements';
 
 const getStandardSearchStmt = (destinationTable, searchObj) => {
     let sql = `SELECT ec.*, 'READ/WRITE' AS PRIVILEGE
     FROM "SHARED_TOOLS_DEV"."ETL"."` + destinationTable + `" ec
-    WHERE ` + getSearchFieldValue(searchObj) + `
+    WHERE ` + getSearchFieldValueExact(searchObj) + `
     ;`
 
     return sql;
+}
+
+const sql_linking_Lineage_To_ETLF_Extract_Config = (searchObj) => {
+    let sql = `SELECT EC.*, COALESCE(A.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+    FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EC
+    LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" A
+    ON(EC.GROUP_ID = A.APP_ID)
+    WHERE ` + getSearchFieldValueExact(searchObj) + `;`
+
+    return sql
 }
 
 const sql_linking_dataSteward_To_dataDomain = searchObj => {
@@ -36,7 +46,7 @@ const sql_linking_dataSteward_To_dataDomain = searchObj => {
     ON A.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID
     INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD C
     ON C.DATA_STEWARD_ID = B.DATA_STEWARD_ID
-    WHERE UPPER(TRIM(C.DATA_STEWARD_ID)) LIKE UPPER(TRIM('%` + searchObj['DATA_STEWARD_ID'] + `%'));`
+    WHERE UPPER(TRIM(C.DATA_STEWARD_ID)) = UPPER(TRIM('` + searchObj['DATA_STEWARD_ID'] + `'));`
 
     // console.log(sql);
 
@@ -63,7 +73,7 @@ const sql_linking_dataDomain_To_dataSteward = searchObj => {
     ON A.DATA_STEWARD_ID = B.DATA_STEWARD_ID
     INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     ON C.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID
-    WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) LIKE UPPER(TRIM('%` + searchObj['DATA_DOMAIN_ID'] + `%'))
+    WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) = UPPER(TRIM('` + searchObj['DATA_DOMAIN_ID'] + `'))
     ;`
 
     console.log(sql);
@@ -91,7 +101,7 @@ const sql_linking_dataDomain_To_catalogEntities = searchObj => {
     ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-    WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) LIKE UPPER(TRIM('%` + searchObj['DATA_DOMAIN_ID'] + `%'));`
+    WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) = UPPER(TRIM('` + searchObj['DATA_DOMAIN_ID'] + `'));`
 
     // console.log(sql);
 
@@ -118,7 +128,7 @@ const sql_linking_catalogEntities_To_dataDomain = searchObj => {
     ON (E.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID)
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES C
     ON (B.CATALOG_ENTITIES_ID = C.CATALOG_ENTITIES_ID )
-    WHERE UPPER(TRIM(C.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'));`
+    WHERE UPPER(TRIM(C.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + searchObj['CATALOG_ENTITIES_ID'] + `'));`
 
     console.log(sql);
 
@@ -157,11 +167,11 @@ const sql_linking_catalogEntities_To_Item_Lineage = (searchObj, destination) => 
             ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
             LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
             ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-            WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'))
+            WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + searchObj['CATALOG_ENTITIES_ID'] + `'))
         ) J
     )C2
     ON C2.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
-    WHERE C2.CATALOG_ENTITIES_ID LIKE '%` + searchObj['CATALOG_ENTITIES_ID'] + `%';`
+    WHERE C2.CATALOG_ENTITIES_ID = '` + searchObj['CATALOG_ENTITIES_ID'] + `';`
 
     return sql;
 }
@@ -177,14 +187,14 @@ const sql_linking_catalogEntities_To_catalogEntityLineage = searchObj => {
           FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
           INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
           ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
-          WHERE UPPER(TRIM(A.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%')) 
+          WHERE UPPER(TRIM(A.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + searchObj['CATALOG_ENTITIES_ID'] + `')) 
         ) C1
         INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
         ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
       )C2
       INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE D
       ON C2.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
-      WHERE C2.CATALOG_ENTITIES_ID LIKE '%` + searchObj['CATALOG_ENTITIES_ID'] + `%';`
+      WHERE C2.CATALOG_ENTITIES_ID = '` + searchObj['CATALOG_ENTITIES_ID'] + `';`
 
     return sql;
 }
@@ -201,7 +211,7 @@ const sql_linking_ItemsLineage_To_CatalogEntities = searchObj => {
         ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
         LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
         ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-        WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'))
+        WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + searchObj['CATALOG_ENTITIES_ID'] + `'))
     ) J`;
     
     return sql;
@@ -225,7 +235,7 @@ const sql_linking_catalogItems_To_catalogEntities = searchObj => {
     )C2
     INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ITEMS D
     ON D.CATALOG_ENTITIES_ID = C2.CATALOG_ENTITIES_ID
-    WHERE UPPER(TRIM(D.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'));`
+    WHERE UPPER(TRIM(D.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + searchObj['CATALOG_ENTITIES_ID'] + `'));`
 
     return sql;
 }
@@ -248,7 +258,7 @@ const sql_linking_catalogEntityLineage_To_catalogEntities = searchObj => {
     )C2
     INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE D
     ON D.CATALOG_ENTITIES_ID = C2.CATALOG_ENTITIES_ID
-    WHERE UPPER(TRIM(D.CATALOG_ENTITIES_ID)) LIKE UPPER(TRIM('%` + searchObj['CATALOG_ENTITIES_ID'] + `%'));`
+    WHERE UPPER(TRIM(D.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + searchObj['CATALOG_ENTITIES_ID'] + `'));`
 
     return sql;
 }
@@ -271,7 +281,7 @@ const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = searchObj => {
         ) J
     ) D
     ON A.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
-    WHERE UPPER(TRIM(A.EXTRACT_CONFIG_ID)) LIKE UPPER(TRIM('%` + searchObj['EXTRACT_CONFIG_ID'] + `%'));`
+    WHERE UPPER(TRIM(A.EXTRACT_CONFIG_ID)) = UPPER(TRIM('` + searchObj['EXTRACT_CONFIG_ID'] + `'));`
 
     return sql;
 }
@@ -312,9 +322,10 @@ const getLinkSearchStmt = (table, destinationTable, searchObj) => {
         if(destinationTable === 'CATALOG_ENTITIES') 
             searchStmt = sql_linking_ItemsLineage_To_CatalogEntities(searchObj);
         else if(destinationTable === 'ETLF_EXTRACT_CONFIG')
-            searchStmt = getStandardSearchStmt(destinationTable, searchObj);
+            searchStmt = sql_linking_Lineage_To_ETLF_Extract_Config(searchObj);
     }
 
+    console.log(searchStmt);
     return searchStmt;
 }
 

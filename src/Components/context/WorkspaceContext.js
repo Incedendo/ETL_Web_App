@@ -36,8 +36,8 @@ export const WorkspaceProvider = (props) => {
     const [tableLoaded, setTableLoaded] = useState(false)
     const [tableSearching, setTableSeaching] = useState(false)
 
-    const [dbTableRows, setDBTableRows] = useState([]);
-    const [dbTableColumns, setDBTableColumns] = useState([]);
+    // const [dbTableRows, setDBTableRows] = useState([]);
+    // const [dbTableColumns, setDBTableColumns] = useState([]);
 
     const [editMode, setEditMode] = useState(false)
     const [insertMode, setInsertMode] = useState(false)
@@ -84,11 +84,9 @@ export const WorkspaceProvider = (props) => {
     const [columnDataTypes, setColumnDataTypes] = useState({});
     const [columnWidths, setColumnWidths] = useState([]);
     const [tableColumnExtensions, setTableColumnExtensions] = useState([]);
-    const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);
-    
-    
-    
+    const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);    
     //Prepare data for the 'Configure Route' Modal in ETLFramework Comp
+    const [routeOptions, setRouteOptions] = useState({});
     const [system_configs, setSystem_configs] = useState({});
     const [etlColumnConfigs, setColumnEtlConfigs] = useState([]);
     const [etlRowConfigs, setRowEtlConfigs] = useState([]);
@@ -168,6 +166,58 @@ export const WorkspaceProvider = (props) => {
                 .then(response => {
                     // debug && console.log("Group IDs from ETLF_ACCESS_AUTHORIZATION:", response.data);
                     setAppIDs(response.data.map(item => item.APP_ID))
+                })
+                .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
+        }
+        
+    }, [username, authState]);
+
+    useEffect(() => {
+        // if(username !== '' && accessToken !== ''){
+        if (authState.isAuthenticated && username !== '') {
+            const { accessToken } = authState;
+            // debug && console.log("ACcess token ETLF_ACCESS_AUTHORIZATION: ", accessToken);
+            debug && console.log("Access token from authState: ", accessToken);
+            
+            const SELECT_ROUTE = `SELECT DISTINCT
+CONCAT('Route ',ROUTE_ID,' - ', 'Action ',ACTION_ID, ': ', ROUTE_NAME) CHOICE_OPTION,
+        ROUTE_NAME,
+        ROUTE_ID,
+        ACTION_ID,
+        SRC_TECH,
+        TGT_TECH
+FROM ETLF_ROUTE_COLUMNS
+ORDER BY ROUTE_ID, ACTION_ID `;
+            
+            debug && console.log(SELECT_ROUTE);
+            
+            axios.get(SELECT_URL, {
+                headers: {
+                    'type': 'TOKEN',
+                    'methodArn': ARN_APIGW_GET_SELECT,
+                    // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                    'authorizorToken': accessToken
+                },
+                //params maps to event.queryStringParameters in lambda
+                params: {
+                    sqlStatement: SELECT_ROUTE,
+                }
+            })
+                //have to setState in .then() due to asynchronous opetaions
+                .then(response => {
+                    console.log('ROute options: ', response.data);
+                    let routes = {};
+                    response.data.map(route =>{
+                        routes[route.CHOICE_OPTION] = {
+                            'ROUTE_NAME': route.ROUTE_NAME,
+                            'ROUTE_ID': route.ROUTE_ID,
+                            'ACTION_ID': route.ACTION_ID,
+                            'SRC_TECH': route.SRC_TECH,
+                            'TGT_TECH': route.TGT_TECH
+                        }
+                    })
+                    console.log(routes);
+                    setRouteOptions(routes);
                 })
                 .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
         }
@@ -380,40 +430,14 @@ export const WorkspaceProvider = (props) => {
         )
     }
 
-    useEffect(() => {
-        setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
-        setRows(
-            dbTableRows.map(row => ({
-                id: row['EXTRACT_CONFIG_ID'],
-                ...row
-            })));
-        
-        // if (dbTableRows.length !== 0){
-        //     debug && console.log('%c Table content:', 'color: orange; font-weight: bold');
-        //     debug && console.log(dbTableRows);
-            
-        //     //the data pulled from database still contain PRIVILEGE field
-
-        //     setPrivilege(dbTableRows.map(row => row.PRIVILEGE))
-
-        //     // console.log("b4: ", dbTableRows);
-        //     // dbTableRows.map(row => row.PRIVILEGE === 'rw' ? row.PRIVILEGE = "READ/WRITE" : row.PRIVILEGE = "READ ONLY")
-        //     // console.log("after mapping: ", dbTableRows);
-        //     // setRows(dbTableRows);
-        //     setRows(
-        //         dbTableRows.map((row, index) => ({
-        //             id: row['ID'],
-        //             ...row
-        //         })));
-        // }
-        // //empty table
-        // else {
-        //     //reset all fields from previous table load
-        //     // setColumns([]);
-        //     setRows([]);
-        //     // setSearchCriteria([]);
-        // }
-    }, [dbTableRows]);
+    // useEffect(() => {
+    //     setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
+    //     setRows(
+    //         dbTableRows.map(row => ({
+    //             id: row['EXTRACT_CONFIG_ID'],
+    //             ...row
+    //         })));
+    // }, [dbTableRows]);
 
     //*********************************************************************************************************************************************/
     // List of all functions to call when Authstate is updated in useEffect()
@@ -926,7 +950,6 @@ export const WorkspaceProvider = (props) => {
                     prepareGridConfig(response.data.columns);
                     loadTableRows(response.data.rows, primaryKey);
                 }else{
-                    // !reloadTable && setDBTableColumns(response.data.columns);
                     reloadGridConfig();
                     loadTableRows(response.data, primaryKey);
                     debug && console.log(`%c Loading talbe with : ${response.data.length} rows`, 'color: orange; font-weight: bold');
@@ -1177,6 +1200,7 @@ export const WorkspaceProvider = (props) => {
         performEditOperation,
 
         //ETL Configurataions
+        routeOptions, setRouteOptions,
         system_configs,
         etlColumnConfigs, etlRowConfigs,
         routeConfigs, actionConfigs,

@@ -105,11 +105,11 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
             // WHERE ` + getSearchFieldValue(currentSearchObj) + `
             // ;`;
 
-            let searchStmt = 
-            `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
-            FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
-            WHERE ` + getSearchFieldValue(currentSearchObj) + `
-            ;`;
+            let searchStmt = linkedState['searchStmt'];
+            // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
+            // FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
+            // WHERE ` + getSearchFieldValue(currentSearchObj) + `
+            // ;`;
 
             console.log(searchStmt);
 

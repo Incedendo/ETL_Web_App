@@ -197,6 +197,9 @@ const GenericRowExpansion = ({ row, ...rest }) => {
     const unmodifiedDropdownFields = fieldTypesConfigs[row['metaData'].table]['dropdownFields'];
 
     debug && console.log(unmodifiedDropdownFields);
+    
+    const excludedFields = ['CREATEDDT', 'LASTMODIFIEDDT', 'EXTRACT_CONFIG_ID'];
+
     return (
         <div key={row.id}>
             <ErrorMessage />
@@ -206,8 +209,8 @@ const GenericRowExpansion = ({ row, ...rest }) => {
             
             <div className="detail-div">
                 {Object.entries(modifiedRow).map((key, index) =>
-                    key[0] !== 'metaData'
-                        ? <DisplayField
+                    (key[0] !== 'metaData' && excludedFields.indexOf(key[0]) < 0)
+                        && <DisplayField
                             setState={setState}
                             setChanged={setChanged}
                             key={index}
@@ -223,7 +226,6 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                             dropdownFields={unmodifiedDropdownFields}
                             route={route}
                         />
-                        : null
                 )}
             </div>
         </div>

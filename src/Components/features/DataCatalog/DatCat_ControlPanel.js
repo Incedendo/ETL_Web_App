@@ -166,12 +166,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
         if(loadedConfig && comingFromLink){
             console.log("Immediately get linked result based on Link state's params");
 
-            // let searchStmt = 
-            // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
-            // FROM "SHARED_TOOLS_DEV"."ETL"."` + table + `" ec
-            // WHERE ` + getSearchFieldValue(linkState['searchObj']) + `
-            // ;`;
-
             const searchStmt = linkState['searchStmt'];
             const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
             console.log(searchStmt);

@@ -26,19 +26,28 @@ CONCAT(route_name,' : Route ',route_id,' - ', 'Action ',action_id) choice_option
 FROM ETLF_ROUTE_COLUMNS
 ORDER BY 1 `;
 
+const target_table_actions_list = {
+    "R1A1": ['RECREATE', 'TRUNCATE'],
+    "R1A2": ['RECREATE', 'TRUNCATE'],
+    "R1A3": ['RECREATE', 'TRUNCATE'],
+    "R4A1": ['RECREATE'],
+    "R6A2": ['RECREATE', 'TRUNCATE', 'INSERT']
+}
+
 const RouteDataLoader = ({ setActionModalShow }) => {
     const { authState } = useOktaAuth();
 
     const {
         debug, username,
         appIDs, table,
+        routeOptions, setRouteOptions,
         routeConfigs, //object of route linked to routeCode and corresponding actions
         etlRowConfigs, //KIET_EXTRACT_CONFIG_REQUIREMENTS
         system_configs,
         // ARN_APIGW_GET_TABLE_SNOWFLAKE
     } = useContext(WorkspaceContext);
 
-    const [routeOptions, setRouteOptions] = useState({});
+    
     const [loadingRouteConfig, setLoadingRouteConfig] = useState(false);
 
     const [helper_route, setHelperRoute] = useState('Oracle to Snowflake');
@@ -84,14 +93,17 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     });
 
     useEffect(() => {
-        if(verified){
-            console.log("Verified true...setLoadingRouteConfig(false);");
+        debug && console.log("states updated: ", initialStates);
+    }, [initialStates]);
 
-            
-        }
-    }, [verified]);
+    useEffect(()=>{
+        updateDropdownFields('GROUP_ID', appIDs);
+    }, [appIDs]);
 
     useEffect(() => {
+        setRequiredFields({});
+        setOptionalFields({});
+        setFields([]);
         if(route !== 'Select Route'){
             console.log("current route: ", route);
 
@@ -102,6 +114,8 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
             setRouteID(routeID);
             setActionID(actionID);
+            console.log("Rout ID: ", routeID, ", Action ID: " + actionID);
+            console.log("required fields for this route-action: ", routeConfigs[currentRoute][actionID]);
 
             // getSystemIDs(routeOptions[value].SRC_TECH, 'source', setSourceID);
             // getSystemIDs(routeOptions[value].TGT_TECH, 'target', setTargetID);
@@ -112,66 +126,12 @@ const RouteDataLoader = ({ setActionModalShow }) => {
             prepareRequiredFields(routeConfigs[currentRoute][actionID]);
 
             setLoadingRouteConfig(false);
+        }else{
+            setRoute('Select Route');
+            setRouteID(0);
         }
     }, [route]);
 
-    useEffect(() => {
-        debug && console.log("states updated: ", initialStates);
-    }, [initialStates]);
-
-    useEffect(()=>{
-        updateDropdownFields('GROUP_ID', appIDs);
-    }, [appIDs]);
-
-    useEffect(() => {
-        // if(username !== '' && accessToken !== ''){
-        if (authState.isAuthenticated && username !== '') {
-            const { accessToken } = authState;
-            // debug && console.log("ACcess token ETLF_ACCESS_AUTHORIZATION: ", accessToken);
-            debug && console.log("Access token from authState: ", accessToken);
-            
-            const SELECT_ROUTE = `SELECT DISTINCT
-CONCAT('Route ',route_id,' - ', 'Action ',action_id, ': ', route_name) choice_option,
-        route_id,
-        action_id,
-        SRC_TECH,
-        TGT_TECH
-FROM ETLF_ROUTE_COLUMNS
-ORDER BY route_id `;
-            
-            debug && console.log(SELECT_ROUTE);
-            
-            axios.get(SELECT_URL, {
-                headers: {
-                    'type': 'TOKEN',
-                    'methodArn': ARN_APIGW_GET_SELECT,
-                    // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                    'authorizorToken': accessToken
-                },
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: SELECT_ROUTE,
-                }
-            })
-                //have to setState in .then() due to asynchronous opetaions
-                .then(response => {
-                    console.log('ROute options: ', response.data);
-                    let routes = {};
-                    response.data.map(route =>{
-                        routes[route.CHOICE_OPTION] = {
-                            'ROUTE_ID': route.ROUTE_ID,
-                            'ACTION_ID': route.ACTION_ID,
-                            'SRC_TECH': route.SRC_TECH,
-                            'TGT_TECH': route.TGT_TECH
-                        }
-                    })
-                    console.log(routes);
-                    setRouteOptions(routes);
-                })
-                .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
-        }
-        
-    }, [username, authState]);
 
     //fetch the latest extract_Config_ID from database
     useEffect(() => {
@@ -208,6 +168,7 @@ ORDER BY route_id `;
             .then(response => {
                 // debug && console.log(response.data);
                 setExtractConfigID(response.data.rows[0]['EXTRACT_CONFIG_ID'] * 1 + 1);
+                
             })
             .catch(error => {
                 if (axios.isCancel(error)) {
@@ -318,13 +279,7 @@ ORDER BY route_id `;
     let formValidationsInfo = [];
     let yup_schema = {};
 
-    const target_table_actions_list = {
-        "R1A1": ['RECREATE', 'TRUNCATE'],
-        "R1A2": ['RECREATE', 'TRUNCATE'],
-        "R1A3": ['RECREATE', 'TRUNCATE'],
-        "R4A1": ['RECREATE'],
-        "R6A2": ['RECREATE', 'TRUNCATE', 'INSERT']
-    }
+    
 
     // Create a Route-Acion specific set of Fields and Required Fields based on
     // routeCode chosen from the etlRowConfigs Object (from Requirement table)
@@ -556,7 +511,7 @@ ORDER BY route_id `;
     //     setInitialStates(initialStateForRouteCode);
     // }
 
-    const getRouteColumns = value => {
+    const updateFormRequiredColumns = value => {
         console.log(routeConfigs);
         console.log(routeOptions);
         console.log(value);
@@ -564,8 +519,8 @@ ORDER BY route_id `;
         setRequiredFields({});
         setOptionalFields({});
         setFields([]);
-        setVerified(false);
-        setLoadingRouteConfig(true);
+        // setVerified(false);
+        // setLoadingRouteConfig(true);
 
         if(value === 'Select Route'){
             setRoute('Select Route');
@@ -592,52 +547,56 @@ ORDER BY route_id `;
         getSystemIDs(routeConfigs[route].TGT_TECH, 'target', setTargetID);
 
         prepareRequiredFields(routeConfigs[route][actionID]);
-        
-
         console.log(routeConfigs[route][actionID]);
 
-        // const SELECT_REQUIRED_FIELDS_SQL = `SELECT A.COLUMN_NAME, B.DATA_TYPE, A.REQUIRED, A.CHECK_STR 
-        // FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A
-        // INNER JOIN (
-        //     SELECT COLUMN_NAME, DATA_TYPE FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS"
-        //     WHERE TABLE_SCHEMA = 'ETL'
-        //     AND TABLE_NAME='ETLF_EXTRACT_CONFIG'
-        // ) B
-        // ON A.COLUMN_NAME = B.COLUMN_NAME
-        // WHERE ROUTE_ID = `+ routeID +` AND ACTION_ID = ` + actionID +';';
+        const SELECT_REQUIRED_FIELDS_SQL = `SELECT A.COLUMN_NAME, B.DATA_TYPE, A.REQUIRED, A.CHECK_STR 
+        FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A
+        INNER JOIN (
+            SELECT COLUMN_NAME, DATA_TYPE FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS"
+            WHERE TABLE_SCHEMA = 'ETL'
+            AND TABLE_NAME='ETLF_EXTRACT_CONFIG'
+        ) B
+        ON A.COLUMN_NAME = B.COLUMN_NAME
+        WHERE ROUTE_ID = `+ routeID +` AND ACTION_ID = ` + actionID +';';
             
-        // debug && console.log(SELECT_REQUIRED_FIELDS_SQL);
+        debug && console.log(SELECT_REQUIRED_FIELDS_SQL);
         
-        // axios.get(SELECT_URL, {
-        //     headers: {
-        //         'type': 'TOKEN',
-        //         'methodArn': ARN_APIGW_GET_SELECT,
-        //         // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-        //         'authorizorToken': accessToken
-        //     },
-        //     //params maps to event.queryStringParameters in lambda
-        //     params: {
-        //         sqlStatement: SELECT_REQUIRED_FIELDS_SQL,
-        //     }
-        // })
-        // //have to setState in .then() due to asynchronous opetaions
-        // .then(response => {
-        //     console.log('Required fields for route: ', response.data);
-        //     prepareRequiredFields(response.data);
-        //     setLoadingRouteConfig(false);
-        // })
-        // .catch(err => debug && console.log("error from loading required columns:", err.message))
+        axios.get(SELECT_URL, {
+            headers: {
+                'type': 'TOKEN',
+                'methodArn': ARN_APIGW_GET_SELECT,
+                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                'authorizorToken': accessToken
+            },
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: SELECT_REQUIRED_FIELDS_SQL,
+            }
+        })
+        //have to setState in .then() due to asynchronous opetaions
+        .then(response => {
+            console.log('Required fields for route: ', response.data);
+            prepareRequiredFields(response.data);
+            setLoadingRouteConfig(false);
+        })
+        .catch(err => debug && console.log("error from loading required columns:", err.message))
         
     }
 
     const prepareRequiredFields = data => {
+        console.log("Calling prepareRequiredFields when route changed....")
         console.log(data);
         required_Fields_Obj = {};
         let temp_fields = [];
         // let required_fields = [];
         let required_fields = {};
         let optional_fields = {};
-        data.map(item => {
+
+        let modifiedData = data.filter(item => item.COLUMN_NAME !== 'ROUTE_ID' && item.COLUMN_NAME !== 'ACTION_ID')
+
+        console.log(modifiedData);
+
+        modifiedData.map(item => {
             let field_name = item.COLUMN_NAME;
 
             required_Fields_Obj[field_name] = {
@@ -714,6 +673,8 @@ ORDER BY route_id `;
 
         yup_schema = yup.object().shape(temp_schema);
 
+        console.log("Yup Schema: ", yup_schema);
+
         //have to use setState here to FORCE UPDATE the object in the form
         setValidationSchema(yup_schema);
     }
@@ -750,10 +711,7 @@ ORDER BY route_id `;
                                     name="route"
                                     onChange={e => {
                                         handleChange(e);
-                                        setLoadingRouteConfig(true);
                                         setRoute(e.target.value);
-                                        
-                                        // getRouteColumns(e.target.value);
                                     }}
                                     isValid={touched.route && !errors.route}
                                     isInvalid={touched.route && !!errors.route}
@@ -793,8 +751,7 @@ ORDER BY route_id `;
             {/* <div style={{'display': 'flex', 'justifyContent': 'center'}}>Loading configurations...</div> */}
             
             {/* <button onClick={() => debug && console.log(verified)}>Print verified</button> */ }
-            {extractConfigID > 0 && 
-            !loadingRouteConfig &&    
+            { (extractConfigID > 0 && !loadingRouteConfig) &&    
                 <RouteForm
                     routeOptions={routeOptions}
                     route={route}
@@ -803,10 +760,8 @@ ORDER BY route_id `;
                     optionalFields={optionalFields}
                     fields={fields}
                     validationSchema={validationSchema}
-                    // helper_route={helper_route}
                     setShow={setActionModalShow}
                     dropdownFields={dropdownFields}
-                    disabled={route === 'Select Route'}
                 />
             }
         </div>

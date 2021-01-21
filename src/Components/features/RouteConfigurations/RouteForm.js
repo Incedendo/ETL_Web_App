@@ -15,8 +15,7 @@ const TEST_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/tes
 
 const RouteForm = ({ 
     routeOptions, route, states,
-    requiredFields, optionalFields, validationSchema, 
-    helper_route, setShow, dropdownFields , disabled
+    requiredFields, optionalFields, validationSchema, setShow, dropdownFields
 }) => {
 
     const {
@@ -34,6 +33,7 @@ const RouteForm = ({
     debug && console.log("current states: ", states);
     debug && console.log("routeOptions: ", routeOptions);
     debug && console.log(requiredFields);
+    debug && console.log(optionalFields);
 
     const [validating, setValidating] = useState(false);
     const [insertMessage, setInsertMessage] = useState('');
@@ -41,22 +41,8 @@ const RouteForm = ({
 
     function getMergeStatement(values) {
         debug && console.log(values);
-        debug && console.log(helper_route);
-        debug && console.log(routeOptions[helper_route]);
         values['CREATEDDT'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         values['LASTMODIFIEDDT'] = "CURRENT_TIMESTAMP::timestamp_ntz";
-        
-        // if (routeConfigs[helper_route]['source'] !== null){
-        //     if (typeof(values.SOURCE_SYSTEM_ID) === 'string'){
-        //         values.SOURCE_SYSTEM_ID = values.SOURCE_SYSTEM_ID.split('-')[0].trim()*1;
-        //     }
-        // }
-            
-        // if (routeConfigs[helper_route]['target'] !== null){
-        //     if (typeof (values.TARGET_SYSTEM_ID) === 'string'){
-        //         values.TARGET_SYSTEM_ID = values.TARGET_SYSTEM_ID.split('-')[0].trim()*1;
-        //     }
-        // }
 
         if (routeOptions[route]['SRC_TECH'] !== null){
             if (typeof(values.SOURCE_SYSTEM_ID) === 'string'){
@@ -146,6 +132,10 @@ const RouteForm = ({
             )
     }
 
+    const getData = () => {
+        return initialStates;
+    }
+
     return (
         <>
             {insertMessage !== '' && 
@@ -154,13 +144,9 @@ const RouteForm = ({
                     <br />
                     --------------------------------------------------------------
                 </div>
-            } 
-            
-            
+            }
               
             <Formik
-                validationSchema={validationSchema}
-
                 //destructure the action obj into {setSubmitting}
                 onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
                     //have to update the values manually here:
@@ -175,6 +161,8 @@ const RouteForm = ({
                     debug && console.log('updatedValues: ', updatedValues);
                     test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
                 }}
+                validationSchema={validationSchema}
+                enableReinitialize={true}
                 initialValues={states}
             >
                 {({
@@ -206,17 +194,16 @@ const RouteForm = ({
                                     dropdownFields={dropdownFields}
                                 />
                             )}
-
-                            <Form.Group as={Col} controlId="formBasicCheckbox">
-                                <Form.Check 
-                                    type="checkbox" 
-                                    label="Optional Fields" 
-                                    onChange={()=>toggleOptional(!showOptional)}
-                                />
-                            </Form.Group>
                             
-                            {!disabled &&
-                                <>
+                            {route !=='Select Route' &&
+                                <>  
+                                    <Form.Group as={Col} controlId="formBasicCheckbox">
+                                        <Form.Check 
+                                            type="checkbox" 
+                                            label="Optional Fields" 
+                                            onChange={()=>toggleOptional(!showOptional)}
+                                        />
+                                    </Form.Group>
                                     {showOptional && Object.keys(optionalFields).map(field =>
                                         <FormField
                                             key={field}
@@ -235,7 +222,7 @@ const RouteForm = ({
                                         />
                                     )}
 
-                                    <div className="central-spinning-div">
+                                    <div className="central-spinning-div">  
                                         <Button
                                             // variant="primary"
                                             type="submit" disabled={isSubmitting}
@@ -259,8 +246,6 @@ const RouteForm = ({
                                     </div>
                                 </>
                             }
-                            
-
                         </Form>
                     )}
             </Formik>
