@@ -95,7 +95,7 @@ const sql_linking_dataDomain_To_catalogEntities = searchObj => {
     // INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES C
     // ON C1.CATALOG_ENTITIES_ID = C.CATALOG_ENTITIES_ID;`
 
-    const sql = `SELECT C.DOMAIN, E.* 
+    const sql = `SELECT C.DOMAIN, E.*, 'READ/WRITE' AS PRIVILEGE
     FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
     ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
@@ -291,7 +291,7 @@ const getLinkSearchStmt = (table, destinationTable, searchObj) => {
     if(table === 'ETLF_EXTRACT_CONFIG'){
         searchStmt = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(searchObj);
     }if(table === 'ETLF_CUSTOM_CODE'){
-        searchStmt = getStandardSearchStmt(destinationTable, searchObj);
+        searchStmt = sql_linking_Lineage_To_ETLF_Extract_Config(searchObj);
     }else if(table === 'DATA_STEWARD'){
         searchStmt = sql_linking_dataSteward_To_dataDomain(searchObj);
     }else if(table === 'DATA_STEWARD_DOMAIN'){

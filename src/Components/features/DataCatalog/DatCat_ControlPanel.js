@@ -4,6 +4,7 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 import SearchModal from '../Modals/SearchModal';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
+import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import DataCatalogModal from './DataCatalogModal';
 import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
@@ -462,7 +463,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
     return (
         <>
             {/* DatCat_ControlPanel */}
-            <div style={{'display': 'flex'}}>
+            <div style={{}}>
                 <div style={{ 'float': 'left' }}>
                     Select Catalog table:
                     <DropDown 
@@ -549,6 +550,10 @@ const DatCat_ControlPanel = ({ linkState }) => {
                             />
                     }
                         
+                </div>
+
+                <div style={{ 'paddingTop': '10px', 'float': 'right' }}>
+                    <Button variant="outline-primary">Refresh Data Catalog</Button>
                 </div>
             </div>
 

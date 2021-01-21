@@ -345,6 +345,11 @@ const ConfigurationGrid = () => {
                     grouping={grouping}
                     onGroupingChange={setGrouping}
                 />
+
+                <PagingState
+                    defaultCurrentPage={0}
+                    pageSize={20}
+                />
                 {/* <FilteringState defaultFilters={[]} /> */}
                 
                 <SummaryState
@@ -363,8 +368,10 @@ const ConfigurationGrid = () => {
 
                 <IntegratedSorting />
                 <IntegratedGrouping />
+                <IntegratedPaging />
                 <IntegratedFiltering /> {/* need for searching */}
                 <IntegratedSummary />
+                
 
                 
 
@@ -439,6 +446,8 @@ const ConfigurationGrid = () => {
                     showGroupingControls
                     showSortingControls
                 />
+
+                <PagingPanel />
             </Grid> 
         </div>
     );

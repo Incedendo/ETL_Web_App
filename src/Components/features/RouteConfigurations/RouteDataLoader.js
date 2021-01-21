@@ -430,22 +430,28 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
     function getSystemIDs(systemName, system_type, setTargetID) {
         const target = system_type === 'source' ? 'SOURCE_SYSTEM_ID' : 'TARGET_SYSTEM_ID';
-        let system_id_desc = [];
-        console.log("system name: " + systemName);
-        // if ( !== null && routeConfigs[route][system_type] !== 'DELIMITED_FILE') {
-            //system_type is either 'source' or 'target'
+        if(systemName !== 'FILE'){            
+            let system_id_desc = [];
+            console.log("system name: " + systemName);
+            // if ( !== null && routeConfigs[route][system_type] !== 'DELIMITED_FILE') {
+                //system_type is either 'source' or 'target'
 
-            //set Target_SYSTEM_ID
-            // const system = routeConfigs[route][system_type].toLowerCase(); //'Oracle' or 'Snowflake' or 'Salesforce'
-            const system_data = system_configs[systemName.toLowerCase()];
+                //set Target_SYSTEM_ID
+                // const system = routeConfigs[route][system_type].toLowerCase(); //'Oracle' or 'Snowflake' or 'Salesforce'
+                const system_data = system_configs[systemName.toLowerCase()];
 
-            system_id_desc = Object.values(system_data).map(value =>
-                value.ETLF_SYSTEM_CONFIG_ID + ' - ' + value.SYSTEM_CONFIG_DESCRIPTION
-            );
+                system_id_desc = Object.values(system_data).map(value =>
+                    value.ETLF_SYSTEM_CONFIG_ID + ' - ' + value.SYSTEM_CONFIG_DESCRIPTION
+                );
 
-            setTargetID((system_id_desc[0].split('-')[0]) * 1);
+                setTargetID((system_id_desc[0].split('-')[0]) * 1);
 
-        updateDropdownFields(target, system_id_desc);
+            updateDropdownFields(target, system_id_desc);
+        }else{
+            setTargetID(0);
+            updateDropdownFields(target, []);
+        }
+        
     }
 
     function updateDropdownFields(target, values) {
