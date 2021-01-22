@@ -36,10 +36,12 @@ const FormField = ({
     // console.log(values);
     // console.log("field: " + field + " , has value: "+ dropdownFields[field]);
 
-    let dropdownOptions = [<option key='base' value='' >Select an item</option>];
+    let dropdownOptions = ['Select an item'];
     if(field in dropdownFields){
-        dropdownFields[field].map(item => dropdownOptions.push(<option key={item} value={item}>{item}</option>));
+        dropdownFields[field].map(item => dropdownOptions.push(item));
     }
+
+    
     
     // if (field === 'ROUTE_ID' || field === 'ACTION_ID') console.log("RouteID: ", values[field])
 
@@ -80,6 +82,9 @@ const FormField = ({
                             name={field}
                             value={values[field]}
                             onChange={(e) => {
+                                console.log(e.target.value);
+                                console.log(dropdownOptions);
+                                console.log(values);
                                 handleChange(e);
                             }}
                             onBlur={handleBlur}
@@ -89,8 +94,7 @@ const FormField = ({
                             isValid={touched[field] && !errors[field]}
                             isInvalid={errors[field]}
                         >   
-                            {dropdownOptions}
-                            {/* {dropdownFields[field].map(groupID => <option key={groupID} value={groupID} >{groupID}</option>)} */}
+                            {dropdownOptions.map(item => <option key={item} value={item} >{item}</option>)}
                         </Form.Control>
                         
                     }

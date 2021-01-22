@@ -333,9 +333,14 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 }else if(table === 'ETLF_CUSTOM_CODE'){
                     headers.unshift('SOURCE_TABLE');
                 }//add extra columns to the grid for these tables
-                else if(table === 'CATALOG_ENTITIES'){
+                else if(table === 'DATA_STEWARD_DOMAIN'){
                     headers.unshift('DOMAIN');
-                }else if(['CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) > -1 ){
+                    headers.unshift('EMAIL');
+                    headers.unshift('LNAME');
+                    headers.unshift('FNAME');
+                }else if(table === 'CATALOG_ENTITIES'){
+                    headers.unshift('DOMAIN');
+                }else if(['CATALOG_ENTITY_DOMAIN','CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) > -1 ){
                     headers.unshift('TARGET_TABLE');
                     headers.unshift('TARGET_SCHEMA');
                     headers.unshift('TARGET_DATABASE');
@@ -1009,7 +1014,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         insertNewAuditRecord(generateAuditStmt(auditObj));
     }
 
-    const insertUsingMergeStatement = (sqlMergeStatement, values, setValidating, performReload) => {
+    const insertUsingMergeStatement = (sqlMergeStatement, values, setInserting, performReload) => {
 
         // const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/insert';
 
@@ -1087,10 +1092,13 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                     setInsertError(err.message);
                 })
                 .finally(() => {
-                    performAuditOperation('INSERT', primaryKeys, values, sqlMergeStatement, insert_status)
+                    performAuditOperation('INSERT', primaryKeys, values, sqlMergeStatement, insert_status);
+                    setInserting(false);
                 })
         }else{
-            setValidating(false);
+            setInsertSuccess(true);
+            setInsertError('');
+            setInserting(false);
         }
     }
 
@@ -1213,6 +1221,11 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         //ARN resources
         ARN_APIGW_GET_SELECT,
         ARN_APIGW_GET_TABLE_SNOWFLAKE,
+        SELECT_URL,
+        TABLESNOWFLAKE_URL,
+        INSERT_URL,
+        UPDATE_URL,
+        
     };
 
     return (

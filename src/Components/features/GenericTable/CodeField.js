@@ -93,7 +93,6 @@ const CodeField = ({
             }}>
             
             <>
-                
                 <div style={{ "marginTop": "20px", "fontWeight": "bold" }}>
                     {fieldArray[0]}:
                 </div>
@@ -107,56 +106,16 @@ const CodeField = ({
                 }
                 disabled={disabled}
                 highlight={code => highlight(code, languages.js, 'javascript')}
+                rows={4}
                 padding={10}
                 style={{
                     fontFamily: '"Fira code", "Fira Mono", monospace',
                     fontSize: 25,
                 }}
             />
-
-            
-
         </div>
     )
 }
 
 export default CodeField;
-
-
-// {fieldsWithLinks.indexOf(field) >= 0 
-//     && <div style={{'float': 'left'}}>
-//     <Dropdown as={ButtonGroup}>
-//         {/* <Button variant="success">Split Button</Button> */}
-
-//         <Dropdown.Toggle split variant="success" id="dropdown-split-basic" />
-
-//         <Dropdown.Menu>
-//             {linksArr.map(linkObject => 
-//                 <Dropdown.Item 
-//                     // bsPrefix='link-dropdown'
-//                 >
-//                     <Link 
-//                         to={{
-//                             pathname: linkObject['LINK'],
-//                             state: {
-//                                 'table': linkObject['TABLE'],
-//                                 'searchObj':{
-//                                     [field]: checked_val
-//                                 }
-//                             }
-//                         }}
-//                     >
-//                         <img 
-//                             style={{'float': 'left'}} 
-//                             src={LinkLogo12} 
-//                             alt="React Logo" 
-//                             title={'This will link to table ' + linkObject['TABLE']}
-//                         />
-//                     </Link>
-//                 </Dropdown.Item>
-                
-//             )}
-//         </Dropdown.Menu>
-//     </Dropdown>
-// </div>}
                

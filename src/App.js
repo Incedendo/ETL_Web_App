@@ -33,19 +33,6 @@ const REDIRECT_URI = ORIGIN + '/implicit/callback';
 // const REDIRECT_URI = ORIGIN + '/etlframework';
 const SCOPES = 'openid profile email';
 
-const onAuthRequired = ({ history }) => {
-  history.push('/login');
-}
-
-const config = {
-  issuer: ISSUER,
-  clientId: CLIENT_ID,
-  redirectUri: REDIRECT_URI,
-  onAuthRequired: onAuthRequired,
-  pkce: true
-  // scope: SCOPES.split(/\s+/),
-};
-
 const App = () => {
   console.log(ORIGIN);
   console.log(REDIRECT_URI);

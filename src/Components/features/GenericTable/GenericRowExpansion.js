@@ -106,9 +106,6 @@ const GenericRowExpansion = ({ row, ...rest }) => {
     }
 
     const performUpdate = (isSubscribed) =>{
-
-        applyChanges();
-
         let update_status = "FAILURE";
         const sqlMergeStatement = generateMergeStatement(
             row['metaData'].database, 
@@ -187,7 +184,7 @@ const GenericRowExpansion = ({ row, ...rest }) => {
         <div>
             {editMessage !== '' &&
                 <div className={editMessageClassname}>
-                <h4 >Status: </h4> {editMessage}
+                    Status: {editMessage}
                 </div>
             }
         </div>
@@ -202,12 +199,12 @@ const GenericRowExpansion = ({ row, ...rest }) => {
 
     return (
         <div key={row.id}>
-            <ErrorMessage />
             <div className="row-expansion-button-div">
                 {(editMessage === '' && changed && row['PRIVILEGE'] !== 'READ ONLY') ? <LoadableUpdateButton /> : ""}
             </div>
             
             <div className="detail-div">
+                <ErrorMessage />
                 {Object.entries(modifiedRow).map((key, index) =>
                     (key[0] !== 'metaData' && excludedFields.indexOf(key[0]) < 0)
                         && <DisplayField

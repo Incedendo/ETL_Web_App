@@ -9,17 +9,23 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 import SecondaryTableNotSharingContext from '../GenericTable/SecondaryTableNotSharingContext';
 import axios from 'axios';
 
-const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
-const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
-const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
+// const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
+// const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
+// const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
+// const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
 
 const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, privilege }) => {
 
     const { authState } = useOktaAuth();
     const {
         debug,
-        performAuditOperation
+        performAuditOperation,
+
+        ARN_APIGW_GET_SELECT,
+        ARN_APIGW_GET_TABLE_SNOWFLAKE,
+        SELECT_URL,
+        TABLESNOWFLAKE_URL,
+        INSERT_URL,
     } = useContext(WorkspaceContext);
 
     // const ID = 'EXTRACT_CONFIG_ID';
@@ -40,7 +46,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     const [table, setTable] = useState(tableName);
     // const [reloadTable, setReloadTable] = useState(false)
     
-    const [sqlStatement, setSqlStatement] = useState(sqlGetStmt);
+    // const [sqlStatement, setSqlStatement] = useState(sqlGetStmt);
     
     const [tableLoading, setTableLoading] = useState(false)
     const [tableLoaded, setTableLoaded] = useState(false)
@@ -104,43 +110,17 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     
     useEffect(() => {
         const abortController = new AbortController();
-
-        debug && console.log('Current Table: ', table);
-        if (table !== '') {
-            axiosCallToGetTable(sqlStatement);
-
-            //new search 
-            //1. get columns
-            
-        } else {
-            setTableLoaded(false);
-            setColumns([]);
-            setRows([]);
-            setSearchCriteria([]);
-        }
+        axiosCallToGetTable(sqlGetStmt);
 
         return () => {
             abortController.abort();
         };
 
-    }, [table]);
+    }, []);
 
     useEffect(()=>{
         debug && console.log(rows);
     }, [rows]);
-
-    // useEffect(() => {
-    //     const abortController = new AbortController();
-    //     if (reloadTable) {
-    //         debug && console.log('Current Table: ', table)
-    //         axiosCallToGetTable(sqlStatement)
-    //         // setReloadTable(false);
-    //     }
-
-    //     return () => {
-    //         abortController.abort();
-    //     };
-    // }, [reloadTable]);
 
     const disableColumnsContainingPK = () => {
         let columnDisabledArr = [
@@ -171,7 +151,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
         return result;
     }
 
-    const axiosCallToGetTable = (sqlStatement) => {
+    const axiosCallToGetTable = (sqlGetStmt) => {
         const { accessToken } = authState;
         // const getURL = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 
@@ -190,18 +170,18 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
         // with Authorization table.
         // let proposed_get_statenent = 'SELECT * FROM SHARED_TOOLS_DEV.ETL.ETLF_CUSTOM_CODE WHERE EXTRACT_CONFIG_ID = '
         //     + propData[ID] + ';'; 
-        debug && console.log('Propose GET sql statement: ', sqlStatement)
+        debug && console.log('Propose GET sql statement: ', sqlGetStmt)
 
         debug && console.log('Table name:', table);
         debug && console.time("Pulling config for generic table");
         axios.get(TABLESNOWFLAKE_URL, {
-            // headers: {
-            //     'type': 'TOKEN',
-            //     'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
-            //     'authorizorToken': accessToken
-            // },
+            headers: {
+                'type': 'TOKEN',
+                'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
+                'authorizorToken': accessToken
+            },
             params: { //params maps to event.queryStringParameters
-                sql_statement: sqlStatement,
+                sql_statement: sqlGetStmt,
                 database: database,
                 schema: schema,
                 tableName: table,
@@ -320,6 +300,74 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
             });
     }
 
+    const updateTableRows = (sqlGetStmt) => {
+        const { accessToken } = authState;
+        debug && console.log(headers);
+
+        debug && console.log("%c SQL AxiosCallToGetTable", "color: red; font-weight:bold");
+        setTableLoaded(false);
+        setTableLoading(true);
+
+        setTableSeaching(true);
+        setColumnID('');
+        setSearchValue('');
+
+        setEditMode(false);
+        setInsertMode(false);
+
+        setEditError('');
+        setInsertError('');
+
+        debug && console.log('Table name:', table);
+        
+        debug && console.log('%c Counting time axios call:', 'color: orange; font-weight: bold');
+        debug && console.time("calling API to load table");
+        axios.get(SELECT_URL, {
+            headers: {
+                'type': 'TOKEN',
+                'methodArn': ARN_APIGW_GET_SELECT,
+                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                'authorizorToken': accessToken
+            },
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: sqlGetStmt,
+            }
+        })//have to setState in .then() due to asynchronous opetaions
+            .then(response => {
+                // returning the data here allows the caller to get it through another .then(...)
+                // console.log('---------GET RESPONSE-----------');
+                let rows = response.data;
+                debug && console.log(rows);
+
+                loadTableRows(rows, 'CUSTOM_CODE_ID'); 
+            })
+            .catch(error => {
+                debug && console.log(error);
+                setRows([]);
+                setSearchCriteria([]);
+                setTable('');
+            })
+            .finally(() => {
+                setTableLoaded(true);
+                setTableLoading(false);
+                setTableSeaching(false);
+                debug && console.timeEnd("calling API to load table");
+            });
+    }
+
+    const loadTableRows = (dbTableRows, primaryKey) => {
+
+        // setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
+        setRows([]);
+        setRows(
+            dbTableRows.map((row, index) => ({
+                id: row[primaryKey],
+                ...row
+            }))
+        )
+    }
+
     const insertUsingMergeStatement = (sqlMergeStatement, values, setValidating, performReload) => {
 
         // const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/insert';
@@ -395,6 +443,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                     setInsertError(err.message);
                 })
                 .finally(() => {
+                    updateTableRows(sqlGetStmt);
                     performAuditOperation('INSERT', primaryKeys, values, sqlMergeStatement, insert_status)
                 })
         }else{

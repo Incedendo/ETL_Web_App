@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
+import Dropdown from 'react-bootstrap/Dropdown';
+import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ConfigurationGrid from '../GridComponents/Grids/ConfigurationGrid';
 import GenericConfigurationGrid from '../GenericTable/GenericConfigurationGrid';
@@ -108,7 +110,28 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                 </div>
                 :
                 <>
-                    {/* ETLF_EXTRACT_CONFIG SEARCH */}
+                    {/* <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
+                        <Dropdown as={ButtonGroup}>
+                            <SearchModal 
+                                database={database} 
+                                schema={schema} 
+                                table={table} 
+                                groupIDColumn={groupIDColumn}
+                                username={username} 
+                                columns={columns}
+                                shown={shownModalUponChangingTable}
+                                setCurrentSearchCriteria={setCurrentSearchCriteria}
+                            />
+
+                            <Dropdown.Toggle split id="dropdown-split-basic" />
+
+                            <Dropdown.Menu>
+                                <Dropdown.Item href="#/action-1">Show All</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
+                    </div> */}
+                    
+
                     <SearchModal 
                         database={database} 
                         schema={schema} 
@@ -120,7 +143,11 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                         setCurrentSearchCriteria={setCurrentSearchCriteria}
                     />
 
-                    {table === 'ETLF_EXTRACT_CONFIG' && <SearchModal_CustomCode /> }
+                    {table === 'ETLF_EXTRACT_CONFIG' && 
+                        <SearchModal_CustomCode 
+                            setCurrentSearchCriteria={setCurrentSearchCriteria}/
+                        > 
+                    }
                 </>
             }
         </div>

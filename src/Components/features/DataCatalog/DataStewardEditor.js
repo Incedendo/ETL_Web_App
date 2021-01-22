@@ -8,6 +8,7 @@ import { generateMergeStatement } from '../../SQL_Operations/Insert';
 import Form from 'react-bootstrap/Form';
 import FormField from '../FormComponents/FormField';
 import Button from 'react-bootstrap/Button';
+import Spinner from 'react-bootstrap/Spinner';
 
 import { 
     merge_data_steward,
@@ -32,10 +33,12 @@ const DataStewardEditor = ({
 
     const {
         debug, username,
+        insertSuccess, setInsertSuccess,
         insertUsingMergeStatement
     } = useContext(WorkspaceContext);
 
     const [validating, setValidating] = useState(false);
+    const [inserting, setInserting] = useState(false);
     const [initialStates, setInitialStates] = useState({});
 
     console.log(fields);
@@ -68,9 +71,14 @@ const DataStewardEditor = ({
     }, [initialStates]);
 
     useEffect(() => {
-        if(validating)
-            debug && console.log("submit pressed....validating.....");
-    }, [validating]);
+        console.log('Inserting: ' + inserting);
+        if(!inserting && insertSuccess){
+            debug && console.log("insert success");
+            setInsertSuccess(false);
+            setShow(false);
+        }
+           
+    }, [inserting]);
 
     function getMergeStatement(values) {
         // debug && console.log(values);
@@ -105,7 +113,7 @@ const DataStewardEditor = ({
 
             console.log(values);
 
-            insertUsingMergeStatement(mergeStmt, values, setValidating, false);
+            insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }else if(table === 'DATA_DOMAIN'){
             console.log("reaching data_Steward table");
             mergeStmt = merge_data_domain(values, fields);
@@ -113,7 +121,7 @@ const DataStewardEditor = ({
 
             console.log(values);
 
-            insertUsingMergeStatement(mergeStmt, values, setValidating, false);
+            insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }
         else if(table === 'DATA_STEWARD_DOMAIN'){
             console.log('reach DATA_STEWARD_DOMAIN');
@@ -125,7 +133,7 @@ const DataStewardEditor = ({
             console.log(mergeStmt);
 
             mergeStmt = merge_data_steward_domain(submitedValues);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setValidating, false);
+            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
             console.log(values);
 
@@ -144,12 +152,12 @@ const DataStewardEditor = ({
 
             mergeStmt = merge_catalog_entity_domain(submitedValues);
             console.log(mergeStmt);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setValidating, false);
+            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ENTITIES'){
             
             let submitedValues = {...values};
             mergeStmt = merge_catalog_entities(submitedValues);
-            insertUsingMergeStatement(mergeStmt, values, setValidating, false);
+            insertUsingMergeStatement(mergeStmt, values, setInserting, false);
 
         }else if(table === 'CATALOG_ENTITY_LINEAGE'){
 
@@ -163,7 +171,7 @@ const DataStewardEditor = ({
             console.log(mergeStmt);
 
             console.log(submitedValues);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setValidating, false);
+            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ITEMS'){
             let submitedValues = {...values};
             submitedValues['CATALOG_ENTITIES_ID'] = dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']];
@@ -174,12 +182,13 @@ const DataStewardEditor = ({
             console.log(mergeStmt);
 
             console.log(submitedValues);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setValidating, false);
+            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else{
             mergeStmt = getMergeStatement(values);
         }
 
-        setShow(false);
+        setValidating(false);
+        // setShow(false);
     }
 
     return (
@@ -188,7 +197,10 @@ const DataStewardEditor = ({
         ? 
         <Formik
             validationSchema={schema}
-            onSubmit={values => handleSubmitCustom(values)}
+            onSubmit={values => {
+                setInserting(true);
+                handleSubmitCustom(values)
+            }}
             initialValues={initialStates}
         >
             {({
@@ -211,7 +223,7 @@ const DataStewardEditor = ({
                                 field={field}
                                 // required={requiredFields[field]}
                                 requiredFields={fields}
-                                values={dropdownFields}
+                                values={values}
                                 dataTypes={fieldTypesConfigs[table]["dataTypes"]}
                                 handleChange={handleChange}
                                 handleBlur={handleBlur}
@@ -227,9 +239,14 @@ const DataStewardEditor = ({
                             // variant="primary"
                             type="submit" 
                             disabled={isSubmitting || validating}
+                            style={{
+                                'marginLeft': 'auto',
+                                'display': 'block',
+                                'marginRight': 'auto'
+                            }}
                         >
                             
-                            {validating &&
+                            {inserting &&
                                 <Spinner
                                     as="span"
                                     animation="border"
@@ -239,9 +256,9 @@ const DataStewardEditor = ({
                                 />
                             }
 
-                            {!validating
+                            {!inserting
                                 ? <span style={{ 'marginLeft': '5px' }}>Add {table} item</span>
-                                : <span style={{ 'marginLeft': '5px' }}>Validating Data...</span>
+                                : <span style={{ 'marginLeft': '5px' }}>Inserting Data...</span>
                             }
                         </Button>
 

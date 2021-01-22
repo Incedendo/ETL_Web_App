@@ -106,11 +106,6 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
             // ;`;
 
             let searchStmt = linkedState['searchStmt'];
-            // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
-            // FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
-            // WHERE ` + getSearchFieldValue(currentSearchObj) + `
-            // ;`;
-
             console.log(searchStmt);
 
             axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
@@ -162,7 +157,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                             if (eventKey ==="Configuration"){
                                 debug && console.log("Config Tab");
                                 setTable("ETLF_EXTRACT_CONFIG");
-                            } else if (eventKey === "Jobs"){
+                            } else if (eventKey === "Schedule Jobs"){
                                 debug && console.log("Configuration Tab");
                                 setTable("ETLFCALL");
                             } 
@@ -175,7 +170,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                                 shownModalUponChangingTable={shownModalUponChangingTable}
                             />
                         </Tab>
-                        <Tab eventKey="Jobs" title="Jobs" disabled = {tableLoading}>
+                        <Tab eventKey="Schedule Jobs" title="Schedule Jobs" disabled = {tableLoading}>
                             <WorkTab
                                 shownModalUponChangingTable={shownModalUponChangingTable}
                             />

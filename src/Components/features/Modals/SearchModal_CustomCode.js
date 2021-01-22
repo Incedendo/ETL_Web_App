@@ -10,7 +10,7 @@ import '../../../css/mymodal.scss';
 import UpArrow8 from '../../../media/LinkIcon/up-arrow_8.svg';
 import DownArrow8 from '../../../media/LinkIcon/down-arrow_8.svg';
 
-const SearchModal_CustomCode = () => {
+const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     
     const {
         debug,
@@ -21,6 +21,10 @@ const SearchModal_CustomCode = () => {
     const [show, setShow] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [fontSize, setFontsize] = useState(15);
+
+    useEffect(()=> {
+        // setTable('ETLF_CUSTOM_CODE');
+    }, [])
 
     const multiSearch_ETLF_EXTRACT_CONFIG = () => {
         let searchStmt = 
@@ -41,6 +45,10 @@ const SearchModal_CustomCode = () => {
 
     const multiSearch_CUSTOM_CODE = () => {
 
+        setCurrentSearchCriteria({
+            'CUSTOM_CODE': searchValue
+        })
+
         let searchStmt = `SELECT A.SOURCE_TABLE, B.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
         FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" A
         LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
@@ -52,9 +60,7 @@ const SearchModal_CustomCode = () => {
         ) B
         ON A.EXTRACT_CONFIG_ID = B.EXTRACT_CONFIG_ID`
         
-        debug && console.log(searchStmt)
-
-        setTable('ETLF_CUSTOM_CODE');
+        debug && console.log(searchStmt);
         
         //wait till table === 'ETLF_CUSTOM_CODE'
         axiosCallToGetTableRows( searchStmt, ['CUSTOM_CODE_ID'] );
@@ -83,15 +89,15 @@ const SearchModal_CustomCode = () => {
                 </Modal.Header>
                 <Modal.Body>
                     <div className="body-height">
-                        <div className="searchModal-div">
+                        {/* <div className="searchModal-div"> */}
+                        <div>
                             <div style={{'marginBottom': '10px'}}>
-                                Custom Code: 
+                                <span style={{'marginRight': '5px'}}>Custom Code:</span> 
                                 <button style={{'height': '25px'}} onClick={()=>setFontsize(fontSize+1)}><img src={UpArrow8} /></button>
                                 <button style={{'height': '25px'}} onClick={()=>setFontsize(fontSize-1)}><img src={DownArrow8} /></button>
                             </div>
                             
                             {/* <input value={searchValue} onChange={(e) => setSearchValue(e.target.value)} /> */}
-                            
                             
                             <Editor
                                 value={searchValue}
@@ -106,11 +112,13 @@ const SearchModal_CustomCode = () => {
                                     fontSize: fontSize,
                                 }}
                             />
-                            
 
                             <button 
                                 className="search-button btn btn-primary topMargin"
-                                onClick={multiSearch_CUSTOM_CODE}
+                                onClick={()=>{
+                                    setTable('ETLF_CUSTOM_CODE');
+                                    multiSearch_CUSTOM_CODE();
+                                }}
                             >
                                 Search
                             </button>

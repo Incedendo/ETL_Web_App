@@ -23,7 +23,8 @@ import WrapperField from '../GenericTable/WrapperField';
 import PrimaryKeyField from '../GenericTable/PrimaryKeyField';
 import CodeField from '../GenericTable/CodeField';
 import DropdownField from '../GenericTable/DropdownField';
-import { isEmptyArray } from 'formik';
+
+import '../../../css/rowExpansion.scss';
 
 // const url = "https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/update";
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
@@ -111,16 +112,18 @@ const RowExpansion = React.memo(({ row }) => {
         if('EXTRACT_CONFIG_ID' in state){
             differenceBetweenRowAndState['EXTRACT_CONFIG_ID'] = state['EXTRACT_CONFIG_ID']
         }
-        if(table ==='ETLFCALL'){
+        else if(table ==='ETLFCALL'){
             differenceBetweenRowAndState['ETLFCALL_ID'] = state['ETLFCALL_ID'];
             differenceBetweenRowAndState['SOURCE_TABLE'] = state['SOURCE_TABLE'];
             differenceBetweenRowAndState['WORK_GROUP_ID'] = state['WORK_GROUP_ID'];
+        }else if(table === 'ETLF_CUSTOM_CODE'){
+            differenceBetweenRowAndState['CUSTOM_CODE_ID'] = state['CUSTOM_CODE_ID'];
         }
         
 
         setDiff(differenceBetweenRowAndState);
         console.log(differenceBetweenRowAndState);
-    }, [state]);
+    }, [state, table]);
 
     useEffect(()=>{
         updateDropdownFields(table_configs[table], appIDs);
@@ -195,47 +198,47 @@ const RowExpansion = React.memo(({ row }) => {
         debug && console.log('columnDataTypes Obj: ', columnDataTypes);
     }, [columnDataTypes]);
 
-    useEffect(() => {
-        if (row.PRIVILEGE !== "READ ONLY"){
-            const abortController = new AbortController();
-            const { accessToken } = authState;
+    // useEffect(() => {
+    //     if (row.PRIVILEGE !== "READ ONLY"){
+    //         const abortController = new AbortController();
+    //         const { accessToken } = authState;
 
-            // const getURL = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-            axios.get(TABLESNOWFLAKE_URL, {
-                    headers: {
-                        'type': 'TOKEN',
-                        'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
-                        'authorizorToken': accessToken
-                    },
-                    params: { //params maps to event.queryStringParameters
-                        sql_statement: "SELECT * FROM DUAL;",
-                        database: "SHARED_TOOLS_DEV",
-                        schema: 'ETL',
-                        tableName: "ETLF_CUSTOM_CODE",
-                    }
-                })
-                //have to setState in .then() due to asynchronous opetaions
-                .then(response => {
-                    const columnsInfo = response.data.columns;
-                    //derive an array of types of item in above array.
-                    let dataTypeObj = {}
-                    for (let id in columnsInfo) {
-                        let column_name = columnsInfo[id].COLUMN_NAME;
-                        let column_type = columnsInfo[id].DATA_TYPE;
-                        dataTypeObj[column_name] = getDataType(column_type);
-                    }
+    //         // const getURL = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
+    //         axios.get(TABLESNOWFLAKE_URL, {
+    //                 headers: {
+    //                     'type': 'TOKEN',
+    //                     'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
+    //                     'authorizorToken': accessToken
+    //                 },
+    //                 params: { //params maps to event.queryStringParameters
+    //                     sql_statement: "SELECT * FROM DUAL;",
+    //                     database: "SHARED_TOOLS_DEV",
+    //                     schema: 'ETL',
+    //                     tableName: "ETLF_CUSTOM_CODE",
+    //                 }
+    //             })
+    //             //have to setState in .then() due to asynchronous opetaions
+    //             .then(response => {
+    //                 const columnsInfo = response.data.columns;
+    //                 //derive an array of types of item in above array.
+    //                 let dataTypeObj = {}
+    //                 for (let id in columnsInfo) {
+    //                     let column_name = columnsInfo[id].COLUMN_NAME;
+    //                     let column_type = columnsInfo[id].DATA_TYPE;
+    //                     dataTypeObj[column_name] = getDataType(column_type);
+    //                 }
 
-                    // debug && console.log(dataTypeObj)
+    //                 // debug && console.log(dataTypeObj)
 
-                    debug && console.log('Data types OBJ of columns in table: ', dataTypeObj);
-                    setGenericTableDataTypeObj(dataTypeObj);
-                });
+    //                 debug && console.log('Data types OBJ of columns in table: ', dataTypeObj);
+    //                 setGenericTableDataTypeObj(dataTypeObj);
+    //             });
 
-            return () => {
-                abortController.abort();
-            };
-        }
-    }, [])
+    //         return () => {
+    //             abortController.abort();
+    //         };
+    //     }
+    // }, [])
 
     const getUpdateStatementForDataCatalog = (row, diff) => {
         let updateStatement = '';
@@ -268,38 +271,36 @@ const RowExpansion = React.memo(({ row }) => {
 
     const performUpdate = (isSubscribed) => {
         //get the ID columns in the array of non_editable columns:
+        console.log('perform update...');
+        console.log('table: ', table);
+
         let primaryKey = fieldTypesConfigs[table]['primaryKeys'][0];
         let sqlMergeStatement = '';
         const diffCols = Object.keys(diff);
 
-        if(table in DATA_CATALOG_TABLE){
+        if(DATA_CATALOG_TABLE.indexOf(table) >= 0){
             console.log("generate update for DATCAT");
             sqlMergeStatement = getUpdateStatementForDataCatalog(row, diff);
         }else{
+            
             if(table === 'ETLFCALL'){
+                console.log("generate update for ETLFCALL");
                 let primaryKeysForETLFCALL = ['ETLFCALL_ID', 'SOURCE_TABLE', 'WORK_GROUP_ID'];
                 
                 sqlMergeStatement = generateMergeUpdateStatement(database, schema, table, primaryKeysForETLFCALL, diffCols, diff);
-                // sqlMergeStatement = `merge into SHARED_TOOLS_DEV.ETL.ETLFCALL tt
-                // using (
-                //     select 'ABC' as JSON_PARAM, 
-                //           'EA9CE554-DC37-499B-9A9E-C5DC26B1B7F6' as ETLFCALL_ID, 
-                //           'KIET_TEST' as SOURCE_TABLE, 
-                //           2099 as WORK_GROUP_ID
-                //    from dual
-                // ) st on (tt.ETLFCALL_ID= st.ETLFCALL_ID AND tt.SOURCE_TABLE= st.SOURCE_TABLE AND tt.WORK_GROUP_ID= st.WORK_GROUP_ID)
-                // when matched then
-                // update set 
-                //   tt.JSON_PARAM = st.JSON_PARAM, 
-                //   tt.ETLFCALL_ID = st.ETLFCALL_ID, 
-                //   tt.SOURCE_TABLE = st.SOURCE_TABLE, 
-                //   tt.WORK_GROUP_ID = st.WORK_GROUP_ID 
-                // ;`
+            }else if(table === 'ETLF_CUSTOM_CODE'){
+                console.log("generate update for ETLF_CUSTOM_CODE");
+                const primaryKeysForCustomCode = ['CUSTOM_CODE_ID'];
+                //this is a temporary fix for a bug: (table is somehow still )
+                const editedDiff = {
+                    ...diff,
+                    'CUSTOM_CODE_ID': state['CUSTOM_CODE_ID']
+                };
+                const editedDiffCols = Object.keys(editedDiff);
 
-                // sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
-                
-            
+                sqlMergeStatement = generateMergeUpdateStatement(database, schema, table, primaryKeysForCustomCode, editedDiffCols, editedDiff);
             }else{
+                console.log("generate update for ETLF");
                 sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
             }
             // console.log(database);
