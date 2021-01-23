@@ -107,6 +107,7 @@ const GenericRowExpansion = ({ row, ...rest }) => {
 
     const performUpdate = (isSubscribed) =>{
         let update_status = "FAILURE";
+        const primaryKey = 'CUSTOM_CODE_ID';
         const sqlMergeStatement = generateMergeStatement(
             row['metaData'].database, 
             row['metaData'].schema, 
@@ -126,6 +127,10 @@ const GenericRowExpansion = ({ row, ...rest }) => {
         const userConfirmed = " Please confirm Update SQL statement: " + sqlMergeStatement;
 
         if (window.confirm(userConfirmed)) {
+            // let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
+            // let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
+            // setRows(newRows);
+
             axios.put(UPDATE_URL, data, options)
                 .then(response => {
                     if (isSubscribed) {

@@ -315,10 +315,7 @@ const RowExpansion = React.memo(({ row }) => {
         console.log(row);
         console.log(state);
 
-        // let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
-        let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
         
-        setRows(newRows);
 
         console.log(diffCols);
         console.log(diff);
@@ -334,6 +331,10 @@ const RowExpansion = React.memo(({ row }) => {
         const userConfirmed = " Please confirm Update SQL statement: " + sqlMergeStatement;
 
         if (window.confirm(userConfirmed)) {
+            // let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
+            let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
+            setRows(newRows);
+            
             axios.put(UPDATE_URL, data, options)
                 .then(response => {
                     if (isSubscribed) {
