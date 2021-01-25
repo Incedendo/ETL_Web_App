@@ -6,7 +6,12 @@ import '../../../css/rowExpansion.scss';
 import CustomCodeForm from '../FormComponents/CustomCodeForm';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 
-const CustomCodeModal = ({ table, EXTRACT_CONFIG_ID, privilege, uniqueCols, insertUsingMergeStatement }) => {
+const CustomCodeModal = ({ 
+    table, 
+    EXTRACT_CONFIG_ID, privilege, 
+    insertUsingMergeStatement,
+    customCodeDataTypeObj, 
+}) => {
     const {
         debug
     } = useContext(WorkspaceContext);
@@ -45,6 +50,7 @@ const CustomCodeModal = ({ table, EXTRACT_CONFIG_ID, privilege, uniqueCols, inse
                     <CustomCodeForm
                         table={table}
                         EXTRACT_CONFIG_ID={EXTRACT_CONFIG_ID}
+                        customCodeDataTypeObj={customCodeDataTypeObj}
                         setShow={setShow}
                         insertUsingMergeStatement={insertUsingMergeStatement}
                     />

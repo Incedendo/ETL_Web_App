@@ -1,6 +1,6 @@
 //1
 export const merge_data_steward = (searchObj, fields) => {
-    const EMAIL = searchObj['EMAIL'];
+    const EMAIL = searchObj['EMAIL'].replace(/'/g, "\\'");
     console.log(fields);
 
     for(let item of fields){
@@ -11,8 +11,8 @@ export const merge_data_steward = (searchObj, fields) => {
 
     console.log(searchObj);
 
-    const FNAME = searchObj['FNAME'];
-    const LNAME = searchObj['LNAME'];
+    const FNAME = searchObj['FNAME'].replace(/'/g, "\\'");
+    const LNAME = searchObj['LNAME'].replace(/'/g, "\\'");
 
     let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.DATA_STEWARD TT
     USING (
@@ -48,8 +48,8 @@ export const merge_data_domain = (searchObj, fields) => {
         }
     }
 
-    const DOMAIN = searchObj['DOMAIN'];
-    const DOMAIN_DESCRIPTIONS = searchObj['DOMAIN_DESCRIPTIONS'];
+    const DOMAIN = searchObj['DOMAIN'].replace(/'/g, "\\'");;
+    const DOMAIN_DESCRIPTIONS = searchObj['DOMAIN_DESCRIPTIONS'].replace(/'/g, "\\'");;
 
     let sql =  `MERGE INTO SHARED_TOOLS_DEV.ETL.DATA_DOMAIN TT
     USING (
@@ -105,22 +105,6 @@ export const merge_catalog_entity_domain = (searchObj) => {
     const DATA_DOMAIN_ID = searchObj['DATA_DOMAIN_ID'];
     const CATALOG_ENTITIES_ID_string = searchObj['CATALOG_ENTITIES_ID'];
 
-    // let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN TT
-    // USING (
-    //     SELECT UPPER(TRIM('` + DATA_DOMAIN_ID + `')) AS DATA_DOMAIN_ID,
-    //             UPPER(TRIM('` + CATALOG_ENTITIES_ID_string + `')) AS CATALOG_ENTITIES_ID
-    //    FROM DUAL
-    // ) st 
-    // ON (TT.DATA_DOMAIN_ID = ST.DATA_DOMAIN_ID AND TT.CATALOG_ENTITIES_ID = ST.CATALOG_ENTITIES_ID)
-    // WHEN NOT matched THEN
-    // INSERT (
-    //     DATA_DOMAIN_ID, CATALOG_ENTITIES_ID
-    // ) 
-    // VALUES 
-    // (
-    //     st.DATA_DOMAIN_ID, st.CATALOG_ENTITIES_ID
-    // );`;
-
     let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN TT
     USING (
         select table1.value as CATALOG_ENTITIES_ID, UPPER(TRIM('` + DATA_DOMAIN_ID + `')) AS DATA_DOMAIN_ID
@@ -161,7 +145,7 @@ export const merge_catalog_items = (searchObj, fields) => {
     const CATALOG_ENTITIES_ID = searchObj['CATALOG_ENTITIES_ID'];
 
     const PII = ('PII' in searchObj) ? searchObj['PII'] : '';
-    const COMMENTS = ('COMMENTS' in searchObj) ? searchObj['COMMENTS'] : '';
+    const COMMENTS = ('COMMENTS' in searchObj) ? searchObj['COMMENTS'].replace(/'/g, "\\'") : '';
 
     const sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ITEMS TT
     USING (
@@ -192,11 +176,11 @@ export const merge_catalog_items = (searchObj, fields) => {
 export const merge_catalog_entities = (searchObj) => {
     console.log(searchObj);
 
-    const DATABASE = searchObj['TARGET_DATABASE'];
-    const SCHEMA = searchObj['TARGET_SCHEMA'];
-    const TABLE = searchObj['TARGET_TABLE'];
+    const DATABASE = searchObj['TARGET_DATABASE'].replace(/'/g, "\\'");
+    const SCHEMA = searchObj['TARGET_SCHEMA'].replace(/'/g, "\\'");
+    const TABLE = searchObj['TARGET_TABLE'].replace(/'/g, "\\'");
 
-    const COMMENTS = ('COMMENTS' in searchObj) ? searchObj['COMMENTS'] : '';
+    const COMMENTS = ('COMMENTS' in searchObj) ? searchObj['COMMENTS'].replace(/'/g, "\\'") : '';
 
     let sql = `merge into SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES TT
     using (
@@ -239,14 +223,14 @@ export const merge_catalog_entity_lineage = (searchObj, fields) => {
 
 
     const CATALOG_ENTITIES_ID = searchObj['CATALOG_ENTITIES_ID'];
-    const ORIGIN_INFORMATION = searchObj['ORIGIN_INFORMATION'];
-    const CONFIG_NAME = searchObj['CONFIG_NAME'];
+    const ORIGIN_INFORMATION = searchObj['ORIGIN_INFORMATION'].replace(/'/g, "\\'");
+    const CONFIG_NAME = searchObj['CONFIG_NAME'].replace(/'/g, "\\'");
     const EXTRACT_CONFIG_ID = searchObj['EXTRACT_CONFIG_ID'];
-    const SOURCE_TABLE = searchObj['SOURCE_TABLE'];
-    const EXTRACT_SCHEMA = searchObj['EXTRACT_SCHEMA'];
-    const SYSTEM_CONFIG_TYPE = searchObj['SYSTEM_CONFIG_TYPE'];
-    const LINEAGE = searchObj['LINEAGE'];
-    const NOTIFICATIONEMAILS = searchObj['NOTIFICATIONEMAILS'];
+    const SOURCE_TABLE = searchObj['SOURCE_TABLE'].replace(/'/g, "\\'");
+    const EXTRACT_SCHEMA = searchObj['EXTRACT_SCHEMA'].replace(/'/g, "\\'");
+    const SYSTEM_CONFIG_TYPE = searchObj['SYSTEM_CONFIG_TYPE'].replace(/'/g, "\\'");
+    const LINEAGE = searchObj['LINEAGE'].replace(/'/g, "\\'");
+    const NOTIFICATIONEMAILS = searchObj['NOTIFICATIONEMAILS'].replace(/'/g, "\\'");
     const REFRESH_INTERVAL = searchObj['REFRESH_INTERVAL'];
 
     let sql = `merge into SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE TT

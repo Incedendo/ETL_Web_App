@@ -6,26 +6,19 @@ import '../../../css/mymodal.scss';
 import '../../../css/rowExpansion.scss';
 import CustomCodeModal from './CustomCodeModal';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
+import GenericConfigurationGrid from '../GenericTable/GenericConfigurationGrid';
 import SecondaryTableNotSharingContext from '../GenericTable/SecondaryTableNotSharingContext';
 import axios from 'axios';
-
-// const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
-// const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-// const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
-// const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
+import { getDataType, getFieldType } from '../FormComponents/FormUtils';
+import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS } from '../../context/FieldTypesConfig';
+import { SELECT_URL, ARN_APIGW_GET_SELECT, INSERT_URL } from '../../context/URLs';
 
 const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, privilege }) => {
 
     const { authState } = useOktaAuth();
     const {
         debug,
-        performAuditOperation,
-
-        ARN_APIGW_GET_SELECT,
-        ARN_APIGW_GET_TABLE_SNOWFLAKE,
-        SELECT_URL,
-        TABLESNOWFLAKE_URL,
-        INSERT_URL,
+        performAuditOperation
     } = useContext(WorkspaceContext);
 
     // const ID = 'EXTRACT_CONFIG_ID';
@@ -93,7 +86,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     const [sortingStates, setSortingStates] = useState([]);
     const [columnDataTypes, setColumnDataTypes] = useState({});
     const [columnWidths, setColumnWidths] = useState([]);
-    
+    const [customCodeDataTypeObj, setCustomCodeDataTypeObj] = useState({});
     
     useEffect(() => {
         setEditMode(false);
@@ -110,17 +103,128 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     
     useEffect(() => {
         const abortController = new AbortController();
-        axiosCallToGetTable(sqlGetStmt);
-
+        if(show){
+            axiosCallToGetTable(sqlGetStmt);
+        }
         return () => {
             abortController.abort();
         };
 
-    }, []);
+    }, [show]);
 
     useEffect(()=>{
         debug && console.log(rows);
     }, [rows]);
+
+    useEffect(() => {
+        
+        const abortController = new AbortController();
+        const { accessToken } = authState;
+
+        let sql = `SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS" 
+    WHERE 
+    //TABLE_SCHEMA = '' AND 
+    TABLE_NAME = 'ETLF_CUSTOM_CODE'
+    ORDER BY ORDINAL_POSITION;`;
+
+        // const getURL = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
+        axios.get(SELECT_URL, {
+                headers: {
+                    'type': 'TOKEN',
+                    'methodArn': ARN_APIGW_GET_SELECT,
+                    'authorizorToken': accessToken
+                },
+                params: { //params maps to event.queryStringParameters
+                    sqlStatement: sql,
+                }
+            })
+            //have to setState in .then() due to asynchronous opetaions
+            .then(response => {
+                const columnsInfo = response.data;
+                setSearchCriteria(columnsInfo);
+                //derive an array of types of item in above array.
+
+                if (response.data.length > 0) {
+
+                    // setSearchCriteria(originalColumns);
+
+                    let number_typeColumns = response.data.map(row => {
+                        if (row.DATA_TYPE === 'NUMBER') return row.COLUMN_NAME;
+                    })
+                    setNumberColumns(number_typeColumns);
+
+                    // derive an array of headers from the COLUMNS Table in INFORMATION_SCHEMA
+                    let headers = response.data.map(row => row.COLUMN_NAME)
+                    headers.push("PRIVILEGE");
+                    setHeaders(headers);
+                    // debug && console.log('******headers :', tableColumns)
+
+                    //React Grid Lib Columns must follow a predefined structure of Extreme Dev columns
+                    setColumns(
+                        headers.map(header => ({ name: header, title: header }))
+                    )
+
+                    setColumnWidths(
+                        headers.map(header => ({ columnName: header, width: 150 }))
+                    )
+
+                    setTableColumnExtensions(
+                        headers.map(header => ({ columnName: header, align: 'center' }))
+                    )
+
+                    setSortingStates(
+                        headers.map(header => ({ columnName: header, direction: 'asc' }))
+                    )
+
+                    //derive an array of types of item in above array.
+                    let dataTypeObj = {}
+                    for (let id in columnsInfo) {
+                        let column_name = columnsInfo[id].COLUMN_NAME
+                        let column_type = columnsInfo[id].DATA_TYPE
+                        if (column_type === 'TEXT') {
+                            dataTypeObj[column_name] = "string"
+                        } else if (column_type === 'TIMESTAMP_NTZ') {
+                            dataTypeObj[column_name] = "timestamp"
+                        } else {
+                            dataTypeObj[column_name] = "number"
+                        }
+                    }
+
+                    debug && console.log('Data types OBJ of columns in table: ', dataTypeObj);
+
+                    // debug && console.log(dataTypeObj)
+                    // columnsInfo.map(row => {
+                        
+                    //     row['metaData'] = {
+                    //         database: 'SHARED_TOOLS_DEV',
+                    //         schema: 'ETL',
+                    //         table: tableName,
+                    //         primaryKeys: primaryKeys,
+                    //         PRIVILEGE: privilege === 'READ ONLY'
+                    //             ? row.PRIVILEGE = "READ ONLY"
+                    //             : row.PRIVILEGE = "READ/WRITE",
+                    //         route: route
+                    //     };
+                    // })
+
+                    // let dataTypeObj = {}
+                    // for (let id in columnsInfo) {
+                    //     let column_name = columnsInfo[id].COLUMN_NAME;
+                    //     let column_type = columnsInfo[id].DATA_TYPE;
+                    //     dataTypeObj[column_name] = getDataType(column_type);
+                    // }   
+                    // debug && console.log(dataTypeObj)
+
+                    debug && console.log('Data types OBJ of columns in table: ', dataTypeObj);
+                    setCustomCodeDataTypeObj(dataTypeObj)
+                }
+            });
+
+        return () => {
+            abortController.abort();
+        };
+        
+    }, [])
 
     const disableColumnsContainingPK = () => {
         let columnDisabledArr = [
@@ -174,17 +278,14 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
 
         debug && console.log('Table name:', table);
         debug && console.time("Pulling config for generic table");
-        axios.get(TABLESNOWFLAKE_URL, {
+        axios.get(SELECT_URL, {
             headers: {
                 'type': 'TOKEN',
-                'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
+                'methodArn': ARN_APIGW_GET_SELECT,
                 'authorizorToken': accessToken
             },
             params: { //params maps to event.queryStringParameters
-                sql_statement: sqlGetStmt,
-                database: database,
-                schema: schema,
-                tableName: table,
+                sqlStatement: sqlGetStmt
             }
         })
             //have to setState in .then() due to asynchronous opetaions
@@ -192,74 +293,11 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                 // returning the data here allows the caller to get it through another .then(...)
                 // debug && console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
-
-                let data = response.data.rows;
-                if (data.length === 0)
-                    return;
-
-                const columnsInfo = response.data.columns;
-
-                let originalColumns = [];
-                if (columnsInfo.length > 0) {
-                    originalColumns = response.data.columns.map(row => row.COLUMN_NAME);
-                }
-                //For generic table, cannot set Primarykeys bc
-                // can't pass (for now) as props to RowExpansion Comp 
-                //have to add to metaData field in each Row
-                // setPrimaryKeys(['CUSTOM_CODE_ID']);
-
+                let data = response.data;
                 //Case: Non-empty table
                 if (data.length > 0) {
-
-                    setSearchCriteria(originalColumns);
-
-                    let number_typeColumns = response.data.columns.map(row => {
-                        if (row.DATA_TYPE === 'NUMBER') return row.COLUMN_NAME;
-                    })
-                    setNumberColumns(number_typeColumns);
-
-                    // derive an array of headers from the COLUMNS Table in INFORMATION_SCHEMA
-                    let headers = response.data.columns.map(row => row.COLUMN_NAME)
-                    headers.push("PRIVILEGE");
-                    setHeaders(headers);
-                    // debug && console.log('******headers :', tableColumns)
-
-                    //React Grid Lib Columns must follow a predefined structure of Extreme Dev columns
-                    setColumns(
-                        headers.map(header => ({ name: header, title: header }))
-                    )
-
-                    setColumnWidths(
-                        headers.map(header => ({ columnName: header, width: 150 }))
-                    )
-
-                    setTableColumnExtensions(
-                        headers.map(header => ({ columnName: header, align: 'center' }))
-                    )
-
-                    setSortingStates(
-                        headers.map(header => ({ columnName: header, direction: 'asc' }))
-                    )
-
-                    //derive an array of types of item in above array.
-                    let dataTypeObj = {}
-                    for (let id in columnsInfo) {
-                        let column_name = columnsInfo[id].COLUMN_NAME
-                        let column_type = columnsInfo[id].DATA_TYPE
-                        if (column_type === 'TEXT') {
-                            dataTypeObj[column_name] = "string"
-                        } else if (column_type === 'TIMESTAMP_NTZ') {
-                            dataTypeObj[column_name] = "timestamp"
-                        } else {
-                            dataTypeObj[column_name] = "number"
-                        }
-                    }
-
-                    debug && console.log('Data types OBJ of columns in table: ', dataTypeObj);
-
-                    // debug && console.log(dataTypeObj)
+                    //need this to set PRIVILEGE for each row of Data based on Privilege of Parent
                     data.map(row => {
-                        
                         row['metaData'] = {
                             database: 'SHARED_TOOLS_DEV',
                             schema: 'ETL',
@@ -280,16 +318,14 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                 //empty table
                 else {
                     //reset all fields from previous table load
-                    setColumns([]);
                     setRows([]);
-                    setSearchCriteria([]);
                 }
             })
             .catch(error => {
                 debug && console.log(error);
-                setColumns([]);
+                // setColumns([]);
                 setRows([]);
-                setSearchCriteria([]);
+                // setSearchCriteria([]);
                 setTable('');
             })
             .finally(() => {
@@ -297,62 +333,6 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                 setTableLoading(false);
                 debug && console.log("%c Time to load Table", "color: red; font-weight:bold");
                 debug && console.timeEnd("Pulling config for generic table");
-            });
-    }
-
-    const updateTableRows = (sqlGetStmt) => {
-        const { accessToken } = authState;
-        debug && console.log(headers);
-
-        debug && console.log("%c SQL AxiosCallToGetTable", "color: red; font-weight:bold");
-        setTableLoaded(false);
-        setTableLoading(true);
-
-        setTableSeaching(true);
-        setColumnID('');
-        setSearchValue('');
-
-        setEditMode(false);
-        setInsertMode(false);
-
-        setEditError('');
-        setInsertError('');
-
-        debug && console.log('Table name:', table);
-        
-        debug && console.log('%c Counting time axios call:', 'color: orange; font-weight: bold');
-        debug && console.time("calling API to load table");
-        axios.get(SELECT_URL, {
-            headers: {
-                'type': 'TOKEN',
-                'methodArn': ARN_APIGW_GET_SELECT,
-                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                'authorizorToken': accessToken
-            },
-            //params maps to event.queryStringParameters in lambda
-            params: {
-                sqlStatement: sqlGetStmt,
-            }
-        })//have to setState in .then() due to asynchronous opetaions
-            .then(response => {
-                // returning the data here allows the caller to get it through another .then(...)
-                // console.log('---------GET RESPONSE-----------');
-                let rows = response.data;
-                debug && console.log(rows);
-
-                loadTableRows(rows, 'CUSTOM_CODE_ID'); 
-            })
-            .catch(error => {
-                debug && console.log(error);
-                setRows([]);
-                setSearchCriteria([]);
-                setTable('');
-            })
-            .finally(() => {
-                setTableLoaded(true);
-                setTableLoading(false);
-                setTableSeaching(false);
-                debug && console.timeEnd("calling API to load table");
             });
     }
 
@@ -403,30 +383,36 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                             setInsertError('');
 
                             let newRows = [...rows];
-                            if(table === 'CATALOG_ENTITY_DOMAIN'){
-                                let insertedRows = []
-                                values['CATALOG_ENTITIES_ID'].map(entityID => {
-                                    insertedRows.push({
-                                        'CATALOG_ENTITIES_ID': entityID,
-                                        'DATA_DOMAIN_ID': values['DATA_DOMAIN_ID']
-                                    })
-                                }) 
-                                newRows = [...newRows, ...insertedRows];
-                                console.log(insertedRows);
-                            }else{
-                                // if(performReload) setReloadTable(true);
-                                values['PRIVILEGE'] = 'READ/WRITE';       
-                                values['route'] = route;                                
-                                //CONVER ALL NON-NUMERIC VAL TO UPPER CASE B4 SAVING:    
-                                (Object.keys(values)).map(col => {
-                                    if(isNaN(values[col]))
-                                        values[col] = values[col].toUpperCase().trim();
-                                })
-                                console.log(values);
-                                newRows.push(values);
-                            }
                             
-                            setRows(newRows);
+                            console.log('----B4 adding extra fields');
+                            console.log(rows);
+                            console.log(newRows);
+                            
+                            // if(performReload) setReloadTable(true);
+                            values['PRIVILEGE'] = 'READ/WRITE';                            
+                            //CONVERT ALL NON-NUMERIC VAL TO UPPER CASE B4 SAVING:    
+                            (Object.keys(values)).map(col => {
+                                if(isNaN(values[col]))
+                                    values[col] = values[col].toUpperCase().trim();
+                            })
+
+                            values['metaData'] = {
+                                'database': database,
+                                'schema': schema,
+                                'table': table,
+                                'primaryKeys': fieldTypesConfigs[table]['primaryKeys'],
+                                
+                            }
+
+                            console.log('----after modifying values to newRows...');
+                            console.log(values);
+                            newRows.push(values);
+                            console.log(newRows);
+                            
+                            // setRows([]);
+                            // setRows(newRows);
+
+                            loadTableRows(newRows, fieldTypesConfigs[table]['primaryKeys'])
 
                             insert_status = "SUCCESS";
                         }
@@ -443,7 +429,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                     setInsertError(err.message);
                 })
                 .finally(() => {
-                    updateTableRows(sqlGetStmt);
+                    // axiosCallToGetTable(sqlGetStmt);
                     performAuditOperation('INSERT', primaryKeys, values, sqlMergeStatement, insert_status)
                 })
         }else{
@@ -481,9 +467,16 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                         privilege={privilege}
                         uniqueCols={[]}
                         insertUsingMergeStatement={insertUsingMergeStatement}
+                        customCodeDataTypeObj={customCodeDataTypeObj}
                     />
 
-                    {privilege !== undefined &&
+                    {tableLoading && 
+                        <div style={{'display': 'flex', 'marginLeft': 'auto', 'marginRight': 'auto'}}>
+                            loading data ...
+                        </div>
+                    }
+
+                    {privilege !== undefined && tableLoaded && 
                         // <Table
                         //     // propData={data}
                         //     privilege={data['PRIVILEGE']}
@@ -492,12 +485,14 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                         //     route={route}
                         //     isDataCatalog={false}
                         // />
-                        <SecondaryTableNotSharingContext
+                        <GenericConfigurationGrid
                             rows={rows}
                             columns={columns}
                             numberColumns={numberColumns}
                             primaryKeys={primaryKeys}
                             searchCriteria={searchCriteria}
+                            // reloadTable={reloadTable}
+                            // setReloadTable={setReloadTable}
                             table={table}
                             sortingStates={sortingStates}
                             editingStateColumnExtensions={editingStateColumnExtensions}

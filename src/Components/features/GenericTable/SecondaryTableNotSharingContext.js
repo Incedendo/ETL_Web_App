@@ -13,13 +13,13 @@ const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.c
 const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
 
 const SecondaryTableNotSharingContext = ({ 
-    privilege, getStatement, tableName, route,
     rows, columns, numberColumns, primaryKeys, searchCriteria, table,
     sortingStates, editingStateColumnExtensions, tableColumnExtensions,
     columnWidths, setColumnWidths, columnDataTypes, setAddedRows
 }) => {
     
     console.log(rows);
+    console.log(primaryKeys);
 
     const TableWrapper = () => (
         <div>

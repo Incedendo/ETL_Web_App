@@ -3,9 +3,9 @@ export const merge_update_data_steward = (row, diff) => {
 
     row = {...row, ...diff};
 
-    const EMAIL = row['EMAIL'];
-    const FNAME = row['FNAME'];
-    const LNAME = row['LNAME'];
+    const EMAIL = row['EMAIL'].replace(/'/g, "\\'");
+    const FNAME = row['FNAME'].replace(/'/g, "\\'");
+    const LNAME = row['LNAME'].replace(/'/g, "\\'");
 
     let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.DATA_STEWARD TT
     USING (
@@ -38,8 +38,8 @@ export const merge_update_data_domain = (row, diff) => {
 
     row = {...row, ...diff};
 
-    const DOMAIN = row['DOMAIN'];
-    const DOMAIN_DESCRIPTIONS = row['DOMAIN_DESCRIPTIONS'];
+    const DOMAIN = row['DOMAIN'].replace(/'/g, "\\'");
+    const DOMAIN_DESCRIPTIONS = row['DOMAIN_DESCRIPTIONS'].replace(/'/g, "\\'");
 
     let sql =  `MERGE INTO SHARED_TOOLS_DEV.ETL.DATA_DOMAIN TT
     USING (
@@ -70,15 +70,15 @@ export const merge_update_catalog_items = (row, diff) => {
     row = {...row, ...diff};
     
 
-    const DATABASE = row['TARGET_DATABASE'];
-    const SCHEMA = row['TARGET_SCHEMA'];
-    const TABLE = row['TARGET_TABLE'];
-    const COLUMN_NAME = row['COLUMN_NAME'];
+    const DATABASE = row['TARGET_DATABASE'].replace(/'/g, "\\'");
+    const SCHEMA = row['TARGET_SCHEMA'].replace(/'/g, "\\'");
+    const TABLE = row['TARGET_TABLE'].replace(/'/g, "\\'");
+    const COLUMN_NAME = row['COLUMN_NAME'].replace(/'/g, "\\'");
     const CATALOG_ENTITIES_ID = row['CATALOG_ENTITIES_ID'];
 
-    const DATA_TYPE = row['DATA_TYPE'];
+    const DATA_TYPE = row['DATA_TYPE'].replace(/'/g, "\\'");
     const PII = ('PII' in row) ? row['PII'] : '';
-    const COMMENTS = ('COMMENTS' in row) ? row['COMMENTS'] : '';
+    const COMMENTS = ('COMMENTS' in row) ? row['COMMENTS'].replace(/'/g, "\\'") : '';
 
     const sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ITEMS TT
     USING (
@@ -116,11 +116,11 @@ export const merge_update_catalog_entities = (row, diff) => {
 
     console.log(row);
 
-    const DATABASE = row['TARGET_DATABASE'];
-    const SCHEMA = row['TARGET_SCHEMA'];
-    const TABLE = row['TARGET_TABLE'];
+    const DATABASE = row['TARGET_DATABASE'].replace(/'/g, "\\'");
+    const SCHEMA = row['TARGET_SCHEMA'].replace(/'/g, "\\'");
+    const TABLE = row['TARGET_TABLE'].replace(/'/g, "\\'");
 
-    const COMMENTS = ('COMMENTS' in row) ? row['COMMENTS'] : '';
+    const COMMENTS = ('COMMENTS' in row) ? row['COMMENTS'].replace(/'/g, "\\'") : '';
 
     let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES TT
     USING (
@@ -156,14 +156,14 @@ export const merge_catalog_entity_lineage = (row, diff) => {
 
 
     const CATALOG_ENTITIES_ID = row['CATALOG_ENTITIES_ID'];
-    const ORIGIN_INFORMATION = row['ORIGIN_INFORMATION'];
-    const CONFIG_NAME = row['CONFIG_NAME'];
+    const ORIGIN_INFORMATION = row['ORIGIN_INFORMATION'].replace(/'/g, "\\'");
+    const CONFIG_NAME = row['CONFIG_NAME'].replace(/'/g, "\\'");
     const EXTRACT_CONFIG_ID = row['EXTRACT_CONFIG_ID'];
-    const SOURCE_TABLE = row['SOURCE_TABLE'];
-    const EXTRACT_SCHEMA = row['EXTRACT_SCHEMA'];
-    const SYSTEM_CONFIG_TYPE = row['SYSTEM_CONFIG_TYPE'];
-    const LINEAGE = row['LINEAGE'];
-    const NOTIFICATIONEMAILS = row['NOTIFICATIONEMAILS'];
+    const SOURCE_TABLE = row['SOURCE_TABLE'].replace(/'/g, "\\'");
+    const EXTRACT_SCHEMA = row['EXTRACT_SCHEMA'].replace(/'/g, "\\'");
+    const SYSTEM_CONFIG_TYPE = row['SYSTEM_CONFIG_TYPE'].replace(/'/g, "\\'");
+    const LINEAGE = row['LINEAGE'].replace(/'/g, "\\'");
+    const NOTIFICATIONEMAILS = row['NOTIFICATIONEMAILS'].replace(/'/g, "\\'");
     const REFRESH_INTERVAL = row['REFRESH_INTERVAL'];
 
     let sql = `merge into SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE TT

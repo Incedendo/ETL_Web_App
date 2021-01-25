@@ -228,8 +228,8 @@ const getSelectClause = (rowOjb, columns) => {
             && !isNumber(value) 
             && (['GR_DEV.USER_SPACE.KIET_ETL_EXTRACT_ID_SEQ.NEXTVAL','CURRENT_TIMESTAMP::timestamp_ntz'].indexOf(value) < 0)
         ){
-            value = value.replace(/'/g, "\\'");
-            value = surroundWithQuotesIfString(value);
+            let checkedSingleQuoteValue = value.replace(/'/g, "\\'");
+            value = surroundWithQuotesIfString(checkedSingleQuoteValue);
         }
         
         values.push(value);

@@ -47,7 +47,8 @@ const RowExpansion = React.memo(({ row }) => {
         rows, setRows,
         nonEditableColumns,
         primaryKeys, searchCriteria, columnDataTypes,
-        setEditSuccess, setEditError,
+        setEditSuccess,
+        editError, setEditError,
         setReloadTable,
 
         setGenericTableDataTypeObj,
@@ -73,13 +74,14 @@ const RowExpansion = React.memo(({ row }) => {
     const [changed, setChanged] = useState(false);
     const [isLoading, setLoading] = useState(false);
     const [showPending, setShowPending] = useState(false);
+    const [editMessageClassname, setEditMessageClassname] = useState('');
 
     const[diff, setDiff] = useState({});
     
     const [route, setRoute] = useState("");
     const [action, setAction] = useState("");
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]['dropdownFields']);
-    const [customCodeDataTypeObj, setCustomCodeDataTypeObj] = useState({});
+    
 
     const initialValue = 1;
     // const semaphore = new Semaphore(initialValue);
@@ -99,6 +101,10 @@ const RowExpansion = React.memo(({ row }) => {
         'DOMAINS', //duplicate of DOMAIN
         // "ROUTE_ID", 'ACTION_ID'
     ];
+
+    useEffect(()=> {
+        setEditError('');
+    }, []);
 
     useEffect(()=>{
         let differenceBetweenRowAndState = Object.keys(state).reduce((diff, key) => {
@@ -203,23 +209,26 @@ const RowExpansion = React.memo(({ row }) => {
     //         const abortController = new AbortController();
     //         const { accessToken } = authState;
 
+    //         let sql = `SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS" 
+    //     WHERE 
+    //     //TABLE_SCHEMA = '' AND 
+    //     TABLE_NAME = 'ETLF_CUSTOM_CODE'
+    //     ORDER BY ORDINAL_POSITION;`;
+
     //         // const getURL = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-    //         axios.get(TABLESNOWFLAKE_URL, {
+    //         axios.get(SELECT_URL, {
     //                 headers: {
     //                     'type': 'TOKEN',
-    //                     'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
+    //                     'methodArn': ARN_APIGW_GET_SELECT,
     //                     'authorizorToken': accessToken
     //                 },
     //                 params: { //params maps to event.queryStringParameters
-    //                     sql_statement: "SELECT * FROM DUAL;",
-    //                     database: "SHARED_TOOLS_DEV",
-    //                     schema: 'ETL',
-    //                     tableName: "ETLF_CUSTOM_CODE",
+    //                     sqlStatement: sql,
     //                 }
     //             })
     //             //have to setState in .then() due to asynchronous opetaions
     //             .then(response => {
-    //                 const columnsInfo = response.data.columns;
+    //                 const columnsInfo = response.data;
     //                 //derive an array of types of item in above array.
     //                 let dataTypeObj = {}
     //                 for (let id in columnsInfo) {
@@ -232,6 +241,7 @@ const RowExpansion = React.memo(({ row }) => {
 
     //                 debug && console.log('Data types OBJ of columns in table: ', dataTypeObj);
     //                 setGenericTableDataTypeObj(dataTypeObj);
+    //                 setCustomCodeDataTypeObj(dataTypeObj)
     //             });
 
     //         return () => {
@@ -334,7 +344,7 @@ const RowExpansion = React.memo(({ row }) => {
             // let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
             let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
             setRows(newRows);
-            
+
             axios.put(UPDATE_URL, data, options)
                 .then(response => {
                     if (isSubscribed) {
@@ -342,14 +352,18 @@ const RowExpansion = React.memo(({ row }) => {
                         debug && console.log(response.data);
                         debug && console.log(response.status);
                         if (response.status === 200) {
-                            if (response.data[0]['number of rows updated'] > 0) {
+                            if (response.data[0]['number of rows updated'] > 0
+                                ||response.data[0]['number of rows inserted'] > 0
+                            ) {
                                 setEditSuccess(true);
-                                setEditError('');
+                                setEditError('Success Update');
+                                setEditMessageClassname('successSignal');
                                 update_status = 'SUCCESS';
                             }
-                            else if (response.data[0]['number of rows updated'] === 0) {
+                            else {
                                 setEditSuccess(false);
                                 setEditError('Failed to update record');
+                                setEditMessageClassname('errorSignal');
                             }
                         }
                     } else {
@@ -361,6 +375,7 @@ const RowExpansion = React.memo(({ row }) => {
                         debug && console.log(err);
                         setEditError(err.message);
                         setEditSuccess(false);
+                        setEditMessageClassname('errorSignal');
                     } else {
                         return null;
                     }
@@ -692,6 +707,14 @@ const RowExpansion = React.memo(({ row }) => {
             </div>
 
             <div className="detail-div">
+                <div>
+                    {editError !== '' &&
+                        <div className={editMessageClassname}>
+                            Status: {editError}
+                        </div>
+                    }
+                </div>
+
                 {table === 'ETLF_EXTRACT_CONFIG' &&
                     <>
                         <span style={{ 'fontWeight': "bold" }}>Route: {route}</span>

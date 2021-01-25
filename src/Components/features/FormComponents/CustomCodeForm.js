@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useOktaAuth } from '@okta/okta-react';
 import { Formik, Field } from 'formik';
+import axios from 'axios';
 import * as yup from 'yup'; // for everything
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -8,16 +10,18 @@ import Spinner from 'react-bootstrap/Spinner';
 import FormField from './FormField';
 import { fieldTypesConfigs, autofilledFields } from '../../context/FieldTypesConfig';
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
+import { SELECT_URL, ARN_APIGW_GET_SELECT } from '../../context/URLs';
 import '../../../css/forms.scss';
 
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 
-const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertUsingMergeStatement }) => {
+const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  customCodeDataTypeObj, setShow , insertUsingMergeStatement }) => {
+    
+    const { authState } = useOktaAuth();
 
     const {
         debug,
-        // insertUsingMergeStatement, 
-        genericTableDataTypeObj
+        genericTableDataTypeObj,
     } = useContext(WorkspaceContext);
 
     const codeFields = fieldTypesConfigs[table]['codeFields'];
@@ -37,6 +41,46 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
     const [fields, setFields] = useState([]);
     const [validating, setValidating] = useState(false);
     const [requiredFields, setRequiredFields] = useState({});
+    const [dataTypeObj, setDataTypeObj] = useState(customCodeDataTypeObj);
+    const [customCodeID, setCustomCodeID] = useState(null);
+
+    // useEffect(()=>{
+    //     let sql = `SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS" 
+    //     WHERE 
+    //     //TABLE_SCHEMA = '' AND 
+    //     TABLE_NAME = 'ETLF_CUSTOM_CODE'
+    //     ORDER BY ORDINAL_POSITION;`;
+
+    //     if (authState.isAuthenticated && username !== '') {
+    //         const { accessToken } = authState;
+    //         axios.get(SELECT_URL, {
+    //             headers: {
+    //                 'type': 'TOKEN',
+    //                 'methodArn': ARN_APIGW_GET_SELECT,
+    //                 // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+    //                 'authorizorToken': accessToken
+    //             },
+    //             //params maps to event.queryStringParameters in lambda
+    //             params: {
+    //                 sqlStatement: sql,
+    //             }
+    //         })
+    //         //have to setState in .then() due to asynchronous opetaions
+    //         .then(response => {
+    //             console.log('dataTypeObj: ', response.data);
+    //             const columnsInfo = response.data;
+    //             let dataTypeObj = {}
+    //             for (let id in columnsInfo) {
+    //                 let column_name = columnsInfo[id].COLUMN_NAME;
+    //                 let column_type = columnsInfo[id].DATA_TYPE;
+    //                 dataTypeObj[column_name] = getDataType(column_type);
+    //             }
+
+    //             setDataTypeObj(dataTypeObj)
+    //         })
+    //     }
+
+    // }, []);
 
     // const requiredFields = {
     //     "CODE_DESCRIPTION": "Y",
@@ -57,18 +101,47 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
     //             'CODE_TYPE': 'BLOCK_FORMATION'
     //         })
     //     }
-
     // }, []);
+
+    useEffect(() => {
+        debug && console.log("customCodeID: " + customCodeID);
+        
+    }, [customCodeID]);
 
     useEffect(()=>{
         debug && console.log(validating)
     }, [validating])
 
+    useEffect(()=>{
+        const abortController = new AbortController();
+        
+        const { accessToken } = authState;
+        let sql = `select SHARED_TOOLS_DEV.ETL.ETLFSEQ.NEXTVAL from dual;`;
+        axios.get(SELECT_URL, {
+            headers: {
+                'type': 'TOKEN',
+                'methodArn': ARN_APIGW_GET_SELECT,
+                'authorizorToken': accessToken
+            },
+            params: { //params maps to event.queryStringParameters
+                sqlStatement: sql,
+            }
+        })
+        //have to setState in .then() due to asynchronous opetaions
+        .then(response => {
+            setCustomCodeID(response.data[0].NEXTVAL);
+        });
+
+        return () => {
+            abortController.abort();
+        };
+    }, []);
+
     // get the Data Type of each columns in the row.
     useEffect(() => {
-        debug && console.log(genericTableDataTypeObj);
-        if(Object.keys(genericTableDataTypeObj).length > 0){
-            let all_fields = Object.keys(genericTableDataTypeObj);
+        debug && console.log(dataTypeObj);
+        if(Object.keys(dataTypeObj).length > 0){
+            let all_fields = Object.keys(dataTypeObj);
             let fields = all_fields.filter(col => Object.keys(autofilledFields).indexOf(col) < 0);
             debug && console.log(fields);
             setFields(fields);
@@ -83,7 +156,7 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
                 let custom_config = {};
                 custom_config.id = col;
                 custom_config.placeholder = "this field is required";
-                custom_config.validationType = genericTableDataTypeObj[col];
+                custom_config.validationType = dataTypeObj[col];
                 custom_config.validations = [{
                     type: "required",
                     params: ["this field is required"]
@@ -102,15 +175,16 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
             setSchema(yup_schema);
 
         }
-    }, [genericTableDataTypeObj]);
+    }, [dataTypeObj]);
 
     function getInsertValues(table_fields, values){
         let res = [];
         table_fields.map(field => {
             let temp = '';
             if (Object.keys(autofilledFields).indexOf(field) < 0){
-                if (genericTableDataTypeObj[field] === 'string') {
-                    temp += "'" + values[field] + "'";
+                if (dataTypeObj[field] === 'string') {
+                    let checkedStringForSingleQuote = values[field].replace(/'/g, "\\'");
+                    temp += "'" + checkedStringForSingleQuote + "'";
                 } else {
                     temp += values[field];
                 }
@@ -127,7 +201,7 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
 
     function insertCustomCode(values) {
 
-        const table_fields = Object.keys(genericTableDataTypeObj);
+        const table_fields = Object.keys(dataTypeObj);
 
         const insert_values = getInsertValues(table_fields, values);
 
@@ -138,7 +212,9 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
         
         debug && console.log(sqlInsertStatement);
 
-        insertUsingMergeStatement(sqlInsertStatement, { GROUP_ID: 'Not Applicable' }, setValidating, true);
+        let updatedValue = {...values, 'CUSTOM_CODE_ID': customCodeID}
+
+        insertUsingMergeStatement(sqlInsertStatement, updatedValue, setValidating, true);
         setShow(false);
     }
 
@@ -194,7 +270,10 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  routeCode, setShow ,insertU
                                 <div className="central-spinning-div">
                                     <Button
                                         // variant="primary"
-                                        type="submit" disabled={isSubmitting}
+                                        type="submit" 
+                                        disabled={isSubmitting 
+                                            // || customCodeID === null
+                                        }
                                     >
                                         
                                         {validating &&

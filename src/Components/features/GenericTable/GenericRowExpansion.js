@@ -6,7 +6,12 @@ import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 
 import DisplayField from './DisplayField'; 
+import PrimaryKeyField from '../GenericTable/PrimaryKeyField';
+import CodeField from '../GenericTable/CodeField';
+import DropdownField from '../GenericTable/DropdownField';
+
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
+import { getDataType, getFieldType } from '../FormComponents/FormUtils';
 
 import { generateMergeStatement } from '../../SQL_Operations/Insert';
 import '../../../css/rowExpansion.scss';
@@ -37,27 +42,46 @@ const GenericRowExpansion = ({ row, ...rest }) => {
     debug && console.log(row);
 
     let route = '';
-    if('metaData' in row) route = row.metaData.route;
+    
     //remove PRIVILEGE from row:
-    let modifiedRow = {...row};
-    if('id' in modifiedRow) delete modifiedRow.id;
-    if('metaData' in modifiedRow) delete modifiedRow.metaData;
+    // let modifiedRow = {...row};
+    // if('id' in modifiedRow) delete modifiedRow.id;
+    // if('metaData' in modifiedRow) delete modifiedRow.metaData;
     // delete modifiedRow.PRIVILEGE;
 
     let originalColumns = Object.keys(row).filter(key => ['id', 'PRIVILEGE', 'metaData'].indexOf(key) < 0);
 
     let row_without_metadata = {}
     Object.keys(row).map( key => {
-        if(key !== 'metaData') row_without_metadata[key] = row[key]
+        if(key !== 'metaData') row_without_metadata[key] = row[key];
     })
+
+    console.log(row_without_metadata)
     
     const [state, setState] = useState(row_without_metadata);
     const [changed, setChanged] = useState(false)
     const [isLoading, setLoading] = useState(false);
     const [editMessage, setEditMessage] = useState('');
     const [editMessageClassname, setEditMessageClassname] = useState('');
+    
+    const [primaryKeys, setPrimaryKeys] = useState(row['metaData']['primaryKeys'] );
 
-    const primaryKeys = row['metaData']['primaryKeys'];
+    const nonEditableColumns = row['metaData'] !== undefined 
+                        ? row['metaData']['primaryKeys'] 
+                        : ['CUSTOM_CODE_ID'];
+
+    const codeFields = row['metaData'] !== undefined 
+                        ? fieldTypesConfigs[row['metaData'].table]['codeFields']
+                        : {
+                            'CODE': 'Enter your code here...',
+                        };
+
+    const unmodifiedDropdownFields = row['metaData'] !== undefined 
+                        ? fieldTypesConfigs[row['metaData'].table]['dropdownFields']
+                        : {
+                            'ACTIVE': ['Y', 'N'],
+                            'CODE_TYPE': ['ADHOC_QUERY', 'BLOCK_FORMATION']
+                        };
 
     // useEffect(() => {
     //     debug && console.log('New State Obj: ', state);
@@ -89,7 +113,7 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                 setLoading(false);
                 return;
             } else {
-                testLocalUpdate();
+                // testLocalUpdate();
                 performUpdate(isSubscribed);
             }
         }
@@ -108,14 +132,27 @@ const GenericRowExpansion = ({ row, ...rest }) => {
     const performUpdate = (isSubscribed) =>{
         let update_status = "FAILURE";
         const primaryKey = 'CUSTOM_CODE_ID';
-        const sqlMergeStatement = generateMergeStatement(
-            row['metaData'].database, 
-            row['metaData'].schema, 
-            row['metaData'].table, 
-            row['metaData'].primaryKeys, 
-            originalColumns, 
-            state
-        );
+        let sqlMergeStatement = '';
+        if('metaData' in row){
+            sqlMergeStatement = generateMergeStatement(
+                row['metaData'].database, 
+                row['metaData'].schema, 
+                row['metaData'].table, 
+                row['metaData'].primaryKeys, 
+                originalColumns, 
+                state
+            );
+        }else{
+            sqlMergeStatement = generateMergeStatement(
+                'SHARED_TOOLS_DEV', 
+                'ETL', 
+                'ETLF_CUSTOM_CODE', 
+                primaryKey, 
+                originalColumns, 
+                state
+            );
+        }
+        
 
         // Can't use performEditOperation in Context
         // bc need to ASYNCHRONOUSLY setLoading to false
@@ -131,6 +168,8 @@ const GenericRowExpansion = ({ row, ...rest }) => {
             // let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
             // setRows(newRows);
 
+            let reloadOnSuccess = false;
+
             axios.put(UPDATE_URL, data, options)
                 .then(response => {
                     if (isSubscribed) {
@@ -138,15 +177,19 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                         debug && console.log(response.data);
                         debug && console.log(response.status);
                         if (response.status === 200) {
-                            if (response.data[0]['number of rows updated'] > 0) {
+                            if (response.data[0]['number of rows updated'] > 0
+                                ||response.data[0]['number of rows inserted'] > 0
+                            ) {
                                 setEditMessage('Success Update');
                                 setEditMessageClassname('successSignal');
                                 update_status = 'SUCCESS';
+
+                                reloadOnSuccess = true;
                             }
-                            else if (response.data[0]['number of rows updated'] === 0) {
-                                setEditMessage('Error: Failed to update record');
-                                setEditMessageClassname('errorSignal');
-                            }
+                            // else if (response.data[0]['number of rows inserted'] > 0) {
+                            //     setEditMessage('Error: Failed to update record');
+                            //     setEditMessageClassname('errorSignal');
+                            // }
                         }
                     } else {
                         return null;
@@ -166,7 +209,9 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                         // setReloadTable(true);
                         setLoading(false);
                         setChanged(false);
-
+                        if(reloadOnSuccess){
+                            // axiosCallToGetTable(sqlGetStmt);
+                        }
                         performAuditOperation('UPDATE', primaryKeys, state, sqlMergeStatement, update_status)
                     } else {
                         return null;
@@ -195,12 +240,99 @@ const GenericRowExpansion = ({ row, ...rest }) => {
         </div>
     )
 
-    const codeFields = fieldTypesConfigs[row['metaData'].table]['codeFields'];
-    const unmodifiedDropdownFields = fieldTypesConfigs[row['metaData'].table]['dropdownFields'];
+    
 
     debug && console.log(unmodifiedDropdownFields);
     
-    const excludedFields = ['CREATEDDT', 'LASTMODIFIEDDT', 'EXTRACT_CONFIG_ID'];
+    const excludedFields = ['CREATEDDT', 'LASTMODIFIEDDT', 'EXTRACT_CONFIG_ID', 'id', 'metaData', 'PRIVILEGE'];
+
+    const renderFieldByType = () => {
+
+        console.log("renderFieldByType for NON ETLF EXTRACT CONFIG")
+        let primaryGroups = {};
+        let dropdownGroups = {};
+        let codeGroups = {};
+        let allDisplayedKeys = [];
+
+        console.log(nonEditableColumns);
+        // console.log(codeFields);
+        // console.log(dropdownFields);
+        
+        console.log(row);
+        Object.entries(row).map((key, index) =>{
+            console.log(key);
+            const field = key[0];
+            if ( excludedFields.indexOf(field) < 0) {
+                
+                const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(unmodifiedDropdownFields));
+                console.log(field + ": " + fieldType);
+
+                if(nonEditableColumns.indexOf(field) >= 0){
+                    primaryGroups[field] = key[1];
+                }else{
+                    if(fieldType === "dropdown" ){
+                        // dropdownGroups[field] = key[1];
+                        dropdownGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+                    }else{
+                        // codeGroups[field] = key[1];
+                        codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+                    }
+                } 
+
+                allDisplayedKeys.push(field);
+            }
+            
+        });
+
+        Object.fromEntries(Object.entries(primaryGroups).sort());
+        Object.fromEntries(Object.entries(dropdownGroups).sort());
+        Object.fromEntries(Object.entries(codeGroups).sort());
+
+        console.log(primaryGroups);
+        // console.log(dropdownGroups);
+        // console.log(codeGroups);
+
+        return(
+            <>
+                {Object.entries(primaryGroups).sort().map((key, index) =>      
+                    <div>
+                        <PrimaryKeyField 
+                            fieldArray={key}
+                            pending={false}
+                        />
+                    
+                    </div>
+                    
+                )}
+
+                {Object.entries(codeGroups).sort().map((key, index) => 
+                    <CodeField 
+                        key={key[0]}
+                        setState={setState}
+                        setChanged={setChanged}
+                        fieldArray={key}
+                        columnDataTypes={genericTableDataTypeObj}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
+                        setEditMessage={setEditMessage}
+                    />
+                        
+                )}
+
+                {Object.entries(dropdownGroups).map((key, index) => 
+                    <DropdownField
+                        key={key[0]}
+                        field={key[0]}
+                        value={key[1]}
+                        setState={setState}
+                        setChanged={setChanged}
+                        dropdownFields={unmodifiedDropdownFields}
+                        route={route}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
+                    />  
+                )}
+            </>
+        )
+    }
 
     return (
         <div key={row.id}>
@@ -210,7 +342,7 @@ const GenericRowExpansion = ({ row, ...rest }) => {
             
             <div className="detail-div">
                 <ErrorMessage />
-                {Object.entries(modifiedRow).map((key, index) =>
+                {/* {Object.entries(modifiedRow).map((key, index) =>
                     (key[0] !== 'metaData' && excludedFields.indexOf(key[0]) < 0)
                         && <DisplayField
                             setState={setState}
@@ -228,7 +360,8 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                             dropdownFields={unmodifiedDropdownFields}
                             route={route}
                         />
-                )}
+                )} */}
+                {renderFieldByType()}
             </div>
         </div>
     )
