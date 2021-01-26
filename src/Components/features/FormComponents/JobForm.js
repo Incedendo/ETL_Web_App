@@ -16,7 +16,7 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 // import { createYupSchema } from "./yupSchemaCreator";
 import { generateMergeStatement } from '../../SQL_Operations/Insert';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
-import { TABLESNOWFLAKE_URL } from '../../context/url';
+import { TABLESNOWFLAKE_URL, ARN_APIGW_GET_TABLE_SNOWFLAKE } from '../../context/URLs';
 
 const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
@@ -163,8 +163,17 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     // }, [ tableLoaded]);
 
     useEffect(() =>{
+        // const sql = `SELECT SOURCE_TABLE FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG"
+        // WHERE GROUP_ID = ` + groupID;
+
         const sql = `SELECT SOURCE_TABLE FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG"
-        WHERE GROUP_ID = ` + groupID;
+        WHERE GROUP_ID = ` + groupID + `
+        AND SOURCE_TABLE NOT IN(
+            SELECT SOURCE_TABLE FROM "SHARED_TOOLS_DEV"."ETL"."ETLFCALL"
+            WHERE WORK_GROUP_ID = ` + groupID + `
+            AND SOURCE_TABLE IS NOT NULL
+        )
+        ORDER BY SOURCE_TABLE ASC;`
 
         axios.get(TABLESNOWFLAKE_URL, {
             params: {

@@ -1,9 +1,10 @@
 .modal-150w{
-    width: 150%;
+    // width: 150%;
+    // height: 600px;
 }
 
 .body-height{
-    height: 300px !important;
+    height: 400px !important;
 }
 
 .display-flex{
@@ -63,6 +64,11 @@
     margin-left: 10px;
     border-top: solid;
     padding-top: 10px;
+}
+
+.searchFieldsDiv{
+    height: 290px;
+    overflow-y: scroll;
 }
 
 .search-count{

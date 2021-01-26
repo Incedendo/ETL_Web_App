@@ -14,6 +14,8 @@ import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import Button from 'react-bootstrap/Button';
 import WorkTab from '../features/Tabs/WorkTab';
+import PlaygroundTab from '../features/Tabs/PlaygroundTab';
+
 import { getSearchFieldValue } from '../sql_statements';
 
 const ETLFrameworkUseAuthOKTA = ( props ) => {
@@ -121,6 +123,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                         "position": "relative",
                         "float": "right",
                     }}
+                    variant="outline-primary"
                     onClick={logout}>
                     Log out
                 </Button>
@@ -175,6 +178,9 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                                 shownModalUponChangingTable={shownModalUponChangingTable}
                             />
                         </Tab>
+                        {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
+                            <PlaygroundTab />
+                        </Tab> */}
                 
                         
                     </Tabs>

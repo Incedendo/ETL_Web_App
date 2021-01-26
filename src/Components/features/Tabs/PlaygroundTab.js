@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PlaygroundTab2 from './PlaygroundTab2';
 
 const PlaygroundTab = () => {
     const [state, setState ] = useState({
@@ -6,9 +7,11 @@ const PlaygroundTab = () => {
         age: 25,
     });
 
+    const [loading, setLoading] = useState(false);
+
     useEffect(()=>{
-        console.log(state);
-    }, [state]);
+        console.log(loading);
+    }, [loading]);
 
     function changeState(){
         setState({...state, ['job']: 'TAP'})
@@ -20,9 +23,19 @@ const PlaygroundTab = () => {
 
     return(
         <div>
-            Welcome to Playground 
-            <button onClick={changeState}> Test </button>
-            <button onClick={incrementAge}> Grow Up </button>
+            <h4>Welcome to Playground</h4> 
+            {/* <button onClick={changeState}> Test </button>
+            <button onClick={incrementAge}> Grow Up </button> */}
+
+            <button 
+                onClick={()=>{
+                    setLoading(loading => !loading);
+                }}
+            > 
+                {loading ? "Deactivate" : "Activate"} 
+            </button>
+
+            <PlaygroundTab2 loading={loading}/>
         </div>
     )
 }

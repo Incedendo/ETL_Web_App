@@ -26,8 +26,6 @@ import '../../../css/mymodal.scss';
 import { ETLF_tables } from '../../context/FieldTypesConfig';
 import { compositeTables } from '../../context/FieldTypesConfig';
 
-const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-
 const nonSearchableColumns = [
     'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
     'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
@@ -241,7 +239,6 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                 ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`;
-
             }else if(table === 'DATA_STEWARD_DOMAIN'){
                 // selectAllStmt = select_all_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
                 selectAllStmt = `SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, 'READ/WRITE' AS PRIVILEGE
@@ -308,6 +305,12 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                                 autoSuggestModalClassName="auto-suggest-box-modal"
                             /> */}
 
+                            <div className="search-count">
+                                {/* Search Criteria ({Object.keys(currentSearchObj).length} items) */}
+                                {/* Total columns remaining: ({remainingColumns.length} items) */}
+                                Select search criteria ({remainingColumns.length} items) from list:
+                            </div>
+
                             <DropdownButton
                                 id="dropdown-basic-button"
                                 size="sm"
@@ -325,40 +328,56 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                                 )}
                             </DropdownButton>
 
-                            <div className="search-count">
-                                {/* Search Criteria ({Object.keys(currentSearchObj).length} items) */}
-                                Total columns remaining: ({remainingColumns.length} items)
-                            </div>
-
                             <div 
                                 style={{
                                     'position': 'absolute',
                                     'right': '18px'
                                 }}>
-                                <Button onClick={selectAll}>Show All</Button>
+                                <Button variant="outline-primary" 
+                                    onClick={selectAll}>
+                                        Show All
+                                </Button>
                             </div>
                         </div>
 
                         <div className="searchModal-div">
-                            {Object.keys(currentSearchObj).map(field =>
-                                <li key={field} className="field-div">
-                                    <button
-                                        className="remove-button "
-                                        onClick={() => handleRemoveSearchField(field)}
+                            <div className="searchFieldsDiv">
+                                {Object.keys(currentSearchObj).map(field =>
+                                    <li key={field} className="field-div">
+                                        <button
+                                            className="remove-button "
+                                            onClick={() => handleRemoveSearchField(field)}
+                                        >
+                                            x
+                                        </button>
+                                        <span className="mr-10">{field}: </span>
+                                        <input value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
+                                    </li>
+                                )}
+                            </div>
+                            
+                            <div style={{'display': 'flex'}}>
+                                {Object.keys(currentSearchObj).length > 0
+                                    // ? <button
+                                    //     className="search-button btn btn-primary"
+                                    //     onClick={multiSearch}
+                                    // >
+                                    //     Search
+                                    // </button>
+                                    ? <div style={{
+                                        'marginLeft': 'auto',
+                                        'marginRight': 'auto'
+                                    }}>
+                                    <Button 
+                                        variant="outline-primary"
+                                        onClick={multiSearch}
                                     >
-                                        x
-                                    </button>
-                                    <span className="mr-10">{field}: </span>
-                                    <input value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
-                                </li>)}
-                            {Object.keys(currentSearchObj).length > 0
-                                ? <button
-                                    className="search-button btn btn-primary"
-                                    onClick={multiSearch}
-                                >
-                                    Search
-                                </button>
+                                        Search
+                                    </Button>
+                                </div>
                                 : ""}
+                            </div>
+                            
                         </div>
                     </div>
                 </Modal.Body>

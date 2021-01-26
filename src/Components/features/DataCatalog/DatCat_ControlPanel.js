@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import SearchModal from '../Modals/SearchModal';
+import DataCatalogRefresher from './DataCatalogRefresher';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Button from 'react-bootstrap/Button';
@@ -15,9 +16,7 @@ import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
 import { getSearchFieldValue } from '../../sql_statements';
 import { compositeTables } from '../../context/FieldTypesConfig';
 import '../../../css/workspace.scss';
-
-const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
-const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
+import { SELECT_URL, ARN_APIGW_GET_SELECT, } from '../../context/URLs';
 
 const DropDown = ({ 
     target, currentVal, menus, table, 
@@ -108,6 +107,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
     const [insertError, setInsertError] = useState('');
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
+    
 
     useEffect(() =>{
         if(linkState !== undefined){
@@ -137,6 +137,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
         console.log(dropdownFields);
         console.log(dropdownObject);
     }, [dropdownFields,dropdownObject]);
+
+    
 
     // useEffect(() =>{
     //     if((Object.keys(currentSearchCriteria)).length == 0)
@@ -552,9 +554,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         
                 </div>
 
-                <div style={{ 'paddingTop': '10px', 'float': 'right' }}>
-                    <Button variant="outline-primary">Refresh Data Catalog</Button>
-                </div>
+                <DataCatalogRefresher />
             </div>
 
             

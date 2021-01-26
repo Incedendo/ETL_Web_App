@@ -135,7 +135,7 @@ export const merge_update_catalog_entities = (row, diff) => {
     WHEN matched THEN
     UPDATE 
     SET 
-        ST.COMMENTS = TT.COMMENTS 
+        TT.COMMENTS = ST.COMMENTS 
     WHEN NOT matched THEN
     INSERT (
         CATALOG_ENTITIES_ID, TARGET_DATABASE, TARGET_SCHEMA, TARGET_TABLE, COMMENTS

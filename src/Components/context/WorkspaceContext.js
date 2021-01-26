@@ -6,14 +6,19 @@ import { NumberEditor } from '../features/GridComponents/Grids/GridHelperClass';
 import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS } from './FieldTypesConfig';
 import { generateAuditStmt } from '../SQL_Operations/Insert';
 export const WorkspaceContext = createContext();
+import { SELECT_URL,
+    TABLESNOWFLAKE_URL,
+    UPDATE_URL,
+    INSERT_URL,
+    ARN_APIGW_GET_SELECT,
+    ARN_APIGW_GET_TABLE_SNOWFLAKE } from './URLs';
 
-const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
-const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
-const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
-
-const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
-const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/table-snowflake';
+// const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
+// const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
+// const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
+// const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
+// const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
+// const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/table-snowflake';
 
 export const WorkspaceProvider = (props) => {
     const { authState, authService } = useOktaAuth();
@@ -313,102 +318,102 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         }
     }
 
-        //saving configs 
-        const prepareGridConfig = (data) => {
-            if(data.length != 0){
-                console.log("prepare grid config for table: "+ table);
-                // console.log(data);
-                let headers = data.map(row => row.COLUMN_NAME)
-                //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
-                headers.push("PRIVILEGE");
-                if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
-                    console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
-                    headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
-                }
-                if(headers.length === 0 )
-                    return;
-    
-                if(table === 'ETLFCALL'){
-                    headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
-                }else if(table === 'ETLF_CUSTOM_CODE'){
-                    headers.unshift('SOURCE_TABLE');
-                }//add extra columns to the grid for these tables
-                else if(table === 'DATA_STEWARD_DOMAIN'){
-                    headers.unshift('DOMAIN');
-                    headers.unshift('EMAIL');
-                    headers.unshift('LNAME');
-                    headers.unshift('FNAME');
-                }else if(table === 'CATALOG_ENTITIES'){
-                    headers.unshift('DOMAIN');
-                }else if(['CATALOG_ENTITY_DOMAIN','CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) > -1 ){
-                    headers.unshift('TARGET_TABLE');
-                    headers.unshift('TARGET_SCHEMA');
-                    headers.unshift('TARGET_DATABASE');
-                    headers.unshift('DOMAIN');
-                }
-                
-                let columns = headers.map(header => ({
-                    name: header,
-                    title: header
-                }))
-    
-                const columnWidths = headers.map(header => ({
-                    columnName: header,
-                    width: 150
-                }))
-    
-                const tableColumnExtensions = headers.map(header => ({
-                    columnName: header,
-                    align: 'center'
-                }))
-    
-                const sortingStates = headers.map(header => ({
-                    columnName: header,
-                    direction: 'asc'
-                }))
-    
-                let numericColumns = data.map(row => 
-                    row.DATA_TYPE === 'NUMBER' ? row.COLUMN_NAME : ''
-                )
-    
-                if(table === 'ETLFCALL'){
-                    numericColumns[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
-                }
-    
-                //derive an array of types of item in above array.
-                let dataTypeObj = {}
-                for (let id in data) {
-                    let column_name = data[id].COLUMN_NAME
-                    if(column_name === 'WORK_GROUP_ID') column_name = 'GROUP_ID';
-                    
-                    let column_type = data[id].DATA_TYPE
-                    
-                    if (column_type === 'TEXT') {
-                        dataTypeObj[column_name] = "string"
-                    } else if (column_type === 'TIMESTAMP_NTZ') {
-                        dataTypeObj[column_name] = "timestamp"
-                    } else {
-                        dataTypeObj[column_name] = "number"
-                    }
-                }
-    
-                const tableGridConfig = {
-                    headers,
-                    columns,
-                    columnWidths,
-                    tableColumnExtensions,
-                    sortingStates,
-                    numericColumns,
-                    dataTypeObj,
-                }
-    
-                console.log("current table to set Config:", table);
-                setGridConfigs({
-                    ...gridConfigs,
-                    [table]: tableGridConfig
-                })
+    //saving configs 
+    const prepareGridConfig = (data) => {
+        if(data.length != 0){
+            console.log("prepare grid config for table: "+ table);
+            // console.log(data);
+            let headers = data.map(row => row.COLUMN_NAME)
+            //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
+            headers.push("PRIVILEGE");
+            if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
+                console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
+                headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
             }
+            if(headers.length === 0 )
+                return;
+
+            if(table === 'ETLFCALL'){
+                headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
+            }else if(table === 'ETLF_CUSTOM_CODE'){
+                headers.unshift('SOURCE_TABLE');
+            }//add extra columns to the grid for these tables
+            else if(table === 'DATA_STEWARD_DOMAIN'){
+                headers.unshift('DOMAIN');
+                headers.unshift('EMAIL');
+                headers.unshift('LNAME');
+                headers.unshift('FNAME');
+            }else if(table === 'CATALOG_ENTITIES'){
+                headers.unshift('DOMAIN');
+            }else if(['CATALOG_ENTITY_DOMAIN','CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) > -1 ){
+                headers.unshift('TARGET_TABLE');
+                headers.unshift('TARGET_SCHEMA');
+                headers.unshift('TARGET_DATABASE');
+                headers.unshift('DOMAIN');
+            }
+            
+            let columns = headers.map(header => ({
+                name: header,
+                title: header
+            }))
+
+            const columnWidths = headers.map(header => ({
+                columnName: header,
+                width: 150
+            }))
+
+            const tableColumnExtensions = headers.map(header => ({
+                columnName: header,
+                align: 'center'
+            }))
+
+            const sortingStates = headers.map(header => ({
+                columnName: header,
+                direction: 'asc'
+            }))
+
+            let numericColumns = data.map(row => 
+                row.DATA_TYPE === 'NUMBER' ? row.COLUMN_NAME : ''
+            )
+
+            if(table === 'ETLFCALL'){
+                numericColumns[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
+            }
+
+            //derive an array of types of item in above array.
+            let dataTypeObj = {}
+            for (let id in data) {
+                let column_name = data[id].COLUMN_NAME
+                if(column_name === 'WORK_GROUP_ID') column_name = 'GROUP_ID';
+                
+                let column_type = data[id].DATA_TYPE
+                
+                if (column_type === 'TEXT') {
+                    dataTypeObj[column_name] = "string"
+                } else if (column_type === 'TIMESTAMP_NTZ') {
+                    dataTypeObj[column_name] = "timestamp"
+                } else {
+                    dataTypeObj[column_name] = "number"
+                }
+            }
+
+            const tableGridConfig = {
+                headers,
+                columns,
+                columnWidths,
+                tableColumnExtensions,
+                sortingStates,
+                numericColumns,
+                dataTypeObj,
+            }
+
+            console.log("current table to set Config:", table);
+            setGridConfigs({
+                ...gridConfigs,
+                [table]: tableGridConfig
+            })
         }
+    }
 
     //'EXTRACT_CONFIG_ID'
     const loadTableRows = (dbTableRows, primaryKey) => {
@@ -979,7 +984,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/insert';
 
         const data = {
-            sqlStatement: sqlInsertAuditStmt
+            'sqlStatement': sqlInsertAuditStmt
         }
 
         const options = {
@@ -1219,12 +1224,12 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         // dropdownFields, setDropdownFields,
 
         //ARN resources
-        ARN_APIGW_GET_SELECT,
-        ARN_APIGW_GET_TABLE_SNOWFLAKE,
-        SELECT_URL,
-        TABLESNOWFLAKE_URL,
-        INSERT_URL,
-        UPDATE_URL,
+        // ARN_APIGW_GET_SELECT,
+        // ARN_APIGW_GET_TABLE_SNOWFLAKE,
+        // SELECT_URL,
+        // TABLESNOWFLAKE_URL,
+        // INSERT_URL,
+        // UPDATE_URL,
         
     };
 

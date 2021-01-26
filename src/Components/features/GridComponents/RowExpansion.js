@@ -552,17 +552,10 @@ const RowExpansion = React.memo(({ row }) => {
         return(
             <>
                 {Object.entries(primaryGroups).map((key, index) =>      
-                    <div>
-                        <PrimaryKeyField 
-                            fieldArray={key}
-                            pending={showPending}
-                        />
-                        {key[0] === 'INGESTION_STATUS' &&
-                            <button onClick={submitJob}>
-                                Schedule Job
-                            </button>
-                        }
-                    </div>
+                    <PrimaryKeyField 
+                        fieldArray={key}
+                        pending={showPending}
+                    />
                     
                 )}
 
@@ -650,7 +643,10 @@ const RowExpansion = React.memo(({ row }) => {
                             pending={showPending}
                         />
                         {key[0] === 'INGESTION_STATUS' &&
-                            <button onClick={submitJob}>
+                            <button 
+                                onClick={submitJob}
+                                disabled={showPending}
+                            >
                                 Schedule Job
                             </button>
                         }
