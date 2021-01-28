@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
-import { Formik } from 'formik';
+import { Formik, setIn } from 'formik';
 import * as yup from 'yup'; // for everything
 import axios from 'axios';
 import { createYupSchema } from "./yupSchemaCreator";
@@ -116,7 +116,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
             setActionID(actionID);
             console.log("Rout ID: ", routeID, ", Action ID: " + actionID);
             console.log("required fields for this route-action: ", routeConfigs[currentRoute][actionID]);
-
+            setInitialStates()
             // getSystemIDs(routeOptions[value].SRC_TECH, 'source', setSourceID);
             // getSystemIDs(routeOptions[value].TGT_TECH, 'target', setTargetID);
 
@@ -127,7 +127,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
             setLoadingRouteConfig(false);
         }else{
-            setRoute('Select Route');
+            // setRoute('Select Route');
             setRouteID(0);
         }
     }, [route]);

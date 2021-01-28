@@ -333,7 +333,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                                     'position': 'absolute',
                                     'right': '18px'
                                 }}>
-                                <Button variant="outline-primary" 
+                                <Button variant="outline-warning" 
                                     onClick={selectAll}>
                                         Show All
                                 </Button>
@@ -350,7 +350,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
                                         >
                                             x
                                         </button>
-                                        <span className="mr-10">{field}: </span>
+                                        <span className="mr-10 field-width">{field}: </span>
                                         <input value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
                                     </li>
                                 )}

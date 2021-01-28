@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import SearchModal from '../Modals/SearchModal';
@@ -94,6 +94,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
+    const mounted = useRef(true);
+
     const { authState, authService } = useOktaAuth();
 
     const [datCatSchema, setSchema] = useState([]);
@@ -147,6 +149,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
     // Set dropdown for composite tables
     useEffect(() => {
+        mounted.current = true;
+
         setLoadedConfig(false);
         console.log(table);
         if(table === 'DATA_STEWARD_DOMAIN'){
@@ -156,12 +160,18 @@ const DatCat_ControlPanel = ({ linkState }) => {
         }else if(table === 'CATALOG_ENTITY_LINEAGE' || table === 'CATALOG_ITEMS'){
             prepareValuesFor_CATALOG_ENTITIES();
         }else{
-            setDropdownFields({});
-            setDropdownObject({});
-            setLoadedConfig(true);
+            if(mounted.current){
+                setDropdownFields({});
+                setDropdownObject({});
+                setLoadedConfig(true);
+            }  
         }
 
-        updateYupSchemaBasedOnTable();
+        if(mounted.current){
+            updateYupSchemaBasedOnTable();
+        }
+        
+        return () => mounted.current = false;
     }, [table]);
 
     useEffect(()=>{
@@ -173,12 +183,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
             const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
             console.log(searchStmt);
             console.log(primaryKey);
-            axiosCallToGetTableRows(searchStmt, primaryKey);
-
-
-            //display origin table:
-            const origin = linkState['filterState'];
-            
+            axiosCallToGetTableRows(searchStmt, primaryKey);            
         }
     }, [loadedConfig, comingFromLink]);
 
@@ -240,7 +245,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 })
                 .catch(error => {
                     debug && console.log(error);
-                }).then(()=>{
+                }).finally(()=>{
                     console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
@@ -248,10 +253,11 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         'EMAIL': Object.keys(dropdownObj['EMAIL']) 
                     }
                     console.log(dropdownCompositeFields);
-                    setDropdownObject(dropdownObj);
-                    setDropdownFields(dropdownCompositeFields);
-
-                    setLoadedConfig(true); 
+                    if(mounted.current){
+                        setDropdownObject(dropdownObj);
+                        setDropdownFields(dropdownCompositeFields);
+                        setLoadedConfig(true); 
+                    }
                 })
             })
             .catch(error => {
@@ -323,18 +329,19 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 })
                 .catch(error => {
                     debug && console.log(error);
-                }).then(()=>{
+                }).finally(()=>{
                     console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
                         'DOMAIN': Object.keys(dropdownObj['DOMAIN']), 
                         'CATALOG_ENTITIES': Object.keys(dropdownObj['CATALOG_ENTITIES']) 
                     }
-                    
-                    setDropdownObject(dropdownObj);
-                    setDropdownFields(dropdownCompositeFields);
-
-                    setLoadedConfig(true); 
+                    if(mounted.current){
+                        setDropdownObject(dropdownObj);
+                        setDropdownFields(dropdownCompositeFields);
+                        setLoadedConfig(true);
+                    }
+                     
                 })
             })
             .catch(error => {
@@ -380,11 +387,12 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 let dropdownCompositeFields = {
                     'CATALOG_ENTITIES': Object.keys(dropdownObj['CATALOG_ENTITIES']) 
                 }
-                
-                setDropdownObject(dropdownObj);
-                setDropdownFields(dropdownCompositeFields);
 
-                setLoadedConfig(true); 
+                if(mounted.current){
+                    setDropdownObject(dropdownObj);
+                    setDropdownFields(dropdownCompositeFields);
+                    setLoadedConfig(true);
+                } 
             })
             .catch(error => {
                 debug && console.log(error);
@@ -457,8 +465,10 @@ const DatCat_ControlPanel = ({ linkState }) => {
             let yup_schema = yup.object().shape(temp_schema);
 
             //have to use setState here to FORCE UPDATE the object in the form
-            setSchema(yup_schema);
-            setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
+            if(mounted.current){
+                setSchema(yup_schema);
+                setFields(Object.keys(fieldTypesConfigs[table]["dataTypes"]));
+            }
         }
     };
 
@@ -554,7 +564,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         
                 </div>
 
-                <DataCatalogRefresher />
+                
             </div>
 
             

@@ -1,5 +1,4 @@
-export function mergeUpdateCatalogEntitiesFromView(){
-    const sql =  `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES TT
+export const mergeUpdateCatalogEntitiesFromView =  `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES TT
     USING (
         SELECT 
           TARGET_DATABASE,
@@ -31,11 +30,7 @@ export function mergeUpdateCatalogEntitiesFromView(){
           ST.CATALOG_ENTITIES_ID
       );`;
 
-    return sql
-}
-
-export function mergeUpdateCatalogItemsFromView(){
-    const sql =  `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ITEMS TT
+export const mergeUpdateCatalogItemsFromView =  `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ITEMS TT
     USING (
      SELECT 
       COLUMN_NAME, 
@@ -62,11 +57,8 @@ export function mergeUpdateCatalogItemsFromView(){
     (
         ST.COLUMN_NAME, ST.DATA_TYPE, ST.PII, ST.COMMENTS, ST.CATALOG_ITEMS_ID, ST.CATALOG_ENTITIES_ID
     );`;
-    return sql;
-}
 
-export function mergeUpdateCatalogEntityLineageFromView(){
-  const sql =  `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE TT
+export const mergeUpdateCatalogEntityLineageFromView  =  `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_LINEAGE TT
   USING (
       SELECT
         UUID_STRING() CATALOG_ENTITY_LINEAGE_ID,
@@ -124,10 +116,3 @@ export function mergeUpdateCatalogEntityLineageFromView(){
       ST.NOTIFICATIONEMAILS,
       ST.REFRESH_INTERVAL
   );`;
-  return sql;
-}
-
-export function mergeUpdateEntityLineageFromView(){
-    const sql =  ``;
-    return sql;
-}

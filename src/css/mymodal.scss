@@ -4,7 +4,7 @@
 }
 
 .body-height{
-    height: 400px !important;
+    height: 420px !important;
 }
 
 .display-flex{
@@ -69,6 +69,7 @@
 .searchFieldsDiv{
     height: 290px;
     overflow-y: scroll;
+    margin-bottom: 20px;
 }
 
 .search-count{
@@ -79,4 +80,8 @@
 .auto-suggest-box-modal{
     height: 40px;
     margin-left: 10px;
+}
+
+.field-width{
+    width: 175px;
 }

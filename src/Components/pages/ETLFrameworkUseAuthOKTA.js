@@ -10,18 +10,15 @@ import '../../css/workspace.scss';
 import '../../css/etlframework.scss';
 
 import { WorkspaceContext } from '../context/WorkspaceContext';
+import Welcome from '../features/Welcome';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
-import Button from 'react-bootstrap/Button';
 import WorkTab from '../features/Tabs/WorkTab';
 import PlaygroundTab from '../features/Tabs/PlaygroundTab';
 
 import { getSearchFieldValue } from '../sql_statements';
 
 const ETLFrameworkUseAuthOKTA = ( props ) => {
-    const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
-    const ISSUER_UAT = `https://uataigtech.oktapreview.com/oauth2/default`;
-    const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
     const {
         debug,
@@ -52,16 +49,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         // Redirect to '/' after login
         authService.login('/');
     }
-
-    const logout = async () => {
-
-        const idToken = authState.idToken;
-        await authService.logout('/');
-
-        // Clear remote session
-        window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
-        // window.location.href = `${ISSUER_UAT}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
-    }    
+ 
 
     useEffect(() => {
         setLoadingAppIDs(false);
@@ -114,46 +102,18 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         }
     }, [etlTabClicked])
 
-    const AccessControlInfo = () => (
-        <div className="userInfo">
-            <div>
-                <h5>Welcome, {name.split(',')[1]} ({username}) </h5>
-                <Button 
-                    style={{
-                        "position": "relative",
-                        "float": "right",
-                    }}
-                    variant="outline-primary"
-                    onClick={logout}>
-                    Log out
-                </Button>
-                {/* <button onClick={testCors}>Test CORS</button> */}
-            </div>
-
-            {/* <div>
-                <h6>Read-Write Access:</h6>
-                { appIDs.length !== 0 
-                ? <span className="span-border">{appIDs.toString()}</span>
-                : <span>[no read/write access assigned to user]</span>
-                }
-            </div>
-
-            <h6>Authenticated: {authState.isAuthenticated ? 'true' : 'false'}</h6> */}
-
-            {/* <AccessModal /> */}
-        </div>
-    )
-
     if (authState.isPending) {
         return <div> Loading... </div>;
     }
 
     return authState.isAuthenticated ?
         <div className="App container">
-                <>
+                <>  
+                    <Welcome />
+                    <h4>ETL Job Configurations</h4>
                     {/* <small>You are running this app in <b>{process.env.NODE_ENV}</b> mode </small> 
                     <small>You are running this app in <b>{process.env.REACT_APP_ENV}</b> mode </small>  */}
-                    <AccessControlInfo />
+                    
 
                     <Tabs defaultActiveKey="Configuration" transition={false} id="noanim-tab-example"
                         onSelect={(eventKey)=>{
@@ -178,9 +138,9 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                                 shownModalUponChangingTable={shownModalUponChangingTable}
                             />
                         </Tab>
-                        {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
+                        <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
                             <PlaygroundTab />
-                        </Tab> */}
+                        </Tab>
                 
                         
                     </Tabs>

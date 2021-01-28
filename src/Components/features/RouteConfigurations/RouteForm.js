@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Formik } from 'formik';
 import Form from 'react-bootstrap/Form'
 import Col from 'react-bootstrap/Col';
@@ -29,6 +29,8 @@ const RouteForm = ({
         codeFields,
     } = useContext(WorkspaceContext);
 
+    const mounted = useRef(true);
+
     // console.log("R1A1: current Action: ",states['ACTION_ID']);
     debug && console.log("current states: ", states);
     debug && console.log("routeOptions: ", routeOptions);
@@ -38,6 +40,12 @@ const RouteForm = ({
     const [validating, setValidating] = useState(false);
     const [insertMessage, setInsertMessage] = useState('');
     const [showOptional, toggleOptional] = useState(false);
+
+    useEffect(()=>{
+        if(validating){
+
+        }
+    }, [validating])
 
     function getMergeStatement(values) {
         debug && console.log(values);
@@ -225,8 +233,8 @@ const RouteForm = ({
                                     <div className="central-spinning-div">  
                                         <Button
                                             // variant="primary"
-                                            type="submit" disabled={isSubmitting}
-                                            disabled={validating}
+                                            type="submit" 
+                                            disabled={isSubmitting || validating}
                                         >
                                             {validating &&
                                                 <Spinner

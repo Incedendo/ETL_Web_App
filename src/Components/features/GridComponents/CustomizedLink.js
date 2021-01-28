@@ -20,7 +20,7 @@ const sql_linking_Lineage_To_ETLF_Extract_Config = (searchObj) => {
     let sql = `SELECT EC.*, COALESCE(A.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
     FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EC
     LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" A
-    ON(EC.GROUP_ID = A.APP_ID)
+    ON EC.GROUP_ID = A.APP_ID
     WHERE ` + getSearchFieldValueExact(searchObj) + `;`
 
     return sql

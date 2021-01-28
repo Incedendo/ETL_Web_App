@@ -9,6 +9,7 @@
     .loadable-button{
         display: block;
         width: 120px;
+        // width: 75px;
         border-radius: 5px;
         background-color: #007bff;
         color: white;
@@ -32,6 +33,11 @@
 }
 
 .detail-div{
+    // margin-left: 130px;
+    margin-left: 100px;
+}
+
+.detail-div-customCode{
     margin-left: 130px;
 }
 

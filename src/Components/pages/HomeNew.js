@@ -2,31 +2,33 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../context/WorkspaceContext';
-
+import { ISSUER_UAT, REDIRECT_URI_logout, REDIRECT_URI_HOME } from '../../Components/context/OKTA';
 const redirectUri = `${window.location.origin}/home`;
 
 const HomeNew = () => {
   const { debug } = useContext(WorkspaceContext);
   const { authService, authState } = useOktaAuth();
 
-  debug && console.log(authState);
+  useEffect(()=>{
+    debug && console.log(authState);
+  }, [])
+  
 
   const login = async () => { authService.login('/'); };
+  
   const logout = async () => {
-    const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
-    const ISSUER_UAT = `https://uataigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
     const idToken = authState.idToken;
     
     await authService.logout('/');
 
     // Clear remote session
-    window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
-    // window.location.href = `${ISSUER_UAT}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
+    // window.location.href = `${ISSUER}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI}`;
+    window.location.href = `${ISSUER_UAT}/v1/logout?id_token_hint=${idToken}&post_logout_redirect_uri=${REDIRECT_URI_HOME}`;
   }
 
   if(authState.isPending) { 
-    return <div>Loading...</div>;
+    return <div>Authenticating...</div>;
   }
 
   if (authState.isAuthenticated === null) return null;

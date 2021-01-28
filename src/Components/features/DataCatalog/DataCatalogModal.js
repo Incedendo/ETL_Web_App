@@ -6,12 +6,26 @@ import '../../../css/mymodal.scss';
 import '../../../css/rowExpansion.scss';
 import DataStewardEditor from './DataStewardEditor';
 
+const tableItems = {
+    "DATA_STEWARD": 'Steward', 
+    "DATA_DOMAIN": 'Domain',
+    "CATALOG_ENTITIES": 'Entity',
+    "CATALOG_ENTITY_LINEAGE": 'Lineage',
+    "CATALOG_ITEMS": 'Item', 
+    'DATA_STEWARD_DOMAIN': 'Steward-Domain',
+    'CATALOG_ENTITY_DOMAIN': 'Entity-Domain'
+}
 
 const DataCatalogModal = ({ 
     table, fields, schema, loadedConfig, 
     codeFields, dropdownFields, dropdownObject, setInsertError 
 }) => {
     const [show, setShow] = useState(false);
+    const [item, setItem] = useState("");
+
+    useEffect(()=>{
+        setItem(tableItems[table]);
+    }, [table]);
 
     // console.log(table);
 
@@ -20,7 +34,7 @@ const DataCatalogModal = ({
             <Button className="button-margin"
                 variant="primary"
                 onClick={() => setShow(true)}>
-                Add item
+                Add {item}
             </Button>
 
             <Modal

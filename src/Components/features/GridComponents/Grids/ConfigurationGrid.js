@@ -429,9 +429,9 @@ const ConfigurationGrid = () => {
                 /> */}
 
                 <TableEditColumn
-                    width={60}
+                    width={5}
                     // showEditCommand={true}
-                    showDeleteCommand={true}
+                    // showDeleteCommand={true}
                     cellComponent={CommandColumnCell}
                     
                     //the actual add/edit/delete/save/cancel buttons

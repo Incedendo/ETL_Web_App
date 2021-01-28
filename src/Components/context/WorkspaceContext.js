@@ -13,13 +13,6 @@ import { SELECT_URL,
     ARN_APIGW_GET_SELECT,
     ARN_APIGW_GET_TABLE_SNOWFLAKE } from './URLs';
 
-// const SELECT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/select';
-// const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-// const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
-// const INSERT_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/insert';
-// const ARN_APIGW_GET_SELECT = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select';
-// const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/table-snowflake';
-
 export const WorkspaceProvider = (props) => {
     const { authState, authService } = useOktaAuth();
 
@@ -364,7 +357,8 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
             const tableColumnExtensions = headers.map(header => ({
                 columnName: header,
-                align: 'center'
+                // align: 'center'
+                align: 'left'
             }))
 
             const sortingStates = headers.map(header => ({
@@ -428,13 +422,15 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         compositeKeys.length === 1
         ? setRows(
             dbTableRows.map((row, index) => ({
-                id: row[primaryKey],
+                // id: row[primaryKey],
+                id: index,
                 ...row
             }))
         )
         : setRows(
             dbTableRows.map((row, index) => ({
-                id: row[compositeKeys[0]] + row[compositeKeys[1]],
+                // id: row[compositeKeys[0]] + row[compositeKeys[1]],
+                id: index,
                 ...row
             }))
         )
@@ -844,12 +840,12 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         debug && console.log('%c Counting time axios call:', 'color: orange; font-weight: bold');
         debug && console.time("calling API to load table");
         axios.get(SELECT_URL, {
-            headers: {
-                'type': 'TOKEN',
-                'methodArn': ARN_APIGW_GET_SELECT,
-                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                'authorizorToken': accessToken
-            },
+            // headers: {
+            //     'type': 'TOKEN',
+            //     'methodArn': ARN_APIGW_GET_SELECT,
+            //     // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+            //     'authorizorToken': accessToken
+            // },
             //params maps to event.queryStringParameters in lambda
             params: {
                 sqlStatement: get_statenent,
@@ -899,24 +895,18 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
         console.log(gridConfigs);
 
-        const getURL = (reloadTable || table in gridConfigs)
-            ? SELECT_URL
-            : TABLESNOWFLAKE_URL;
+        const getURL = TABLESNOWFLAKE_URL;
 
         debug && console.log("get URL: ", getURL);
 
         const headers = {
             'type': 'TOKEN',
-            'methodArn': (reloadTable || table in gridConfigs) ? ARN_APIGW_GET_SELECT: ARN_APIGW_GET_TABLE_SNOWFLAKE,
+            'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
             // 'authorizorToken': accessToken
             'authorizorToken': authState.accessToken
         }
 
-        const params = (reloadTable || table in gridConfigs)
-        ? { //params maps to event.queryStringParameters
-            sqlStatement: proposed_get_statenent
-        }
-        : { //params maps to event.queryStringParameters
+        const params = { //params maps to event.queryStringParameters
             sql_statement: proposed_get_statenent,
             database: database,
             schema: schema,
@@ -981,8 +971,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
     }
 
     const insertNewAuditRecord = sqlInsertAuditStmt => {
-        const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/insert';
-
+       
         const data = {
             'sqlStatement': sqlInsertAuditStmt
         }

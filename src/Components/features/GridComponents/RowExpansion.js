@@ -78,7 +78,7 @@ const RowExpansion = React.memo(({ row }) => {
 
     const[diff, setDiff] = useState({});
     
-    const [route, setRoute] = useState("");
+    const [route, setRoute] = useState("Route Not in List");
     const [action, setAction] = useState("");
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]['dropdownFields']);
     
@@ -106,6 +106,14 @@ const RowExpansion = React.memo(({ row }) => {
         setEditError('');
     }, []);
 
+    useEffect(() => {
+        if(editError !== '') {
+            setTimeout(() => {
+                setEditError('');
+            }, 1000);
+        }
+    }, [editError])
+
     useEffect(()=>{
         let differenceBetweenRowAndState = Object.keys(state).reduce((diff, key) => {
             if (row[key] === state[key]) return diff
@@ -114,7 +122,7 @@ const RowExpansion = React.memo(({ row }) => {
                 [key]: state[key]
             }
         }, {});
-        delete differenceBetweenRowAndState['ID'];
+        // delete differenceBetweenRowAndState['ID'];
         if('EXTRACT_CONFIG_ID' in state){
             differenceBetweenRowAndState['EXTRACT_CONFIG_ID'] = state['EXTRACT_CONFIG_ID']
         }
@@ -128,7 +136,7 @@ const RowExpansion = React.memo(({ row }) => {
         
 
         setDiff(differenceBetweenRowAndState);
-        console.log(differenceBetweenRowAndState);
+        debug && console.log(differenceBetweenRowAndState);
     }, [state, table]);
 
     useEffect(()=>{
@@ -146,21 +154,26 @@ const RowExpansion = React.memo(({ row }) => {
             //extract the route from sw: i.e: Oracle to Snowflake????
             let route_name = ''
             Object.values(routeOptions).map(item =>{
-                if(item.ROUTE_ID === ROUTE_ID)
+                if(item.ROUTE_ID === ROUTE_ID){
                     route_name = (item.ROUTE_NAME).trim();
+                    setRoute(route_name);
+                }
             })
 
             //extract the list of required fields of a specific route and action
-            console.log(route_name);
-            setRoute(route_name);
+            debug && console.log(route_name);
+            
             setAction(ACTION_ID);
         }
     }, []);
 
     useEffect(() => {
         debug && console.log(routeConfigs);
-        if (table === 'ETLF_EXTRACT_CONFIG' && route !== ''){
-            console.log("Route: " + route);
+        if (table === 'ETLF_EXTRACT_CONFIG' 
+            && route !== 'Route Not in List' && route !== ''
+            && row.PRIVILEGE === 'READ/WRITE'
+        ){
+            debug && console.log("Route: " + route);
             if (routeConfigs[route].SRC_TECH !== 'File'){
                 getSystemIDs(route, 'SRC_TECH');
             }else{
@@ -174,6 +187,7 @@ const RowExpansion = React.memo(({ row }) => {
             }
         }
     }, [route]);
+    
 
     function getSystemIDs(route, system_type) {
         //system_type is either 'source' or 'target'
@@ -254,9 +268,9 @@ const RowExpansion = React.memo(({ row }) => {
         let updateStatement = '';
         // let primaryKey = TABLES_NON_EDITABLE_COLUMNS[table][0];
 
-        console.log(row); // row is the old record
-        console.log(state); // state is the updated record
-        console.log(diff); // diff is the object to be updated
+        debug && console.log(row); // row is the old record
+        debug && console.log(state); // state is the updated record
+        debug && console.log(diff); // diff is the object to be updated
 
         if(table === 'DATA_STEWARD'){
             updateStatement = merge_update_data_steward(row, diff);
@@ -274,32 +288,32 @@ const RowExpansion = React.memo(({ row }) => {
             updateStatement = merge_update_catalog_items(row, diff);
         }
         
-        console.log(updateStatement);
+        debug && console.log(updateStatement);
 
         return updateStatement;
     }
 
     const performUpdate = (isSubscribed) => {
         //get the ID columns in the array of non_editable columns:
-        console.log('perform update...');
-        console.log('table: ', table);
+        debug && console.log('perform update...');
+        debug && console.log('table: ', table);
 
         let primaryKey = fieldTypesConfigs[table]['primaryKeys'][0];
         let sqlMergeStatement = '';
         const diffCols = Object.keys(diff);
 
         if(DATA_CATALOG_TABLE.indexOf(table) >= 0){
-            console.log("generate update for DATCAT");
+            debug && console.log("generate update for DATCAT");
             sqlMergeStatement = getUpdateStatementForDataCatalog(row, diff);
         }else{
             
             if(table === 'ETLFCALL'){
-                console.log("generate update for ETLFCALL");
+                debug && console.log("generate update for ETLFCALL");
                 let primaryKeysForETLFCALL = ['ETLFCALL_ID', 'SOURCE_TABLE', 'WORK_GROUP_ID'];
                 
                 sqlMergeStatement = generateMergeUpdateStatement(database, schema, table, primaryKeysForETLFCALL, diffCols, diff);
             }else if(table === 'ETLF_CUSTOM_CODE'){
-                console.log("generate update for ETLF_CUSTOM_CODE");
+                debug && console.log("generate update for ETLF_CUSTOM_CODE");
                 const primaryKeysForCustomCode = ['CUSTOM_CODE_ID'];
                 //this is a temporary fix for a bug: (table is somehow still )
                 const editedDiff = {
@@ -310,7 +324,7 @@ const RowExpansion = React.memo(({ row }) => {
 
                 sqlMergeStatement = generateMergeUpdateStatement(database, schema, table, primaryKeysForCustomCode, editedDiffCols, editedDiff);
             }else{
-                console.log("generate update for ETLF");
+                debug && console.log("generate update for ETLF");
                 sqlMergeStatement = generateMergeStatement(database, schema, table, primaryKeys, diffCols, diff);
             }
             // console.log(database);
@@ -320,15 +334,15 @@ const RowExpansion = React.memo(({ row }) => {
             // console.log("EXTRACT_CONFIG_ID: "+ row['EXTRACT_CONFIG_ID']);
         }
 
-        console.log(sqlMergeStatement);
+        debug && console.log(sqlMergeStatement);
 
-        console.log(row);
-        console.log(state);
+        debug && console.log(row);
+        debug && console.log(state);
 
         
 
-        console.log(diffCols);
-        console.log(diff);
+        debug && console.log(diffCols);
+        debug && console.log(diff);
 
         let update_status = "FAILURE";
         // Can't use performEditOperation in Context
@@ -342,7 +356,15 @@ const RowExpansion = React.memo(({ row }) => {
 
         if (window.confirm(userConfirmed)) {
             // let newRows = rows.map(obj => obj['EXTRACT_CONFIG_ID'] === state['EXTRACT_CONFIG_ID'] ? state : obj);
-            let newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
+            let newRows = [];
+            // if(table === 'CATALOG_ITEMS'){
+            //     newRows = rows.map(obj => obj[id] === state[id] ? state : obj);
+            // }else{
+            //     newRows = rows.map(obj => obj[primaryKey] === state[primaryKey] ? state : obj);
+            // }
+            // newRows = rows.map(row => row[primaryKey] === state[primaryKey] ? state : row);
+            newRows = rows.map(row => row['id'] === state['id'] ? state : row);
+            
             setRows(newRows);
 
             axios.put(UPDATE_URL, data, options)
@@ -490,33 +512,40 @@ const RowExpansion = React.memo(({ row }) => {
         }
     }
 
-    const renderFieldByTypeETLF = () =>{
+    const renderFieldByType = () =>{
         
-        console.log(row);
-        console.log(nonEditableColumns);
+        debug && console.log(row);
+        debug && console.log(nonEditableColumns);
         // console.log(codeFields);
         // console.log(dropdownFields);
 
         // //extract the list of required fields of a specific route and action
-        let fieldConfigs = routeConfigs[route][row.ACTION_ID];
-        console.log(fieldConfigs);
+       
 
         let modifiedRowBasedOnRouteAndAction = {}
-        //display only required = 'Y' or 'O' fields for this route-action
-        if(fieldConfigs !== undefined){
-            fieldConfigs.map(item => {
-                if(item.REQUIRED !== 'N'){
-                    modifiedRowBasedOnRouteAndAction[item.COLUMN_NAME] = row[item.COLUMN_NAME]
-                }
-            });
+
+        if(table === 'ETLF_EXTRACT_CONFIG' && (route in routeConfigs)){
+            // if(route in routeConfigs){}
+            let fieldConfigs = routeConfigs[route][row.ACTION_ID];
+            debug && console.log(fieldConfigs);
+            //display only required = 'Y' or 'O' fields for this route-action
+            if(fieldConfigs !== undefined){
+                fieldConfigs.map(item => {
+                    if(item.REQUIRED !== 'N'){
+                        modifiedRowBasedOnRouteAndAction[item.COLUMN_NAME] = row[item.COLUMN_NAME]
+                    }
+                });
+            }
+        }else{
+            modifiedRowBasedOnRouteAndAction = {...row};
         }
+        
 
         // console.log(Object.keys(modifiedRowBasedOnRouteAndAction).length);
 
         let primaryGroups = {};
         let dropdownGroups = {};
         let codeGroups = {};
-        let allDisplayedKeys = [];
 
         Object.entries(modifiedRowBasedOnRouteAndAction).map((key, index) =>{
             console.log(key);
@@ -524,7 +553,7 @@ const RowExpansion = React.memo(({ row }) => {
             if (excludedFields.indexOf(field) < 0) {
                 
                 const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
-                console.log(field + ": " + fieldType);
+                debug && console.log(field + ": " + fieldType);
 
                 if(nonEditableColumns.indexOf(field) >= 0){
                     primaryGroups[field] = key[1];
@@ -537,8 +566,6 @@ const RowExpansion = React.memo(({ row }) => {
                         codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
                     }
                 } 
-
-                allDisplayedKeys.push(field);
             }
             
         });
@@ -547,16 +574,25 @@ const RowExpansion = React.memo(({ row }) => {
         dropdownGroups = Object.fromEntries(Object.entries(dropdownGroups).sort());
         codeGroups = Object.fromEntries(Object.entries(codeGroups).sort());
 
-        Object.entries(dropdownGroups).map((key, index) => console.log(key));
+        // Object.entries(dropdownGroups).map((key, index) => console.log(key));
 
         return(
             <>
-                {Object.entries(primaryGroups).map((key, index) =>      
-                    <PrimaryKeyField 
-                        fieldArray={key}
-                        pending={showPending}
-                    />
-                    
+                {Object.entries(primaryGroups).map((key, index) =>     
+                    <div>
+                        <PrimaryKeyField 
+                            fieldArray={key}
+                            pending={showPending}
+                        />
+                        {key[0] === 'INGESTION_STATUS' &&
+                            <button 
+                                onClick={submitJob}
+                                disabled={showPending}
+                            >
+                                Schedule Job
+                            </button>
+                        }
+                    </div>
                 )}
 
                 {Object.entries(codeGroups).map((key, index) => 
@@ -588,100 +624,100 @@ const RowExpansion = React.memo(({ row }) => {
         )
     }
 
-    const renderFieldByType = () => {
+    // const renderFieldByType = () => {
 
-        console.log("renderFieldByType for NON ETLF EXTRACT CONFIG")
-        let primaryGroups = {};
-        let dropdownGroups = {};
-        let codeGroups = {};
-        let allDisplayedKeys = [];
+    //     debug && console.log("renderFieldByType for NON ETLF EXTRACT CONFIG")
+    //     let primaryGroups = {};
+    //     let dropdownGroups = {};
+    //     let codeGroups = {};
+    //     let allDisplayedKeys = [];
 
-        console.log(nonEditableColumns);
-        // console.log(codeFields);
-        // console.log(dropdownFields);
+    //     debug && console.log(nonEditableColumns);
+    //     // console.log(codeFields);
+    //     // console.log(dropdownFields);
         
-        console.log(row);
-        Object.entries(row).map((key, index) =>{
-            console.log(key);
-            const field = key[0];
-            if (excludedFields.indexOf(field) < 0) {
+    //     debug && console.log(row);
+    //     Object.entries(row).map((key, index) =>{
+    //         debug && console.log(key);
+    //         const field = key[0];
+    //         if (excludedFields.indexOf(field) < 0) {
                 
-                const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
-                console.log(field + ": " + fieldType);
+    //             const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
+    //             debug && console.log(field + ": " + fieldType);
 
-                if(nonEditableColumns.indexOf(field) >= 0){
-                    primaryGroups[field] = key[1];
-                }else{
-                    if(fieldType === "dropdown" ){
-                        // dropdownGroups[field] = key[1];
-                        dropdownGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
-                    }else{
-                        // codeGroups[field] = key[1];
-                        codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
-                    }
-                } 
+    //             if(nonEditableColumns.indexOf(field) >= 0){
+    //                 primaryGroups[field] = key[1];
+    //             }else{
+    //                 if(fieldType === "dropdown" ){
+    //                     // dropdownGroups[field] = key[1];
+    //                     dropdownGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+    //                 }else{
+    //                     // codeGroups[field] = key[1];
+    //                     codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+    //                 }
+    //             } 
 
-                allDisplayedKeys.push(field);
-            }
+    //             allDisplayedKeys.push(field);
+    //         }
             
-        });
+    //     });
 
-        Object.fromEntries(Object.entries(primaryGroups).sort());
-        Object.fromEntries(Object.entries(dropdownGroups).sort());
-        Object.fromEntries(Object.entries(codeGroups).sort());
+    //     Object.fromEntries(Object.entries(primaryGroups).sort());
+    //     Object.fromEntries(Object.entries(dropdownGroups).sort());
+    //     Object.fromEntries(Object.entries(codeGroups).sort());
 
-        console.log(primaryGroups);
-        // console.log(dropdownGroups);
-        // console.log(codeGroups);
+    //     debug && console.log(primaryGroups);
+    //     // console.log(dropdownGroups);
+    //     // console.log(codeGroups);
 
-        return(
-            <>
-                {Object.entries(primaryGroups).sort().map((key, index) =>      
-                    <div>
-                        <PrimaryKeyField 
-                            fieldArray={key}
-                            pending={showPending}
-                        />
-                        {key[0] === 'INGESTION_STATUS' &&
-                            <button 
-                                onClick={submitJob}
-                                disabled={showPending}
-                            >
-                                Schedule Job
-                            </button>
-                        }
-                    </div>
+    //     return(
+    //         <>
+    //             {Object.entries(primaryGroups).sort().map((key, index) =>      
+    //                 <div>
+    //                     <PrimaryKeyField 
+    //                         fieldArray={key}
+    //                         pending={showPending}
+    //                     />
+                        // {key[0] === 'INGESTION_STATUS' &&
+                        //     <button 
+                        //         onClick={submitJob}
+                        //         disabled={showPending}
+                        //     >
+                        //         Schedule Job
+                        //     </button>
+                        // }
+    //                 </div>
                     
-                )}
+    //             )}
 
-                {Object.entries(codeGroups).sort().map((key, index) => 
-                    <CodeField 
-                        key={key[0]}
-                        setState={setState}
-                        setChanged={setChanged}
-                        fieldArray={key}
-                        columnDataTypes={columnDataTypes}
-                        disabled={row.PRIVILEGE === 'READ ONLY'}
-                        setEditMessage={setEditError}
-                    />
+    //             {Object.entries(codeGroups).sort().map((key, index) => 
+    //                 <CodeField 
+    //                     key={key[0]}
+    //                     setState={setState}
+    //                     setChanged={setChanged}
+    //                     fieldArray={key}
+    //                     columnDataTypes={columnDataTypes}
+    //                     disabled={row.PRIVILEGE === 'READ ONLY'}
+    //                     setEditMessage={setEditError}
+    //                 />
                         
-                )}
+    //             )}
 
-                {Object.entries(dropdownGroups).map((key, index) => 
-                    <DropdownField
-                        key={key[0]}
-                        field={key[0]}
-                        value={key[1]}
-                        setState={setState}
-                        setChanged={setChanged}
-                        dropdownFields={dropdownFields}
-                        route={route}
-                        disabled={row.PRIVILEGE === 'READ ONLY'}
-                    />  
-                )}
-            </>
-        )
-    }
+    //             {Object.entries(dropdownGroups).map((key, index) => 
+    //                 <DropdownField
+    //                     key={key[0]}
+    //                     field={key[0]}
+    //                     value={key[1]}
+    //                     setState={setState}
+    //                     setChanged={setChanged}
+    //                     dropdownFields={dropdownFields}
+    //                     route={route}
+    //                     disabled={row.PRIVILEGE === 'READ ONLY'}
+    //                 />  
+    //             )}
+    //         </>
+    //     )
+    // }
 
     return (
         <>
@@ -702,7 +738,9 @@ const RowExpansion = React.memo(({ row }) => {
                 {(changed && row['PRIVILEGE'] !=='READ ONLY') ? <LoadableUpdateButton /> : ""}
             </div>
 
-            <div className="detail-div">
+            <div className="detail-div-customCode"
+                // className={table === 'ETLF_EXTRACT_CONFIG' ? "detail-div-customCode" : "detail-div"}
+            >
                 <div>
                     {editError !== '' &&
                         <div className={editMessageClassname}>
@@ -719,10 +757,10 @@ const RowExpansion = React.memo(({ row }) => {
                     </>
                 }
 
-
+                {/* make sure */}
                 {table === 'ETLF_EXTRACT_CONFIG' 
                 ? ( (routeConfigs !== undefined && route !=='') 
-                        ? renderFieldByTypeETLF() 
+                        ? renderFieldByType() 
                         : <div>loading route configurations...</div>
                 )
                 : renderFieldByType()}

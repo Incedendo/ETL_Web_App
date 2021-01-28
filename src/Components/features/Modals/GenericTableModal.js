@@ -169,7 +169,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                     )
 
                     setTableColumnExtensions(
-                        headers.map(header => ({ columnName: header, align: 'center' }))
+                        headers.map(header => ({ columnName: header, align: 'left' }))
                     )
 
                     setSortingStates(

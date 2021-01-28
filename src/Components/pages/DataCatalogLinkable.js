@@ -85,7 +85,6 @@ const DataCatalogLinkable = (props) => {
                     <ConfigurationGrid/> 
                 </>
             }
-            
 
             {/* <button onClick={logout}>Log Out</button> */}
         </div>
