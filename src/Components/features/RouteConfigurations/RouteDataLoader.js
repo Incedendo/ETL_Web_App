@@ -49,8 +49,6 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
     
     const [loadingRouteConfig, setLoadingRouteConfig] = useState(false);
-
-    const [helper_route, setHelperRoute] = useState('Oracle to Snowflake');
     const [route, setRoute] = useState('Select Route');
     // const [action, setAction] = useState(Object.keys(routeConfigs[helper_route]['actions'])[0]);
     
@@ -61,7 +59,6 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     const [targetID, setTargetID] = useState();
 
     const [extractConfigID, setExtractConfigID] = useState(null);
-    const [routeCode, setRouteCode] = useState('R1A1');
     const [dropdownFields, setDropdownFields] = useState({});
 
     useEffect(() => {
@@ -116,9 +113,18 @@ const RouteDataLoader = ({ setActionModalShow }) => {
             setActionID(actionID);
             console.log("Rout ID: ", routeID, ", Action ID: " + actionID);
             console.log("required fields for this route-action: ", routeConfigs[currentRoute][actionID]);
-            setInitialStates()
-            // getSystemIDs(routeOptions[value].SRC_TECH, 'source', setSourceID);
-            // getSystemIDs(routeOptions[value].TGT_TECH, 'target', setTargetID);
+            
+            if(extractConfigID !== null){
+                setInitialStates({
+                    ROUTE_ID: routeID,
+                    ACTION_ID: actionID,
+                    ACTIVE: 'Y',
+                    DIEONMISMATCH: 'N',
+                    NOTIFICATIONEMAILS: username,
+                    GROUP_ID: appIDs[0],
+                    EXTRACT_CONFIG_ID: extractConfigID,
+                })
+            }
 
             getSystemIDs(routeConfigs[currentRoute].SRC_TECH, 'source', setSourceID);
             getSystemIDs(routeConfigs[currentRoute].TGT_TECH, 'target', setTargetID);
@@ -186,40 +192,6 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         };
     }, []);
 
-    
-
-    // useEffect(() => {
-    //     debug && console.log("Route: ", helper_route);
-
-        // getSystemIDs(helper_route, 'source', setSourceID);
-        // getSystemIDs(helper_route, 'target', setTargetID);
-
-    //     let actionIDs = [];
-    //     Object.values(routeConfigs[helper_route]['actions']).map(val =>{
-    //         actionIDs.push(val.ACTION_ID);
-    //     })
-
-    //     // debug && console.log("actions dropdown: " + actionIDs);
-    //     updateDropdownFields('ACTION_ID', actionIDs);
-
-    //     let actions = Object.keys(routeConfigs[helper_route]['actions']);
-            
-    //     let default_action = actions[0];
-    //     // debug && console.log("expected new action: " + action);
-    //     setAction(default_action);
-
-    // }, [helper_route]);
-
-    // useEffect(() => {
-    //     if(action !== ''){
-    //         debug && console.log("Current action: ", action);
-    //         debug && console.log("Expected action ID: ", routeConfigs[helper_route]['actions'][action]['ACTION_ID']);
-
-    //         setRouteCode(routeConfigs[helper_route]['actions'][action]['code']);
-    //     }
-
-    // }, [action]);
-
     //update ExtractCOnfigID field inside the initialState Object after it's loaded.
     useEffect(()=>{
         setInitialStates(prevState => {
@@ -276,8 +248,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     // }, [routeID,actionID,sourceID,targetID]);
 
     let required_Fields_Obj = {};
-    let formValidationsInfo = [];
-    let yup_schema = {};
+    
 
     
 
@@ -634,6 +605,8 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     }
 
     function createYupSchemaForRoute(required_Fields_Obj){
+        let formValidationsInfo = [];
+        let yup_schema = {};
         //dynamically generate the VALIDATION requirement as formValidationsInfo
         Object.keys(required_Fields_Obj).map(key => {
             let custom_config = {};
@@ -718,6 +691,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
                                     onChange={e => {
                                         handleChange(e);
                                         setRoute(e.target.value);
+                                        setLoadingRouteConfig(true);
                                     }}
                                     isValid={touched.route && !errors.route}
                                     isInvalid={touched.route && !!errors.route}
@@ -753,6 +727,8 @@ const RouteDataLoader = ({ setActionModalShow }) => {
             {loadingRouteConfig && route !== 'Select Route' &&
                 <div style={{'display': 'flex', 'justifyContent': 'center'}}>Loading configurations...</div>
             }
+
+            {extractConfigID === null && <div style={{'display': 'flex', 'justifyContent': 'center'}}>Fetching info...</div>}
 
             {/* <div style={{'display': 'flex', 'justifyContent': 'center'}}>Loading configurations...</div> */}
             

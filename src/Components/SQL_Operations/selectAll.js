@@ -9,7 +9,7 @@ export const select_all_etl_tables = (username, db, schema, table, groupIDColumn
     FROM "`+  db + `"."` + schema + `"."` +  table + `" ec
     JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
     ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
-            + username.toLowerCase() + `';`;
+            + username.toUpperCase() + `';`;
 
     return sql_statement;
 }
@@ -46,7 +46,7 @@ export const select_all_composite_CATALOG_ENTITY_DOMAIN = currentSearchObj =>{
 
 export const select_all_multi_field_catalog = (db, schema, table) => {
     let sql_statement = `SELECT * FROM(
-    SELECT ec.*, 'READ/WRITE' AS PRIVILEGE
+    SELECT ec.*, 'ADMIN' AS PRIVILEGE
     FROM "`+
         db + `"."` +
         schema + `"."` +
@@ -66,7 +66,7 @@ export const select_all_multi_field_catalog_with_Extra_columns_joined = (
     let extraJoinedColumns = '';
     joinedColumms.map(col => extraJoinedColumns += 'joined.' + col + ', ');
     console.log(extraJoinedColumns);
-
+    
     let sql_statement = `SELECT ` + extraJoinedColumns + ` ec.*, 'READ/WRITE' AS PRIVILEGE
     FROM "`+ db + `"."` + schema + `"."` + table + `" ec ` + `
     JOIN "`+ db + `"."` + schema + `"."` + joinedTable + `" joined ` + `

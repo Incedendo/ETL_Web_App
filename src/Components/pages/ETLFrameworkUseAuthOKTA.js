@@ -10,12 +10,13 @@ import '../../css/workspace.scss';
 import '../../css/etlframework.scss';
 
 import { WorkspaceContext } from '../context/WorkspaceContext';
+import { AdminContext } from '../context/AdminContext';
 import Welcome from '../features/Welcome';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import WorkTab from '../features/Tabs/WorkTab';
 import PlaygroundTab from '../features/Tabs/PlaygroundTab';
-
+import IDAssignmentForm from '../features/Admin/IDAssignmentForm';
 import { getSearchFieldValue } from '../sql_statements';
 
 const ETLFrameworkUseAuthOKTA = ( props ) => {
@@ -37,6 +38,10 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
 
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
+
+    const {
+        isAdmin
+    } = useContext(AdminContext);
 
     console.log(props);
 
@@ -138,9 +143,16 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                                 shownModalUponChangingTable={shownModalUponChangingTable}
                             />
                         </Tab>
-                        <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
+                        {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
                             <PlaygroundTab />
-                        </Tab>
+                        </Tab> */}
+
+                        {isAdmin && 
+                            <Tab eventKey="admin" title="Admin" disabled = {tableLoading}>
+                                
+                                <IDAssignmentForm />
+                            </Tab>
+                        }
                 
                         
                     </Tabs>

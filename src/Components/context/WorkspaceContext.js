@@ -110,7 +110,7 @@ export const WorkspaceProvider = (props) => {
             setAccessToken(authState.accessToken);
             
             const idTokens = JSON.parse(localStorage.getItem('okta-token-storage'));
-            setUsername(idTokens.idToken.claims.email);
+            setUsername((idTokens.idToken.claims.email).toUpperCase());
             setName(idTokens.idToken.claims.name);
             setScopes(idTokens.idToken.scopes);
         }
@@ -143,8 +143,8 @@ export const WorkspaceProvider = (props) => {
             // debug && console.log("ACcess token ETLF_ACCESS_AUTHORIZATION: ", accessToken);
             debug && console.log("Access token from authState: ", accessToken);
             
-            const proposed_get_statenent = "SELECT APP_ID FROM SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION WHERE LOWER(USERNAME) = '"
-                + username.toLowerCase() + "';";
+            const proposed_get_statenent = "SELECT APP_ID FROM SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION WHERE UPPER(USERNAME) = '"
+                + username.toUpperCase() + "';";
             
             debug && console.log(proposed_get_statenent);
             
@@ -258,10 +258,11 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                     if(table in gridConfigs){
                         reloadGridConfig();
                     }else{
+                        console.log("calling prepareGridConfig after User choose table from dropdown...");
                         prepareGridConfig(response.data);
                     }
                     
-                    setColumnsLoaded(true);
+                    // setColumnsLoaded(true);
                 })
                 .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
                 
@@ -279,11 +280,19 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
     useEffect(() => {
         console.log("Current Gridconfigs: ", gridConfigs);
+        // if(table in gridConfigs){
+        //     reloadGridConfig();
+        // }
         
-        reloadGridConfig();
     }, [gridConfigs]);
 
-    const clearGridConfig = () => {
+    useEffect(()=>{
+        if(columns.length !== 0){
+            setColumnsLoaded(true);
+        }
+    }, [columns]);
+
+    const clearCurrentConfig = () => {
         
         console.log("CLEARING existing gridconfig for table: " + table);
         setHeaders([]);
@@ -297,22 +306,23 @@ ORDER BY ROUTE_ID, ACTION_ID `;
     }
 
     const reloadGridConfig = () => {
-        clearGridConfig();
-        if (table in gridConfigs) {
-            console.log("only reloading existing gridconfig for table: " + table);
-            console.log(gridConfigs[table]);
-            setHeaders(gridConfigs[table]["headers"]);
-            setColumns(gridConfigs[table]["columns"]);
-            setColumnWidths(gridConfigs[table]["columnWidths"]);
-            setTableColumnExtensions(gridConfigs[table]["tableColumnExtensions"]);
-            // setSortingStates(gridConfigs[table]["sortingStates"]);
-            setNumberColumns(gridConfigs[table]["numericColumns"]);
-            setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
-        }
+        clearCurrentConfig();
+        
+        console.log("only reloading existing gridconfig for table: " + table);
+        console.log(gridConfigs);
+        setHeaders(gridConfigs[table]["headers"]);
+        setColumns(gridConfigs[table]["columns"]);
+        setColumnWidths(gridConfigs[table]["columnWidths"]);
+        setTableColumnExtensions(gridConfigs[table]["tableColumnExtensions"]);
+        // setSortingStates(gridConfigs[table]["sortingStates"]);
+        setNumberColumns(gridConfigs[table]["numericColumns"]);
+        setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
+        
     }
 
     //saving configs 
     const prepareGridConfig = (data) => {
+        console.log(data);
         if(data.length != 0){
             console.log("prepare grid config for table: "+ table);
             // console.log(data);
@@ -326,6 +336,8 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             if(headers.length === 0 )
                 return;
 
+
+            console.log("header b4 appending: " + headers);
             if(table === 'ETLFCALL'){
                 headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
             }else if(table === 'ETLF_CUSTOM_CODE'){
@@ -338,17 +350,22 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 headers.unshift('FNAME');
             }else if(table === 'CATALOG_ENTITIES'){
                 headers.unshift('DOMAIN');
-            }else if(['CATALOG_ENTITY_DOMAIN','CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) > -1 ){
+            }else if(['CATALOG_ENTITY_DOMAIN', 'CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) >= 0 ){
                 headers.unshift('TARGET_TABLE');
                 headers.unshift('TARGET_SCHEMA');
                 headers.unshift('TARGET_DATABASE');
                 headers.unshift('DOMAIN');
             }
             
-            let columns = headers.map(header => ({
+            console.log("header after appending: " + headers);
+            let columns = []; 
+            headers.map(header => columns.push({
                 name: header,
                 title: header
             }))
+
+            console.log(columns);
+            console.log(headers);
 
             const columnWidths = headers.map(header => ({
                 columnName: header,
@@ -390,6 +407,14 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                     dataTypeObj[column_name] = "number"
                 }
             }
+
+            setHeaders(headers);
+            setColumns(columns);
+            setColumnWidths(columnWidths);
+            setTableColumnExtensions(tableColumnExtensions);
+            // setSortingStates(gridConfigs[table]["sortingStates"]);
+            setNumberColumns(numericColumns);
+            setColumnDataTypes(dataTypeObj);
 
             const tableGridConfig = {
                 headers,
@@ -724,10 +749,10 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             { columnName: 'PRIVILEGE', editingEnabled: false },
         ]
 
-        for (let key in primaryKeys) {
-            debug && console.log("primary key: ", primaryKeys[key])
+        for (let key in nonEditableColumns) {
+            debug && console.log("nonEditableColumns: ", nonEditableColumns[key])
             columnDisabledArr.push({
-                columnName: primaryKeys[key], editingEnabled: false
+                columnName: nonEditableColumns[key], editingEnabled: false
             })
         }
 
@@ -735,7 +760,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         setEditingStateColumnExtensions(columnDisabledArr)
     }
 
-    useEffect(() => disableColumnsContainingPK(), [primaryKeys])
+    useEffect(() => disableColumnsContainingPK(), [nonEditableColumns]);
 
     // const getCustomColumns = (columns, field, condition) => {
     //     let result = []
@@ -934,7 +959,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         
         debug && console.log('%c Counting time axios call:', 'color: orange; font-weight: bold');
         debug && console.time("calling API to load table");
-        axios.get(getURL, {
+        axios.get(TABLESNOWFLAKE_URL, {
             // headers,
             params
         })
@@ -944,15 +969,16 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 // console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
                 
-                if (!reloadTable && !gridConfigs[table]) {
+                // if (!reloadTable && !gridConfigs[table]) {
+                if (table in gridConfigs) {
+                    reloadGridConfig();
+                    loadTableRows(response.data, primaryKey);
+                    debug && console.log(`%c Loading talbe with : ${response.data.length} rows`, 'color: orange; font-weight: bold');
+                }else{
                     debug && console.log("saving new config for Table ", table);
                     debug && console.log(`%c Loading talbe with : ${response.data.columns.length} columns and ${response.data.rows.length} rows`, 'color: orange; font-weight: bold');
                     prepareGridConfig(response.data.columns);
                     loadTableRows(response.data.rows, primaryKey);
-                }else{
-                    reloadGridConfig();
-                    loadTableRows(response.data, primaryKey);
-                    debug && console.log(`%c Loading talbe with : ${response.data.length} rows`, 'color: orange; font-weight: bold');
                 }                
             })
             .catch(error => {

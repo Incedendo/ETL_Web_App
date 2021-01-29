@@ -16,7 +16,7 @@ import '../../../css/workspace.scss';
 
 const WorkTab = ({ shownModalUponChangingTable }) => {
     const {
-        debug, username,
+        debug,
         database, schema, table, 
         columnDataTypes, 
         tableLoaded, tableLoading, tableSearching, setReloadTable,
@@ -113,11 +113,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                     {/* <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
                         <Dropdown as={ButtonGroup}>
                             <SearchModal 
-                                database={database} 
-                                schema={schema} 
-                                table={table} 
-                                groupIDColumn={groupIDColumn}
-                                username={username} 
+                                groupIDColumn={groupIDColumn} 
                                 columns={columns}
                                 shown={shownModalUponChangingTable}
                                 setCurrentSearchCriteria={setCurrentSearchCriteria}
@@ -133,12 +129,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                     
 
                     <SearchModal 
-                        database={database} 
-                        schema={schema} 
-                        table={table} 
                         groupIDColumn={groupIDColumn}
-                        username={username} 
-                        columns={columns}
                         shown={shownModalUponChangingTable}
                         setCurrentSearchCriteria={setCurrentSearchCriteria}
                     />

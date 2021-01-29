@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Link, Switch, Redirect } from "react-ro
 // import { Router, Route, Link, Switch, Redirect } from "react-router-dom";
 import { Security, SecureRoute,  ImplicitCallback, LoginCallback, Auth } from '@okta/okta-react';
 import { WorkspaceProvider } from './Components/context/WorkspaceContext';
+import { AdminProvider } from './Components/context/AdminContext';
 
 import Navbar from './Components/layout/Navbar';
 import HomeNew from './Components/pages/HomeNew';
@@ -33,18 +34,20 @@ const App = () => {
         redirectUri={REDIRECT_URI}
       >
         <WorkspaceProvider>
-          <div className="App">
-            <Navbar />
-            <Switch>
-              <Route exact={true} path="/" component={HomeNew} />
-              <SecureRoute exact path = "/etlframework" component = {ETLFrameworkUseAuthOKTA} />
-              <SecureRoute exact path = "/datacatalog" component = {DataCatalog} />
-              {/* <Route path='/login' render={() => <Login baseUrl='https://devaigtech.oktapreview.com' />} /> */}
-              <Route path='/login' render={() => <Login baseUrl='https://uataigtech.oktapreview.com' />} />
-              <Route path='/logged_out' component={Logout} />
-              <Route path='/implicit/callback' component={LoginCallback} />
-            </Switch> 
-          </div>
+          <AdminProvider>
+            <div className="App">
+              <Navbar />
+              <Switch>
+                <Route exact={true} path="/" component={HomeNew} />
+                <SecureRoute exact path = "/etlframework" component = {ETLFrameworkUseAuthOKTA} />
+                <SecureRoute exact path = "/datacatalog" component = {DataCatalog} />
+                {/* <Route path='/login' render={() => <Login baseUrl='https://devaigtech.oktapreview.com' />} /> */}
+                <Route path='/login' render={() => <Login baseUrl='https://uataigtech.oktapreview.com' />} />
+                <Route path='/logged_out' component={Logout} />
+                <Route path='/implicit/callback' component={LoginCallback} />
+              </Switch> 
+            </div>
+          </AdminProvider>
         </WorkspaceProvider>
       </Security>
     </Router>

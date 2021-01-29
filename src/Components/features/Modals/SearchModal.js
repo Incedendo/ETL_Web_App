@@ -32,14 +32,15 @@ const nonSearchableColumns = [
     'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID'
 ];
 
-const SearchModal = ({database, schema, table, groupIDColumn, username, columns, shown, setCurrentSearchCriteria}) => {
+const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
     // const { authState, authService } = useOktaAuth();
     
     const {
         debug,
-        // database, schema,  username,
-        // columns,
+        username,
+        database, schema, table, 
+        columns,
         // axiosCallToGetTable,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
@@ -54,6 +55,7 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
     const [errors, setErrors] = useState({});
 
     useEffect(()=>{
+        debug && console.log(username);
         let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
         ? columns.map(column => column.name)
         : columns;
@@ -224,40 +226,87 @@ const SearchModal = ({database, schema, table, groupIDColumn, username, columns,
             else if(table === 'CATALOG_ENTITIES'){
                 // selectAllStmt = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
                 // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
-                selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, 'READ/WRITE' AS PRIVILEGE 
+                selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, 
+                CASE
+                    WHEN AA.USERNAME IS NOT NULL THEN 'READ/WRITE'
+                    ELSE 'READ ONLY'
+                END AS PRIVILEGE 
                 FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`
+                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATCAT_ACCESS_AUTHORIZATION AA
+                ON (AA.DOMAIN = C.DOMAIN);`
             }else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE' ){
-                selectAllStmt = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 'READ/WRITE' AS PRIVILEGE 
+                selectAllStmt = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
+                CASE
+                    WHEN AA.USERNAME IS NOT NULL THEN 'READ/WRITE'
+                    ELSE 'READ ONLY'
+                END AS PRIVILEGE 
                 FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
                 ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`;
+                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATCAT_ACCESS_AUTHORIZATION AA
+                ON (AA.DOMAIN = C.DOMAIN);`;
+            }
+            //---------------------------------ONLY ADMIN---------------------------------------
+            else if(table === 'DATA_STEWARD'){
+                // console.log("table NOTTTTTT in ETLF Framework");
+                selectAllStmt = `SELECT DS.*, 
+                CASE
+                    WHEN '` + username +`' IN (
+                        SELECT USERNAME
+                        FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+                    ) THEN 'READ/WRITE'
+                    ELSE 'READ ONLY'
+                END AS PRIVILEGE
+                FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS;`;
             }else if(table === 'DATA_STEWARD_DOMAIN'){
-                // selectAllStmt = select_all_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
-                selectAllStmt = `SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, 'READ/WRITE' AS PRIVILEGE
+                selectAllStmt = `SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, 
+                CASE
+                    WHEN '` + username +`' IN (
+                        SELECT USERNAME
+                        FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+                    ) THEN 'READ/WRITE'
+                    ELSE 'READ ONLY'
+                END AS PRIVILEGE
                 FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN E
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD B 
                 ON (E.DATA_STEWARD_ID = B.DATA_STEWARD_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`
+                ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
+            }
+            //---------------------------------ADMIN AND STEWARD---------------------------------------
+            else if(table === 'DATA_DOMAIN'){
+                selectAllStmt = `SELECT DD.*,
+                CASE
+                    WHEN '` + username +`' IN (
+                        SELECT DS.EMAIL
+                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                    ) THEN 'READ/WRITE'
+                    ELSE 'READ ONLY'
+                END AS PRIVILEGE
+                FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" DD;`
             }else if(table === 'CATALOG_ENTITY_DOMAIN'){
                 // selectAllStmt = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
-                selectAllStmt = `SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, 'READ/WRITE' AS PRIVILEGE 
+                selectAllStmt = `SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, 
+                CASE
+                    WHEN '` + username +`' IN (
+                        SELECT DS.EMAIL
+                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                    ) THEN 'READ/WRITE'
+                    ELSE 'READ ONLY'
+                END AS PRIVILEGE
                 FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN E
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES B 
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`
-            }else{
-                // console.log("table NOTTTTTT in ETLF Framework");
-                selectAllStmt = select_all_multi_field_catalog(database, schema, table);
+                ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`;
             }
                 
             // debug && console.log(selectAllStmt);
