@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { AdminContext } from '../../context/AdminContext';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
@@ -23,17 +24,26 @@ const DataCatalogModal = ({
     const [show, setShow] = useState(false);
     const [item, setItem] = useState("");
 
+    const {
+        isAdmin, isSteward
+    } = useContext(AdminContext);
+
     useEffect(()=>{
         setItem(tableItems[table]);
     }, [table]);
 
-    // console.log(table);
+    // console.log(table);    
 
     return (
         <div style={{ 'float': 'left' }}>
             <Button className="button-margin"
                 variant="primary"
-                onClick={() => setShow(true)}>
+                onClick={()=>setShow(true)}
+                disabled={
+                    ((table === 'DATA_STEWARD' || table === 'DATA_STEWARD_DOMAIN') && !isAdmin)
+                    || ((table === 'DATA_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN') && !isSteward && !isAdmin)
+                }
+            >
                 Add {item}
             </Button>
 

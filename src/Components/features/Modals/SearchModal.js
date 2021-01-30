@@ -55,7 +55,11 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
     const [errors, setErrors] = useState({});
 
     useEffect(()=>{
-        debug && console.log(username);
+        if(debug){
+            console.log(username);
+            console.log(currentSearchObj);
+        }
+        
         let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
         ? columns.map(column => column.name)
         : columns;
@@ -86,7 +90,7 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
         //     setShow(shown);
         // }
         setShow(shown);
-        console.log(currentSearchObj);
+        
     }, []);
 
     // useEffect(() =>{

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
+import { AdminContext } from '../../context/AdminContext';
 import SearchModal from '../Modals/SearchModal';
 import DataCatalogRefresher from './DataCatalogRefresher';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -94,6 +95,10 @@ const DatCat_ControlPanel = ({ linkState }) => {
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
+    const {
+        isAdmin
+    } = useContext(AdminContext);
+
     const mounted = useRef(true);
 
     const { authState, authService } = useOktaAuth();
@@ -128,7 +133,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setCommingFromLink(false);
         }
         
-        console.log(dropdownFields);
+        // console.log(dropdownFields);
     }, []);
 
     useEffect(() =>{
@@ -564,7 +569,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         
                 </div>
 
-                
+                <DataCatalogRefresher />
             </div>
 
             

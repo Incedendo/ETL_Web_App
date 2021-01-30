@@ -29,22 +29,29 @@ const RouteForm = ({
         codeFields,
     } = useContext(WorkspaceContext);
 
-    const mounted = useRef(true);
-
-    // console.log("R1A1: current Action: ",states['ACTION_ID']);
-    debug && console.log("current states: ", states);
-    debug && console.log("routeOptions: ", routeOptions);
-    debug && console.log(requiredFields);
-    debug && console.log(optionalFields);
-
     const [validating, setValidating] = useState(false);
     const [insertMessage, setInsertMessage] = useState('');
     const [showOptional, toggleOptional] = useState(false);
 
+    const mounted = useRef(true);
+
     useEffect(()=>{
+        if(debug){
+            console.log("current states: ", states);
+            console.log("routeOptions: ", routeOptions);
+            console.log(requiredFields);
+            console.log(optionalFields);
+        }
+    }, []);
+
+    useEffect(()=>{
+        mounted.current = true;
+        
         if(validating){
 
         }
+
+        return () => mounted.current = false;
     }, [validating])
 
     function getMergeStatement(values) {
@@ -107,42 +114,22 @@ const RouteForm = ({
         if (test_result.data[0]['COMBI'] === 0) {
             debug && console.log('Proceed to Insert');
             insertUsingMergeStatement(getMergeStatement(values), values, setValidating, true);
-            setInsertMessage("");
-            setShow(false);
+            if(mounted.current){
+                setInsertMessage("");
+                setShow(false);
+            }
+            
         } else {
             debug && console.log('Insert Error: WORK_GROUP_ID and SOURCE_TABLE already exist');
-            setInsertMessage("Insert Error: WORK_GROUP_ID and SOURCE_TABLE already exist");
-            setValidating(false);
+            if(mounted.current){
+                setInsertMessage("Insert Error: WORK_GROUP_ID and SOURCE_TABLE already exist");
+                setValidating(false);
+            }
         }
     };
 
     const allFieldsFromDataLoader = (Object.keys(requiredFields)).sort();
     const orderedRequiredFields = allFieldsFromDataLoader.filter(col => col !== 'ACTION_ID' && col !== 'ROUTE_ID');
-
-    const renderOrderFields = requiredFields =>{
-        for(let field in requiredFields)
-            return(
-                <FormField
-                    key={field}
-                    field={field}
-                    required={requiredFields[field]}
-                    requiredFields={Object.keys(requiredFields)}
-                    values={values}
-                    dataTypes={columnDataTypes}
-                    handleChange={handleChange}
-                    handleBlur={handleBlur}
-                    touched={touched}
-                    errors={errors}
-                    disabled={validating}
-                    codeFields={codeFields}
-                    dropdownFields={dropdownFields}
-                />
-            )
-    }
-
-    const getData = () => {
-        return initialStates;
-    }
 
     return (
         <>

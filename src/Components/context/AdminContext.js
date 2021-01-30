@@ -13,6 +13,7 @@ export const AdminProvider = (props) => {
     const { debug, username } = useContext(WorkspaceContext);
 
     const [isAdmin, setAdmin] = useState(false);
+    const [isSteward, setSteward] = useState(false);
 
     useEffect(() =>{
         console.log("this is the admin context...");
@@ -26,10 +27,10 @@ export const AdminProvider = (props) => {
             // debug && console.log("ACcess token ETLF_ACCESS_AUTHORIZATION: ", accessToken);
             debug && console.log("Access token from authState: ", accessToken);
             
-            const proposed_get_statenent = "SELECT COUNT(*) AS COUNT FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN WHERE UPPER(USERNAME) = '"
+            const getAdminSQL = "SELECT COUNT(*) AS COUNT FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN WHERE UPPER(USERNAME) = '"
                 + username.toUpperCase() + "';";
             
-            debug && console.log(proposed_get_statenent);
+            debug && console.log(getAdminSQL);
             
             axios.get(SELECT_URL, {
                 headers: {
@@ -40,7 +41,7 @@ export const AdminProvider = (props) => {
                 },
                 //params maps to event.queryStringParameters in lambda
                 params: {
-                    sqlStatement: proposed_get_statenent,
+                    sqlStatement: getAdminSQL,
                 }
             })
                 //have to setState in .then() due to asynchronous opetaions
@@ -51,11 +52,34 @@ export const AdminProvider = (props) => {
                     }
                 })
                 .catch(err => debug && console.log("error from loading SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN:", err.message))
+
+            const getStewardSQL = "SELECT COUNT(*) AS COUNT FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD WHERE UPPER(EMAIL) = '"
+            + username.toUpperCase() + "';";
+            axios.get(SELECT_URL, {
+                headers: {
+                    'type': 'TOKEN',
+                    'methodArn': ARN_APIGW_GET_SELECT,
+                    // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                    'authorizorToken': accessToken
+                },
+                //params maps to event.queryStringParameters in lambda
+                params: {
+                    sqlStatement: getStewardSQL,
+                }
+            })
+                //have to setState in .then() due to asynchronous opetaions
+                .then(response => {
+                    debug && console.log("Steward count:", response.data);
+                    if(response.data[0].COUNT == 1){
+                        setSteward(true);
+                    }
+                })
+                .catch(err => debug && console.log("error from loading SHARED_TOOLS_DEV.ETL.DATCAT_ACCESS_AUTHORIZATION:", err.message))    
         }
         
     }, [authState, username]);
     
-    const usersContext = { isAdmin };
+    const usersContext = { isAdmin, isSteward };
     
     return (
         <AdminContext.Provider value={usersContext}>

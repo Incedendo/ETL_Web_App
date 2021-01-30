@@ -23,18 +23,6 @@ const DataCatalogRefresher = () => {
         },
     }
 
-    const updateEntity = axios.post(INSERT_URL, {
-            'sqlStatement': mergeUpdateCatalogEntitiesFromView
-        } , options);
-
-    const updateItem = axios.post(INSERT_URL, {
-            'sqlStatement': mergeUpdateCatalogItemsFromView
-        } , options);
-
-    const updateLineage = axios.post(INSERT_URL, {
-        'sqlStatement': mergeUpdateCatalogEntityLineageFromView
-        } , options);
-
     function simulateNetworkRequest() {
         return new Promise((resolve) => setTimeout(resolve, 2000));
     }
@@ -42,7 +30,19 @@ const DataCatalogRefresher = () => {
     //refresh 3 tables in Data Catalog
     useEffect(() => {
         let mounted = true;
+        
         if (isRefreshing) {
+            const updateEntity = axios.post(INSERT_URL, {
+                'sqlStatement': mergeUpdateCatalogEntitiesFromView
+            } , options);
+    
+            const updateItem = axios.post(INSERT_URL, {
+                    'sqlStatement': mergeUpdateCatalogItemsFromView
+                } , options);
+    
+            const updateLineage = axios.post(INSERT_URL, {
+                'sqlStatement': mergeUpdateCatalogEntityLineageFromView
+                } , options);
             debug && console.log("Refreshing the Datacatalog now....")
             simulateNetworkRequest().then(() => {
                 setRefreshing(false);
