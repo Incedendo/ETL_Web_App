@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
+
+//---------------Contexts----------------------
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
+
+//---------------Components--------------------
 import SearchModal from '../Modals/SearchModal';
 import DataCatalogRefresher from './DataCatalogRefresher';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -9,6 +13,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import DataCatalogModal from './DataCatalogModal';
+import DomainOperatorModal from './DataSteward/DomainOperatorModal';
 import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import axios from 'axios';
@@ -18,38 +23,6 @@ import { getSearchFieldValue } from '../../sql_statements';
 import { compositeTables } from '../../context/FieldTypesConfig';
 import '../../../css/workspace.scss';
 import { SELECT_URL, ARN_APIGW_GET_SELECT, } from '../../context/URLs';
-
-const DropDown = ({ 
-    target, currentVal, menus, table, 
-    setState, setShownModalUponChangingTable, 
-    setCommingFromLink, setTableLoaded, setCurrentSearchCriteria,
-    disabled
-}) => {
-    return (
-        <DropdownButton
-            id="dropdown-item-button"
-            title={!currentVal ? 'Select a ' + target : currentVal}
-            // disabled={tableSearching || tableLoading}
-        >
-            {menus.map(item => (
-                <Dropdown.Item as="button" key={item} disabled={disabled}
-                    onSelect={() => {
-                        if (item !== table) {
-                            setState(item);
-                            setShownModalUponChangingTable(true);
-                            setCommingFromLink(false);
-                            setTableLoaded(false);
-                            setCurrentSearchCriteria({});
-                        }
-                    }}
-                >
-                    {item}
-                </Dropdown.Item>
-            )
-            )}
-        </DropdownButton>
-    )
-}
 
 // const TableOptions = () => (
 //     <div style={{ 'height': '90px' }}>
@@ -89,14 +62,15 @@ const DatCat_ControlPanel = ({ linkState }) => {
         username,
         database, schema,
         table, setTable,
-        columns, columnsLoaded,
+        columns, 
+        setColumnsLoaded,columnsLoaded,
         tableLoading,
         tableLoaded,setTableLoaded,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
     const {
-        isAdmin
+        isAdmin, isSteward
     } = useContext(AdminContext);
 
     const mounted = useRef(true);
@@ -181,7 +155,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
     useEffect(()=>{
         // if(linkState !== undefined){
-        if(loadedConfig && comingFromLink){
+        if(loadedConfig && comingFromLink && columnsLoaded){
             console.log("Immediately get linked result based on Link state's params");
 
             const searchStmt = linkState['searchStmt'];
@@ -190,7 +164,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
             console.log(primaryKey);
             axiosCallToGetTableRows(searchStmt, primaryKey);            
         }
-    }, [loadedConfig, comingFromLink]);
+    }, [loadedConfig, comingFromLink, columnsLoaded]);
 
     const prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN = () => {
         if (authState.isAuthenticated && username !== '') {
@@ -480,7 +454,10 @@ const DatCat_ControlPanel = ({ linkState }) => {
     return (
         <>
             {/* DatCat_ControlPanel */}
-            <div style={{}}>
+            <div>
+
+            
+               
                 <div style={{ 'float': 'left' }}>
                     Select Catalog table:
                     <DropDown 
@@ -499,6 +476,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         setState={setTable}
                         setShownModalUponChangingTable={setShownModalUponChangingTable}
                         setCommingFromLink={setCommingFromLink}
+                        setColumnsLoaded={setColumnsLoaded}
                         setTableLoaded={setTableLoaded}
                         setCurrentSearchCriteria={setCurrentSearchCriteria}
                         disabled={!columnsLoaded}
@@ -517,9 +495,34 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         setInsertError={setInsertError}
                     />
                 }
-                    
-                <div style={{ 'paddingTop': '10px', 'float': 'left' }}>
-                    { (Object.keys(compositeTables)).indexOf(table) < 0  
+
+                {table === 'DATA_DOMAIN' && isSteward &&
+                    <DomainOperatorModal/>
+                }
+
+                <DataCatalogRefresher />
+                
+                <div style={{ paddingTop: '10px', float: 'right' }}>
+                    {!columnsLoaded
+                        ?<div style={{'padding': '5px'}}>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />
+                            <span style={{ 'marginLeft': '5px' }}>loading columns...</span>
+                        </div>
+                        : 
+                        <SearchModal
+                            columnsLoaded={columnsLoaded}
+                            groupIDColumn={'GroupID Not applicable for Catalog'}
+                            shown={shownModalUponChangingTable}
+                            setCurrentSearchCriteria={setCurrentSearchCriteria}
+                        />
+                    }
+                    {/* { (Object.keys(compositeTables)).indexOf(table) < 0  
                         ?
                             !columnsLoaded
                                 ?<div style={{'padding': '5px'}}>
@@ -534,12 +537,12 @@ const DatCat_ControlPanel = ({ linkState }) => {
                                 </div>
                                 : 
                                 <SearchModal
-                                    database={database} 
-                                    schema={schema} 
-                                    table={table} 
+                                    // database={database} 
+                                    // schema={schema} 
+                                    // table={table} 
                                     groupIDColumn={'GroupID Not applicable for Catalog'}
-                                    username={username} 
-                                    columns={columns}
+                                    // username={username} 
+                                    // columns={columns}
                                     shown={shownModalUponChangingTable}
                                     setCurrentSearchCriteria={setCurrentSearchCriteria}
                                 />
@@ -556,23 +559,19 @@ const DatCat_ControlPanel = ({ linkState }) => {
                                 <span style={{ 'marginLeft': '5px' }}>loading config...</span>
                             </div>
                             :<SearchModal
-                                database={database} 
-                                schema={schema} 
-                                table={table} 
+                                // database={database} 
+                                // schema={schema} 
+                                // table={table} 
                                 groupIDColumn={'GroupID Not applicable for Catalog'}
-                                username={username} 
-                                columns={Object.keys(dropdownObject)}
+                                // username={username} 
+                                // columns={Object.keys(dropdownObject)}
                                 shown={shownModalUponChangingTable}
                                 setCurrentSearchCriteria={setCurrentSearchCriteria}
                             />
-                    }
+                    } */}
                         
                 </div>
-
-                <DataCatalogRefresher />
             </div>
-
-            
 
             {tableLoading && 
                 <div style={{
@@ -669,3 +668,36 @@ const DatCat_ControlPanel = ({ linkState }) => {
 }
 
 export default DatCat_ControlPanel;
+
+const DropDown = ({ 
+    target, currentVal, menus, table, 
+    setState, setShownModalUponChangingTable, 
+    setCommingFromLink, setTableLoaded, setColumnsLoaded, setCurrentSearchCriteria,
+    disabled
+}) => {
+    return (
+        <DropdownButton
+            id="dropdown-item-button"
+            title={!currentVal ? 'Select a ' + target : currentVal}
+            // disabled={tableSearching || tableLoading}
+        >
+            {menus.map(item => (
+                <Dropdown.Item as="button" key={item} disabled={disabled}
+                    onSelect={() => {
+                        if (item !== table) {
+                            setState(item);
+                            setShownModalUponChangingTable(true);
+                            setCommingFromLink(false);
+                            setTableLoaded(false);
+                            // setColumnsLoaded(false);
+                            setCurrentSearchCriteria({});
+                        }
+                    }}
+                >
+                    {item}
+                </Dropdown.Item>
+            )
+            )}
+        </DropdownButton>
+    )
+}

@@ -58,7 +58,7 @@ export const search_multi_field = (username, db, schema, table, groupIDColumn, c
     return sql_statement;
 }
 
-export const search_multi_field_catalog = (db, schema, table, currentSearchObj, start, end) => {
+export const search_multi_field_catalog = (username, db, schema, table, currentSearchObj, start, end) => {
     let sql_statement = `SELECT * FROM(
     SELECT ec.*, 'READ/WRITE' AS PRIVILEGE
     FROM "`+
@@ -68,7 +68,47 @@ export const search_multi_field_catalog = (db, schema, table, currentSearchObj, 
     WHERE ` + getSearchFieldValue(currentSearchObj) + `
     );`;
     
-return sql_statement;
+    return sql_statement;
+}
+
+export const search_multi_field_catalog_DataSteward = (username, db, schema, table, currentSearchObj, start, end) => {
+    let sql_statement = `SELECT * FROM(
+    SELECT ec.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT USERNAME
+            FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
+    FROM "`+
+        db + `"."` +
+        schema + `"."` +
+        table + `" ec 
+    WHERE ` + getSearchFieldValue(currentSearchObj) + `
+    );`;
+    
+    return sql_statement;
+}
+
+export const search_multi_field_catalog_DataDomain = (username, db, schema, table, currentSearchObj, start, end) => {
+    let sql_statement = `SELECT * FROM(
+    SELECT ec.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT EMAIL
+            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
+    FROM "`+
+        db + `"."` +
+        schema + `"."` +
+        table + `" ec 
+    WHERE ` + getSearchFieldValue(currentSearchObj) + `
+    );`;
+    
+    return sql_statement;
 }
 
 export const search_ItemsLineage_joined_Entity_Domain = (table, currentSearchObj) => {
@@ -77,7 +117,18 @@ export const search_ItemsLineage_joined_Entity_Domain = (table, currentSearchObj
 
     let sql_statement = `SELECT J.DOMAINS AS DOMAIN, J.*
     FROM (
-        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 'READ/WRITE' AS PRIVILEGE 
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
+        CASE
+            WHEN '` + username +`' IN (
+                SELECT DISTINCT EMAIL FROM
+                (
+                    SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                    UNION
+                    SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                )
+            ) THEN 'READ/WRITE'
+            ELSE 'READ ONLY'
+        END AS PRIVILEGE 
         FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
         INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
         ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID
@@ -94,7 +145,7 @@ export const search_ItemsLineage_joined_Entity_Domain = (table, currentSearchObj
     return sql_statement;
 }
 
-export const search_CATALOG_ENTITIES_JOINED_DOMAIN = currentSearchObj =>{
+export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (username, currentSearchObj) =>{
     console.log(currentSearchObj);
 
     const DOMAIN = 'DOMAIN' in currentSearchObj ? currentSearchObj['DOMAIN'] : '';
@@ -115,7 +166,18 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = currentSearchObj =>{
     // WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + ';';
 
     let sql_statement = 
-    `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE 
+    `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT DISTINCT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+            )
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE 
     FROM (
         SELECT NVL(C.DOMAIN, '') DOMAINS, E.* 
         FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
@@ -132,10 +194,17 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = currentSearchObj =>{
     return sql_statement;
 }
 
-export const search_composite_DATA_STEWARD_DOMAIN = currentSearchObj =>{
+export const search_composite_DATA_STEWARD_DOMAIN = (username, currentSearchObj) =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
+    let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT EMAIL
+            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
     FROM
     (SELECT A.FNAME, A.LNAME, A.EMAIL, B.DATA_STEWARD_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD A
@@ -148,10 +217,17 @@ export const search_composite_DATA_STEWARD_DOMAIN = currentSearchObj =>{
     return sql_statement;
 }
 
-export const search_composite_CATALOG_ENTITY_DOMAIN = currentSearchObj =>{
+export const search_composite_CATALOG_ENTITY_DOMAIN = (username, currentSearchObj) =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
+    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT EMAIL
+            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
     FROM
     (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A

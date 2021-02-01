@@ -72,7 +72,7 @@ const DataCatalogRefresher = () => {
     const handleClick = () => setRefreshing(true);
 
     return (
-        <div style={{ 'paddingTop': '10px', 'float': 'right' }}>
+        <div style={{marginTop: '10px', float: 'right' }}>
             <Button
                 variant="warning"
                 disabled={isRefreshing}

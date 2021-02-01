@@ -53,7 +53,7 @@
 }
 
 .field-div{
-    margin-bottom: 5px;
+    margin-bottom: 1rem;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -68,7 +68,7 @@
 
 .searchFieldsDiv{
     height: 290px;
-    overflow-y: scroll;
+    overflow-y: auto;
     margin-bottom: 20px;
 }
 
@@ -83,5 +83,5 @@
 }
 
 .field-width{
-    width: 175px;
+    width: 175cpx;
 }

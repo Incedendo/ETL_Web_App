@@ -9,6 +9,8 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { search_multi_field, 
     search_multi_field_catalog, 
+    search_multi_field_catalog_DataSteward,
+    search_multi_field_catalog_DataDomain,
     search_ItemsLineage_joined_Entity_Domain, 
     search_composite_DATA_STEWARD_DOMAIN, 
     search_composite_CATALOG_ENTITY_DOMAIN ,
@@ -29,10 +31,10 @@ import { compositeTables } from '../../context/FieldTypesConfig';
 const nonSearchableColumns = [
     'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
     'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
-    'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID'
+    'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID', 'CATALOG_ENTITIES'
 ];
 
-const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
+const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
     // const { authState, authService } = useOktaAuth();
     
@@ -40,7 +42,8 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
         debug,
         username,
         database, schema, table, 
-        columns,
+        columns, 
+        columnsLoaded,
         // axiosCallToGetTable,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
@@ -56,42 +59,69 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
     useEffect(()=>{
         if(debug){
-            console.log(username);
-            console.log(currentSearchObj);
+            // console.log(username);
+            // console.log(currentSearchObj);
+            console.log(table);
+            console.table(columns);
         }
+        if(columnsLoaded){
+            console.log("COLUMN LOADED!!!!!!");
+            let searchFieldsFromDropdownArr = columns.map(column => column.name)
         
-        let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
-        ? columns.map(column => column.name)
-        : columns;
+            // (Object.keys(compositeTables)).indexOf(table) < 0
+            // ? columns.map(column => column.name)
+            // : columns;
 
-        if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ENTITIES'
-            || table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'
-        ){
-            if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
-                searchFieldsFromDropdownArr.unshift('TARGET_TABLE');
-            if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
-                searchFieldsFromDropdownArr.unshift('TARGET_SCHEMA');
-            if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
-                searchFieldsFromDropdownArr.unshift('TARGET_DATABASE');
-            if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
-                searchFieldsFromDropdownArr.unshift('DOMAIN');
-            if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
-                searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
+            // if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ENTITIES'
+            //     || table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'
+            // ){
+            //     if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
+            //         searchFieldsFromDropdownArr.unshift('TARGET_TABLE');
+            //     if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
+            //         searchFieldsFromDropdownArr.unshift('TARGET_SCHEMA');
+            //     if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
+            //         searchFieldsFromDropdownArr.unshift('TARGET_DATABASE');
+            //     if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
+            //         searchFieldsFromDropdownArr.unshift('DOMAIN');
+            // }else if(table === 'DATA_STEWARD_DOMAIN'){
+            //     if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
+            //         searchFieldsFromDropdownArr.unshift('DOMAIN');
+            //     if(searchFieldsFromDropdownArr.indexOf("FNAME") < 0)
+            //         searchFieldsFromDropdownArr.unshift('FNAME');
+            //     if(searchFieldsFromDropdownArr.indexOf("LNAME") < 0)
+            //         searchFieldsFromDropdownArr.unshift('LNAME');
+            //     if(searchFieldsFromDropdownArr.indexOf("EMAIL") < 0)
+            //         searchFieldsFromDropdownArr.unshift('EMAIL');
+            // }
+
+            console.table(searchFieldsFromDropdownArr);
+            
+            for(let item of nonSearchableColumns){
+                if(searchFieldsFromDropdownArr.indexOf(item) > -1)
+                    searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
+            }
+
+            console.table(searchFieldsFromDropdownArr);
+
+            setRemainingColumns([]);
+            setRemainingColumns(searchFieldsFromDropdownArr);
+
+            // if(table !== 'ETLF_EXTRACT_CONFIG' && table !== 'ETLF_CUSTOM_CODE' && table !== 'ETLFCALL'){
+            //     setShow(shown);
+            // }
+            setShow(shown);
+        }else{ 
+            console.log("columns NOT LOADED in SEARCH MODAL!!!!!!");
         }
-        
-        for(let item of nonSearchableColumns){
-            if(searchFieldsFromDropdownArr.indexOf(item) > -1)
-                searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
+    }, [columnsLoaded]);
+
+    useEffect(() =>{
+        if( remainingColumns.length > 0){
+            console.log("remaining columns:...");
+            console.table(remainingColumns)
+            
         }
-
-        setRemainingColumns(searchFieldsFromDropdownArr);
-
-        // if(table !== 'ETLF_EXTRACT_CONFIG' && table !== 'ETLF_CUSTOM_CODE' && table !== 'ETLFCALL'){
-        //     setShow(shown);
-        // }
-        setShow(shown);
-        
-    }, []);
+    }, [remainingColumns]);
 
     // useEffect(() =>{
     //     let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
@@ -169,6 +199,10 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
         console.log(table);
         // if (verifySearchObj()) {
         setCurrentSearchCriteria(currentSearchObj);
+
+        console.log(currentSearchObj);
+        // return;
+
         let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
         let multiSearchSqlStatement = '';
         if(ETLF_tables.indexOf(table) >= 0){
@@ -196,17 +230,20 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
             multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(table, currentSearchObj); 
             
         }else if(table === 'DATA_STEWARD_DOMAIN'){
-            multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+            multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(username, currentSearchObj);
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-            multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+            multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(username, currentSearchObj);
         }else if(table === 'CATALOG_ENTITIES'){
-            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
+            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(username, currentSearchObj);
+        }else if(table === 'DATA_STEWARD'){
+            multiSearchSqlStatement = search_multi_field_catalog_DataSteward(username, database, schema, table, currentSearchObj, start, end);
+        }else if(table === 'DATA_DOMAIN'){
+            multiSearchSqlStatement = search_multi_field_catalog_DataDomain(username, database, schema, table, currentSearchObj, start, end);
         }else{
-            // DATA_STEWARD && DATA_DOMAIN
-            multiSearchSqlStatement = search_multi_field_catalog(database, schema, table, currentSearchObj, start, end);
+            multiSearchSqlStatement = search_multi_field_catalog(username, database, schema, table, currentSearchObj, start, end);
         }
             
-        // debug && console.log(multiSearchSqlStatement);
+        debug && console.log(multiSearchSqlStatement);
 
         // console.log(primaryKey);
         axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
@@ -229,10 +266,19 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
             }
             else if(table === 'CATALOG_ENTITIES'){
                 // selectAllStmt = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
-                // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
+                // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);\
+
+                //------should be data stewards AND operators
                 selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, 
                 CASE
-                    WHEN AA.USERNAME IS NOT NULL THEN 'READ/WRITE'
+                    WHEN '` + username +`' IN (
+                        SELECT DISTINCT EMAIL FROM
+                        (
+                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                            UNION
+                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                        )
+                    ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE 
                 FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
@@ -240,12 +286,19 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                 ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATCAT_ACCESS_AUTHORIZATION AA
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
                 ON (AA.DOMAIN = C.DOMAIN);`
             }else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE' ){
                 selectAllStmt = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
                 CASE
-                    WHEN AA.USERNAME IS NOT NULL THEN 'READ/WRITE'
+                    WHEN '` + username +`' IN (
+                        SELECT DISTINCT EMAIL FROM
+                        (
+                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                            UNION
+                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                        )
+                    ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE 
                 FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
@@ -255,7 +308,7 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                 ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATCAT_ACCESS_AUTHORIZATION AA
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
                 ON (AA.DOMAIN = C.DOMAIN);`;
             }
             //---------------------------------ONLY ADMIN---------------------------------------
@@ -270,12 +323,14 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE
                 FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS;`;
-            }else if(table === 'DATA_STEWARD_DOMAIN'){
+            }
+            //---------------------------------STEWARD---------------------------------------
+            else if(table === 'DATA_STEWARD_DOMAIN'){
                 selectAllStmt = `SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, 
                 CASE
                     WHEN '` + username +`' IN (
-                        SELECT USERNAME
-                        FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+                        SELECT EMAIL
+                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE
@@ -284,14 +339,12 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 ON (E.DATA_STEWARD_ID = B.DATA_STEWARD_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                 ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
-            }
-            //---------------------------------ADMIN AND STEWARD---------------------------------------
-            else if(table === 'DATA_DOMAIN'){
+            }else if(table === 'DATA_DOMAIN'){
                 selectAllStmt = `SELECT DD.*,
                 CASE
                     WHEN '` + username +`' IN (
-                        SELECT DS.EMAIL
-                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                        SELECT EMAIL
+                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE
@@ -301,8 +354,8 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 selectAllStmt = `SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, 
                 CASE
                     WHEN '` + username +`' IN (
-                        SELECT DS.EMAIL
-                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                        SELECT EMAIL
+                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE
@@ -397,14 +450,27 @@ const SearchModal = ({groupIDColumn, shown, setCurrentSearchCriteria}) => {
                             <div className="searchFieldsDiv">
                                 {Object.keys(currentSearchObj).map(field =>
                                     <li key={field} className="field-div">
-                                        <button
-                                            className="remove-button "
-                                            onClick={() => handleRemoveSearchField(field)}
-                                        >
-                                            x
-                                        </button>
-                                        <span className="mr-10 field-width">{field}: </span>
-                                        <input value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
+                                        
+                                        <div style={{display:'flex', flexDirection: 'column'}}>
+                                            <span className="mr-10 field-width">
+                                                
+                                                <button
+                                                    style={{    
+                                                        backgroundColor: 'transparent',
+                                                        color: 'Red',
+                                                        border: 'none',
+                                                        fontSize: '1.5rem'
+                                                    }}
+                                                    // className="remove-button "
+                                                    onClick={() => handleRemoveSearchField(field)}
+                                                >
+                                                    x
+                                                </button>
+                                                {field}: 
+                                            </span>
+                                            <input value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
+                                        </div>
+                                        
                                     </li>
                                 )}
                             </div>

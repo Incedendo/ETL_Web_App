@@ -280,9 +280,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
     useEffect(() => {
         console.log("Current Gridconfigs: ", gridConfigs);
-        // if(table in gridConfigs){
-        //     reloadGridConfig();
-        // }
+        if(table in gridConfigs){
+            reloadGridConfig();
+        }
         
     }, [gridConfigs]);
 
@@ -291,6 +291,12 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             setColumnsLoaded(true);
         }
     }, [columns]);
+
+    useEffect(() =>{
+        if(columnsLoaded){
+            debug && console.log("Columns loaded in WorkSpace Context..")
+        }
+    }, [columnsLoaded])
 
     const clearCurrentConfig = () => {
         
@@ -326,7 +332,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         if(data.length != 0){
             console.log("prepare grid config for table: "+ table);
             // console.log(data);
-            let headers = data.map(row => row.COLUMN_NAME)
+            let headers = []
+            data.map(row => headers.push(row.COLUMN_NAME));
+
             //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
             headers.push("PRIVILEGE");
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
@@ -344,10 +352,13 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 headers.unshift('SOURCE_TABLE');
             }//add extra columns to the grid for these tables
             else if(table === 'DATA_STEWARD_DOMAIN'){
+                // headers.unshift('BUGGY FEATURE');
+                // let newHeaders = [...headers]
                 headers.unshift('DOMAIN');
-                headers.unshift('EMAIL');
-                headers.unshift('LNAME');
+                headers.unshift('MAIL');
+                headers.unshift('NAME');
                 headers.unshift('FNAME');
+                // headers = [...headers];
             }else if(table === 'CATALOG_ENTITIES'){
                 headers.unshift('DOMAIN');
             }else if(['CATALOG_ENTITY_DOMAIN', 'CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) >= 0 ){
@@ -408,13 +419,13 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 }
             }
 
-            setHeaders(headers);
-            setColumns(columns);
-            setColumnWidths(columnWidths);
-            setTableColumnExtensions(tableColumnExtensions);
-            // setSortingStates(gridConfigs[table]["sortingStates"]);
-            setNumberColumns(numericColumns);
-            setColumnDataTypes(dataTypeObj);
+            // setHeaders(headers);
+            // setColumns(columns);
+            // setColumnWidths(columnWidths);
+            // setTableColumnExtensions(tableColumnExtensions);
+            // // setSortingStates(gridConfigs[table]["sortingStates"]);
+            // setNumberColumns(numericColumns);
+            // setColumnDataTypes(dataTypeObj);
 
             const tableGridConfig = {
                 headers,
@@ -744,23 +755,23 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             })
     }
 
-    const disableColumnsContainingPK = () => {
-        let columnDisabledArr = [
-            { columnName: 'PRIVILEGE', editingEnabled: false },
-        ]
+    // const disableColumnsContainingPK = () => {
+    //     let columnDisabledArr = [
+    //         { columnName: 'PRIVILEGE', editingEnabled: false },
+    //     ]
 
-        for (let key in nonEditableColumns) {
-            debug && console.log("nonEditableColumns: ", nonEditableColumns[key])
-            columnDisabledArr.push({
-                columnName: nonEditableColumns[key], editingEnabled: false
-            })
-        }
+    //     for (let key in nonEditableColumns) {
+    //         debug && console.log("nonEditableColumns: ", nonEditableColumns[key])
+    //         columnDisabledArr.push({
+    //             columnName: nonEditableColumns[key], editingEnabled: false
+    //         })
+    //     }
 
-        debug && console.log('>>>>>>>>Disabled Columns>>>>>>>>>>>', columnDisabledArr);
-        setEditingStateColumnExtensions(columnDisabledArr)
-    }
+    //     debug && console.log('>>>>>>>>Disabled Columns>>>>>>>>>>>', columnDisabledArr);
+    //     setEditingStateColumnExtensions(columnDisabledArr)
+    // }
 
-    useEffect(() => disableColumnsContainingPK(), [nonEditableColumns]);
+    // useEffect(() => disableColumnsContainingPK(), [nonEditableColumns]);
 
     // const getCustomColumns = (columns, field, condition) => {
     //     let result = []

@@ -40,8 +40,11 @@ const DataCatalogModal = ({
                 variant="primary"
                 onClick={()=>setShow(true)}
                 disabled={
-                    ((table === 'DATA_STEWARD' || table === 'DATA_STEWARD_DOMAIN') && !isAdmin)
-                    || ((table === 'DATA_DOMAIN' || table === 'CATALOG_ENTITY_DOMAIN') && !isSteward && !isAdmin)
+                    (table === 'DATA_STEWARD'  && !isAdmin)
+                    || ( (table === 'DATA_STEWARD_DOMAIN' 
+                            || table === 'DATA_DOMAIN' 
+                            || table === 'CATALOG_ENTITY_DOMAIN'
+                        ) && !isSteward)
                 }
             >
                 Add {item}
