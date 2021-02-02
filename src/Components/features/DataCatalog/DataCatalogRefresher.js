@@ -12,7 +12,7 @@ import {  INSERT_URL } from '../../context/URLs';
 
 const DataCatalogRefresher = () => {
 
-    const { debug } = useContext(WorkspaceContext);
+    const { debug, columnsLoaded } = useContext(WorkspaceContext);
     const [isRefreshing, setRefreshing] = useState(false);
     const { authState, authService } = useOktaAuth();
     const { accessToken } = authState;
@@ -75,7 +75,7 @@ const DataCatalogRefresher = () => {
         <div style={{marginTop: '10px', float: 'right' }}>
             <Button
                 variant="warning"
-                disabled={isRefreshing}
+                disabled={isRefreshing || !columnsLoaded}
                 onClick={!isRefreshing ? handleClick : null}
             >
                 {isRefreshing ? 'Refreshing…' : 'Refresh Data Catalog'}

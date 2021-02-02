@@ -17,131 +17,65 @@ import '../../../css/workspace.scss';
 const WorkTab = ({ shownModalUponChangingTable }) => {
     const {
         debug,
-        database, schema, table, 
+        table, 
         columnDataTypes, 
         tableLoaded, tableLoading, tableSearching, setReloadTable,
         primaryKeys, setPrimaryKeys, columns, columnsLoaded,
         insertError, editError,
-        system_configs,
-        routeConfigs
+        system_configs
     } = useContext(WorkspaceContext);
 
-    // debug && console.log("Calling WorkTab with table ", table);
-
-    const [searchObj, setSearchObj] = useState({});
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
 
-    // useEffect(() => {
-    //     console.log('[WorkTab] shownModalUponChangingTable: '+ shownModalUponChangingTable);
-    //     setShowSearchModal(shownModalUponChangingTable);
-    // }, [shownModalUponChangingTable]);
-
-    // useEffect(() => {
-    //     const abortController = new AbortController();
-        
-    //     setPrimaryKeys(table_primaryKeys[table]);
-    //     setCodeFields(fieldTypesConfigs[table]['codeFields']);
-    //     setDropdownFields(fieldTypesConfigs[table]['dropdownFields']);
-
-    //     return () => {
-    //         abortController.abort();
-    //     };
-    // }, [table]);
 
     const TableConfigPanel = () => (
         // <div className={"card expanded-height"}>
-       
-        <div style={{
-            "marginBottom":"30px",
-        }}>
-            <div style={{
-                "display": "inline-block",
-                "float": "left"
-            }}>
-                {/* <PrimaryKeysPanel /> */}
-                {table === "ETLF_EXTRACT_CONFIG" && <ETLF_EXTRACT_CONFIG_ModalPanels />}
-                {table === "ETLFCALL" && <ETLFCALL_ModalPanels />} 
+        !columnsLoaded 
+        ? <div style={{ 'float': 'left' }} className="central-spinning-div">
+                <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                />
+                <span style={{ 'marginLeft': '15px' }}>loading...</span>
             </div>
-        </div>
-    )
+        : <div style={{
+                "marginBottom":"30px",
+            }}>
+                <div style={{
+                    "display": "inline-block",
+                    "float": "left"
+                }}>
+                    {/* <PrimaryKeysPanel /> */}
+                    {table === "ETLF_EXTRACT_CONFIG" 
+                        && Object.keys(system_configs).length !== 0 
+                        && system_configs.constructor === Object &&
+                        // (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
+                        <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
+                            <Route_Action_Modal />
+                        </div>
+                    }
 
-    const ETLF_EXTRACT_CONFIG_ModalPanels = () => (
-        // <div className="modal-button">
-        <>
-            {
-                (Object.keys(system_configs).length !== 0 && system_configs.constructor === Object) &&
-                // (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
-                <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
-                    <Route_Action_Modal />
-                </div>
-            }
-
-            <LoadableSearchModal groupIDColumn={'GROUP_ID'} /> 
-        </>
-    )
-
-    const ETLFCALL_ModalPanels = () => (
-        // <div className="modal-button">
-        <>
-            <JobModal
-                data={{}}
-                //for later check when insert or update row
-                uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
-                dataTypes={columnDataTypes}
-            />
-
-            <LoadableSearchModal groupIDColumn={'WORK_GROUP_ID'} /> 
-        </>
-    )
-
-    const LoadableSearchModal = ({ groupIDColumn }) => (
-        <div style={{ 'float': 'left' }}>
-            {/* <div style={{'display': 'flex', 'justifyContent': 'center'}}>Loading configurations...</div> */}
-            { !columnsLoaded ? 
-                <div style={{ 'float': 'left' }} className="central-spinning-div">
-                    <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                    />
-                    <span style={{ 'marginLeft': '15px' }}>loading...</span>
-                </div>
-                :
-                <>
-                    {/* <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
-                        <Dropdown as={ButtonGroup}>
-                            <SearchModal 
-                                groupIDColumn={groupIDColumn} 
-                                columns={columns}
-                                shown={shownModalUponChangingTable}
-                                setCurrentSearchCriteria={setCurrentSearchCriteria}
-                            />
-
-                            <Dropdown.Toggle split id="dropdown-split-basic" />
-
-                            <Dropdown.Menu>
-                                <Dropdown.Item href="#/action-1">Show All</Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </div> */}
-                    
+                    {table === "ETLFCALL" && 
+                        <JobModal
+                            data={{}}
+                            //for later check when insert or update row
+                            uniqueCols={['WORK_GROUP_ID', 'SOURCE_TABLE']}
+                            dataTypes={columnDataTypes}
+                        />
+                    }
 
                     <SearchModal 
-                        groupIDColumn={groupIDColumn}
+                        groupIDColumn={table === "ETLF_EXTRACT_CONFIG" ? 'GROUP_ID' : 'WORK_GROUP_ID'}
                         shown={shownModalUponChangingTable}
                         setCurrentSearchCriteria={setCurrentSearchCriteria}
                     />
 
-                    {table === 'ETLF_EXTRACT_CONFIG' && 
-                        <SearchModal_CustomCode 
-                            setCurrentSearchCriteria={setCurrentSearchCriteria}/
-                        > 
-                    }
-                </>
-            }
-        </div>
+                    {table === 'ETLF_EXTRACT_CONFIG' &&  <SearchModal_CustomCode  setCurrentSearchCriteria={setCurrentSearchCriteria} />}
+                </div>
+            </div>
     )
 
     const handleRemovePK = value => {
@@ -151,9 +85,6 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
     const PrimaryKeysPanel = () => (
         <div className="tableName-SearchBox-Div">
             <div className="table-header bg-dark reloadTable">
-                {/* <button onClick={() => setReloadTable(true)}>
-                    {table}
-                </button> */}
                 <a onClick={() => setReloadTable(true)}>
                     {table}
                 </a>
@@ -179,9 +110,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                         </div>
                     }
                 </div>)}
-
             </div>
-
         </div>
     )
 

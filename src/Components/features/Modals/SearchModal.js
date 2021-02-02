@@ -28,11 +28,34 @@ import '../../../css/mymodal.scss';
 import { ETLF_tables } from '../../context/FieldTypesConfig';
 import { compositeTables } from '../../context/FieldTypesConfig';
 
+import Select from 'react-select';
+// import makeAnimated from 'react-select/animated';
+
+const groupStyles = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+};
+const groupBadgeStyles = {
+  backgroundColor: '#EBECF0',
+  borderRadius: '2em',
+  color: '#172B4D',
+  display: 'inline-block',
+  fontSize: 12,
+  fontWeight: 'normal',
+  lineHeight: '1',
+  minWidth: 1,
+  padding: '0.16666666666667em 0.5em',
+  textAlign: 'center',
+};
+
 const nonSearchableColumns = [
     'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
     'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
     'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID', 'CATALOG_ENTITIES'
 ];
+
+// const animatedComponents = makeAnimated();
 
 const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
@@ -44,7 +67,6 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         database, schema, table, 
         columns, 
         columnsLoaded,
-        // axiosCallToGetTable,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
@@ -55,7 +77,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     // console.log("search columns: " + searchFieldsFromDropdownArr);
     const [remainingColumns, setRemainingColumns] = useState([]);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
-    const [errors, setErrors] = useState({});
+    const [options, setOptions] = useState({});
 
     useEffect(()=>{
         if(debug){
@@ -67,44 +89,26 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         if(columnsLoaded){
             console.log("COLUMN LOADED!!!!!!");
             let searchFieldsFromDropdownArr = columns.map(column => column.name)
-        
-            // (Object.keys(compositeTables)).indexOf(table) < 0
-            // ? columns.map(column => column.name)
-            // : columns;
 
-            // if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ENTITIES'
-            //     || table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'
-            // ){
-            //     if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
-            //         searchFieldsFromDropdownArr.unshift('TARGET_TABLE');
-            //     if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
-            //         searchFieldsFromDropdownArr.unshift('TARGET_SCHEMA');
-            //     if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
-            //         searchFieldsFromDropdownArr.unshift('TARGET_DATABASE');
-            //     if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
-            //         searchFieldsFromDropdownArr.unshift('DOMAIN');
-            // }else if(table === 'DATA_STEWARD_DOMAIN'){
-            //     if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
-            //         searchFieldsFromDropdownArr.unshift('DOMAIN');
-            //     if(searchFieldsFromDropdownArr.indexOf("FNAME") < 0)
-            //         searchFieldsFromDropdownArr.unshift('FNAME');
-            //     if(searchFieldsFromDropdownArr.indexOf("LNAME") < 0)
-            //         searchFieldsFromDropdownArr.unshift('LNAME');
-            //     if(searchFieldsFromDropdownArr.indexOf("EMAIL") < 0)
-            //         searchFieldsFromDropdownArr.unshift('EMAIL');
-            // }
-
-            console.table(searchFieldsFromDropdownArr);
+            // console.table(searchFieldsFromDropdownArr);
             
             for(let item of nonSearchableColumns){
                 if(searchFieldsFromDropdownArr.indexOf(item) > -1)
                     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
             }
 
-            console.table(searchFieldsFromDropdownArr);
+            // console.table(searchFieldsFromDropdownArr);
 
             setRemainingColumns([]);
             setRemainingColumns(searchFieldsFromDropdownArr);
+
+            let colOptions = []
+            searchFieldsFromDropdownArr.map(col => colOptions.push({
+                value: col,
+                label: col
+            }))
+
+            setOptions(colOptions);
 
             // if(table !== 'ETLF_EXTRACT_CONFIG' && table !== 'ETLF_CUSTOM_CODE' && table !== 'ETLFCALL'){
             //     setShow(shown);
@@ -172,6 +176,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
         setRemainingColumns(remainingColumns.filter(item => item !== value));
         setCurrentSearchObj({ ...currentSearchObj, [value]: '' });
+        setOptions(options.filter(item => item.value != value));
     }
 
     const assignValueToSearchField = (field, event) => {
@@ -185,8 +190,13 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         let temp = { ...currentSearchObj }
         delete (temp[field])
         debug && console.log(temp)
-        setCurrentSearchObj(temp)
-    }
+        setCurrentSearchObj(temp);
+
+        setOptions([...options, {
+            value: field,
+            label: field
+        }]);
+    }   
 
     function verifySearchObj() {
         return true;
@@ -399,7 +409,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             >
                 <Modal.Header closeButton>
                     <Modal.Title id="example-custom-modal-styling-title">
-                        Multi-Field Search 
+                        Multi-Field Search for table {table}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
@@ -421,12 +431,13 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                 id="dropdown-basic-button"
                                 size="sm"
                                 title={'Select Search Field'}
+                                disabled={!remainingColumns.length}
                             >
                                 {remainingColumns.map(val => (
                                     <Dropdown.Item 
                                         as="button" 
                                         key={val}
-                                        onSelect={()=>{handleAddSearchField(val)}}
+                                        onSelect={()=>{handleAddSearchField(val.value)}}
                                     >
                                         {val}
                                     </Dropdown.Item>
@@ -445,6 +456,20 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                 </Button>
                             </div>
                         </div>
+
+                        <Select
+                            className="basic-single"
+                            classNamePrefix="select"
+                            // components={animatedComponents}
+                            defaultValue={options[0]}
+                            name="color"
+                            // isMulti
+                            options={options}
+                            onChange={(val)=>{
+                                console.log(val);
+                                handleAddSearchField(val.value);
+                            }}
+                        />
 
                         <div className="searchModal-div">
                             <div className="searchFieldsDiv">
@@ -468,7 +493,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                                 </button>
                                                 {field}: 
                                             </span>
-                                            <input value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
+                                            <input placeholder={'enter search value here'} value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
                                         </div>
                                         
                                     </li>

@@ -26,7 +26,7 @@ const sql_linking_Lineage_To_ETLF_Extract_Config = (searchObj) => {
     return sql
 }
 
-const sql_linking_dataSteward_To_dataDomain = searchObj => {
+const sql_linking_dataSteward_To_dataDomain = (username, searchObj) => {
     console.log('sql_linking_dataSteward_To_dataDomain...');
     console.log(searchObj);
 
@@ -40,7 +40,14 @@ const sql_linking_dataSteward_To_dataDomain = searchObj => {
     // INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     // ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID;`
 
-    const sql = `SELECT A.*, 'READ/WRITE' AS PRIVILEGE
+    const sql = `SELECT A.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT EMAIL
+            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
     FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN A
     INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN B 
     ON A.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID
@@ -53,7 +60,7 @@ const sql_linking_dataSteward_To_dataDomain = searchObj => {
     return sql;
 }
 
-const sql_linking_dataDomain_To_dataSteward = searchObj => {
+const sql_linking_dataDomain_To_dataSteward = (username, searchObj) => {
     console.log('sql_linking_dataDomain_To_dataSteward...');
     console.log(searchObj);
 
@@ -67,7 +74,14 @@ const sql_linking_dataDomain_To_dataSteward = searchObj => {
     // INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD C
     // ON C1.DATA_STEWARD_ID = C.DATA_STEWARD_ID;`
 
-    const sql = `SELECT A.*, 'READ/WRITE' AS PRIVILEGE
+    const sql = `SELECT A.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT USERNAME
+            FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
     FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD A
     INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN B 
     ON A.DATA_STEWARD_ID = B.DATA_STEWARD_ID
@@ -81,7 +95,7 @@ const sql_linking_dataDomain_To_dataSteward = searchObj => {
     return sql;
 }
 
-const sql_linking_dataDomain_To_catalogEntities = searchObj => {
+const sql_linking_dataDomain_To_catalogEntities = (username, searchObj) => {
     console.log('sql_linking_dataDomain_To_catalogEntities...');
     console.log(searchObj);
 
@@ -95,7 +109,18 @@ const sql_linking_dataDomain_To_catalogEntities = searchObj => {
     // INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES C
     // ON C1.CATALOG_ENTITIES_ID = C.CATALOG_ENTITIES_ID;`
 
-    const sql = `SELECT C.DOMAIN, E.*, 'READ/WRITE' AS PRIVILEGE
+    const sql = `SELECT C.DOMAIN, E.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT DISTINCT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+            )
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
     FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
     ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
@@ -108,7 +133,7 @@ const sql_linking_dataDomain_To_catalogEntities = searchObj => {
     return sql;
 }
 
-const sql_linking_catalogEntities_To_dataDomain = searchObj => {
+const sql_linking_catalogEntities_To_dataDomain = (username, searchObj) => {
     console.log('sql_linking_catalogEntities_To_dataDomain...');
     console.log(searchObj);
 
@@ -122,7 +147,14 @@ const sql_linking_catalogEntities_To_dataDomain = searchObj => {
     // INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     // ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID;`
 
-    const sql = `SELECT E.* 
+    const sql = `SELECT E.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT EMAIL
+            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
     FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN E
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
     ON (E.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID)
@@ -136,7 +168,7 @@ const sql_linking_catalogEntities_To_dataDomain = searchObj => {
 }
 
 //missing domain
-const sql_linking_catalogEntities_To_Item_Lineage = (searchObj, destination) => {
+const sql_linking_catalogEntities_To_Item_Lineage = (username, searchObj, destination) => {
     console.log('sql_linking_catalogEntities_To_catalogItems...');
     console.log(searchObj);
 
@@ -156,7 +188,18 @@ const sql_linking_catalogEntities_To_Item_Lineage = (searchObj, destination) => 
     //   WHERE C2.CATALOG_ENTITIES_ID LIKE '%` + searchObj['CATALOG_ENTITIES_ID'] + `%';`
     
       //item and lineage MUST have a catalog table 
-    const sql = `SELECT C2.*, D.*, 'READ/WRITE' AS PRIVILEGE  
+    const sql = `SELECT C2.*, D.*, 
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT DISTINCT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+            )
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE   
     FROM SHARED_TOOLS_DEV.ETL.` + destination + ` D
     INNER JOIN (
         SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.CATALOG_ENTITIES_ID 
@@ -199,11 +242,22 @@ const sql_linking_catalogEntities_To_catalogEntityLineage = searchObj => {
     return sql;
 }
 
-const sql_linking_ItemsLineage_To_CatalogEntities = searchObj => {
+const sql_linking_ItemsLineage_To_CatalogEntities = (username, searchObj) => {
     console.log('sql_linking_catalogItems_To_catalogEntities...');
     console.log(searchObj);
 
-    const sql = `SELECT J.DOMAINS AS DOMAIN, J.*, 'READ/WRITE' AS PRIVILEGE 
+    const sql = `SELECT J.DOMAINS AS DOMAIN, J.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT DISTINCT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+            )
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE  
     FROM (
         SELECT NVL(C.DOMAIN, '') DOMAINS, E.* 
         FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
@@ -263,11 +317,22 @@ const sql_linking_catalogEntityLineage_To_catalogEntities = searchObj => {
     return sql;
 }
 
-const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = searchObj => {
+const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = (username, searchObj) => {
     console.log('sql_linking_ETLF_Extract_Config_To_catalogEntityLineage...');
     console.log(searchObj);
 
-    const sql = `SELECT D.DOMAIN, D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*, 'READ/WRITE' AS PRIVILEGE
+    const sql = `SELECT D.DOMAIN, D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*,
+    CASE
+        WHEN '` + username +`' IN (
+            SELECT DISTINCT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+            )
+        ) THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE
     FROM "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITY_LINEAGE" A
     INNER JOIN (
         SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.CATALOG_ENTITIES_ID 
@@ -286,41 +351,42 @@ const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = searchObj => {
     return sql;
 }
 
-const getLinkSearchStmt = (table, destinationTable, searchObj) => {
+const getLinkSearchStmt = (username, table, destinationTable, searchObj) => {
     let searchStmt = '';
+    // console.log("table: " + table);
     if(table === 'ETLF_EXTRACT_CONFIG'){
-        searchStmt = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(searchObj);
+        searchStmt = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(username, searchObj);
     }if(table === 'ETLF_CUSTOM_CODE'){
         searchStmt = sql_linking_Lineage_To_ETLF_Extract_Config(searchObj);
     }else if(table === 'DATA_STEWARD'){
-        searchStmt = sql_linking_dataSteward_To_dataDomain(searchObj);
+        searchStmt = sql_linking_dataSteward_To_dataDomain(username, searchObj);
     }else if(table === 'DATA_STEWARD_DOMAIN'){
         if(destinationTable === 'DATA_STEWARD')
-            searchStmt = sql_linking_dataDomain_To_dataSteward(searchObj);
+            searchStmt = sql_linking_dataDomain_To_dataSteward(username, searchObj);
         else if(destinationTable === 'DATA_DOMAIN' )
-            searchStmt = sql_linking_dataSteward_To_dataDomain(searchObj);
+            searchStmt = sql_linking_dataSteward_To_dataDomain(username, searchObj);
     }else if(table === 'CATALOG_ENTITY_DOMAIN'){
         if(destinationTable === 'DATA_DOMAIN')
-            searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
+            searchStmt = sql_linking_catalogEntities_To_dataDomain(username, searchObj);
         else if(destinationTable === 'CATALOG_ENTITIES' )
-            searchStmt = sql_linking_dataDomain_To_catalogEntities(searchObj); //!!!!!!!!!!!!!!!!!!! add DOMAIN
+            searchStmt = sql_linking_dataDomain_To_catalogEntities(username, searchObj); //!!!!!!!!!!!!!!!!!!! add DOMAIN
     }else if(table === 'DATA_DOMAIN'){
         if(destinationTable === 'DATA_STEWARD')
-            searchStmt = sql_linking_dataDomain_To_dataSteward(searchObj);
+            searchStmt = sql_linking_dataDomain_To_dataSteward(username, searchObj);
         else if(destinationTable === 'CATALOG_ENTITIES' )
-            searchStmt = sql_linking_dataDomain_To_catalogEntities(searchObj);
+            searchStmt = sql_linking_dataDomain_To_catalogEntities(username, searchObj);
     }else if(table === 'CATALOG_ENTITIES'){
         if(destinationTable === 'CATALOG_ITEMS') 
-            searchStmt =  sql_linking_catalogEntities_To_Item_Lineage(searchObj, 'CATALOG_ITEMS'); //!!!!!!!!!!!!!!!!!!!
+            searchStmt =  sql_linking_catalogEntities_To_Item_Lineage(username, searchObj, 'CATALOG_ITEMS'); //!!!!!!!!!!!!!!!!!!!
         else if(destinationTable === 'CATALOG_ENTITY_LINEAGE')
-            searchStmt = sql_linking_catalogEntities_To_Item_Lineage(searchObj, 'CATALOG_ENTITY_LINEAGE') //!!!!!!!!!!!!!!!!!!!
+            searchStmt = sql_linking_catalogEntities_To_Item_Lineage(username, searchObj, 'CATALOG_ENTITY_LINEAGE') //!!!!!!!!!!!!!!!!!!!
         else if(destinationTable === 'DATA_DOMAIN')
-            searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);
+            searchStmt = sql_linking_catalogEntities_To_dataDomain(username, searchObj);
     }else if(table === 'CATALOG_ITEMS'){
-        searchStmt = sql_linking_ItemsLineage_To_CatalogEntities(searchObj);
+        searchStmt = sql_linking_ItemsLineage_To_CatalogEntities(username, searchObj);
     }else if(table === 'CATALOG_ENTITY_LINEAGE'){
         if(destinationTable === 'CATALOG_ENTITIES') 
-            searchStmt = sql_linking_ItemsLineage_To_CatalogEntities(searchObj);
+            searchStmt = sql_linking_ItemsLineage_To_CatalogEntities(username, searchObj);
         else if(destinationTable === 'ETLF_EXTRACT_CONFIG')
             searchStmt = sql_linking_Lineage_To_ETLF_Extract_Config(searchObj);
     }
@@ -331,8 +397,14 @@ const getLinkSearchStmt = (table, destinationTable, searchObj) => {
 
 const CustomizedLink = ({ row }) => {
     const {
-        debug, table
+        debug, username , table
     } = useContext(WorkspaceContext);
+
+    // useEffect(()=>{
+    //     if(debug){
+    //         console.log("====> Table: " + table);
+    //     }
+    // }, []);
 
     const linkedTablesObject = fieldTypesConfigs[table]['links'];
 
@@ -382,7 +454,7 @@ const CustomizedLink = ({ row }) => {
                 searchObj[criteria] = row[criteria];
                 console.log(searchObj);
 
-                let searchStmt = getLinkSearchStmt(table, destinationTable, searchObj);
+                let searchStmt = getLinkSearchStmt(username, table, destinationTable, searchObj);
                     
                 //also had to join 3 tables entities to domain
                 

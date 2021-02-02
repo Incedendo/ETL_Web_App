@@ -63,6 +63,14 @@ const GenericRowExpansion = ({ row, ...rest }) => {
     const [isLoading, setLoading] = useState(false);
     const [editMessage, setEditMessage] = useState('');
     const [editMessageClassname, setEditMessageClassname] = useState('');
+
+    seEffect(() => {
+        if(setEditMessage !== '') {
+            setTimeout(() => {
+                setEditMessage('');
+            }, 1000);
+        }
+    }, [editMessage])
     
     const [primaryKeys, setPrimaryKeys] = useState(row['metaData']['primaryKeys'] );
 

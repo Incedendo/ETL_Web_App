@@ -455,9 +455,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
         <>
             {/* DatCat_ControlPanel */}
             <div>
-
-            
-               
                 <div style={{ 'float': 'left' }}>
                     Select Catalog table:
                     <DropDown 
@@ -483,7 +480,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     />
                 </div>
 
-                {loadedConfig && 
+                {loadedConfig && columnsLoaded &&
                     <DataCatalogModal
                         table={table}
                         fields={fields}
@@ -501,76 +498,32 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 }
 
                 <DataCatalogRefresher />
-                
-                <div style={{ paddingTop: '10px', float: 'right' }}>
-                    {!columnsLoaded
-                        ?<div style={{'padding': '5px'}}>
-                            <Spinner
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                            />
-                            <span style={{ 'marginLeft': '5px' }}>loading columns...</span>
-                        </div>
-                        : 
+
+                {!columnsLoaded ?
+                    <div style={{
+                        height: '4rem',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}>
+                        <Spinner
+                            as="span"
+                            animation="border"
+                            size="sm"
+                            role="status"
+                            aria-hidden="true"
+                        />
+                        {/* <span style={{ 'marginLeft': '5px' }}>loading columns...</span> */}
+                    </div>
+                    :
+                    <div style={{ paddingTop: '10px', float: 'right' }}>
                         <SearchModal
-                            columnsLoaded={columnsLoaded}
                             groupIDColumn={'GroupID Not applicable for Catalog'}
                             shown={shownModalUponChangingTable}
                             setCurrentSearchCriteria={setCurrentSearchCriteria}
                         />
-                    }
-                    {/* { (Object.keys(compositeTables)).indexOf(table) < 0  
-                        ?
-                            !columnsLoaded
-                                ?<div style={{'padding': '5px'}}>
-                                    <Spinner
-                                        as="span"
-                                        animation="border"
-                                        size="sm"
-                                        role="status"
-                                        aria-hidden="true"
-                                    />
-                                    <span style={{ 'marginLeft': '5px' }}>loading columns...</span>
-                                </div>
-                                : 
-                                <SearchModal
-                                    // database={database} 
-                                    // schema={schema} 
-                                    // table={table} 
-                                    groupIDColumn={'GroupID Not applicable for Catalog'}
-                                    // username={username} 
-                                    // columns={columns}
-                                    shown={shownModalUponChangingTable}
-                                    setCurrentSearchCriteria={setCurrentSearchCriteria}
-                                />
-                        : 
-                            !loadedConfig
-                            ?<div style={{'padding': '5px'}}>
-                                <Spinner
-                                    as="span"
-                                    animation="border"
-                                    size="sm"
-                                    role="status"
-                                    aria-hidden="true"
-                                />
-                                <span style={{ 'marginLeft': '5px' }}>loading config...</span>
-                            </div>
-                            :<SearchModal
-                                // database={database} 
-                                // schema={schema} 
-                                // table={table} 
-                                groupIDColumn={'GroupID Not applicable for Catalog'}
-                                // username={username} 
-                                // columns={Object.keys(dropdownObject)}
-                                shown={shownModalUponChangingTable}
-                                setCurrentSearchCriteria={setCurrentSearchCriteria}
-                            />
-                    } */}
-                        
-                </div>
+                    </div>
+                }
             </div>
 
             {tableLoading && 
@@ -670,16 +623,16 @@ const DatCat_ControlPanel = ({ linkState }) => {
 export default DatCat_ControlPanel;
 
 const DropDown = ({ 
-    target, currentVal, menus, table, 
+    target, currentVal, menus, table,
     setState, setShownModalUponChangingTable, 
-    setCommingFromLink, setTableLoaded, setColumnsLoaded, setCurrentSearchCriteria,
+    setCommingFromLink, setTableLoaded, setCurrentSearchCriteria,
     disabled
 }) => {
     return (
         <DropdownButton
             id="dropdown-item-button"
             title={!currentVal ? 'Select a ' + target : currentVal}
-            // disabled={tableSearching || tableLoading}
+            disabled={disabled}
         >
             {menus.map(item => (
                 <Dropdown.Item as="button" key={item} disabled={disabled}
@@ -689,7 +642,6 @@ const DropDown = ({
                             setShownModalUponChangingTable(true);
                             setCommingFromLink(false);
                             setTableLoaded(false);
-                            // setColumnsLoaded(false);
                             setCurrentSearchCriteria({});
                         }
                     }}

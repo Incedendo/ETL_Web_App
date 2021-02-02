@@ -352,13 +352,10 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 headers.unshift('SOURCE_TABLE');
             }//add extra columns to the grid for these tables
             else if(table === 'DATA_STEWARD_DOMAIN'){
-                // headers.unshift('BUGGY FEATURE');
-                // let newHeaders = [...headers]
                 headers.unshift('DOMAIN');
-                headers.unshift('MAIL');
-                headers.unshift('NAME');
+                headers.unshift('EMAIL');
                 headers.unshift('FNAME');
-                // headers = [...headers];
+                headers.unshift('FNAME');
             }else if(table === 'CATALOG_ENTITIES'){
                 headers.unshift('DOMAIN');
             }else if(['CATALOG_ENTITY_DOMAIN', 'CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) >= 0 ){
