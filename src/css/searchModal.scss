@@ -1,0 +1,39 @@
+.input{
+    min-height: 38px;
+    color: hsl(0,0%,20%);
+    margin-left: 2px;
+    margin-right: 2px;
+    max-width: calc(100% - 8px);
+    overflow: hidden;
+    position: absolute;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    box-sizing: border-box;
+}
+
+.a{
+    border: solid 1px;
+    border-radius: 4px;
+    &:hover {
+        color:yellow;
+    }
+}
+
+.closeButtonDiv{
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.closeButton{
+    height: 1.9rem !important;
+    width: 1.9rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 25px !important;
+    padding-bottom: 13px !important;
+}

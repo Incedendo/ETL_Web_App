@@ -25,8 +25,8 @@ export const get_custom_table = (db, schema, table, username, start, end) => {
     schema +`"."` + 
     table + `" ec
     FULL OUTER JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-    ON ec.` + group_ID_col + ` = auth.APP_ID AND auth.USERNAME = '`
-    + username.toLowerCase() + `'
+    ON ec.` + group_ID_col + ` = auth.APP_ID AND auth.USERNAME = UPPER(TRIM('`
+    + username + `'))
 );`;
 // WHERE rn BETWEEN `+ start + ` AND ` + end + ';';
 
@@ -50,8 +50,8 @@ export const search_multi_field = (username, db, schema, table, groupIDColumn, c
     COUNT(*) OVER() total_num_rows
     FROM "`+  db + `"."` + schema + `"."` +  table + `" ec
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-    ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
-            + username.toLowerCase() + `'
+    ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = UPPER(TRIM('`
+            + username + `'))
     WHERE ` + getSearchFieldValue(currentSearchObj) + ';';
 // WHERE rn BETWEEN `+ start + ` AND ` + end;
 
@@ -111,7 +111,7 @@ export const search_multi_field_catalog_DataDomain = (username, db, schema, tabl
     return sql_statement;
 }
 
-export const search_ItemsLineage_joined_Entity_Domain = (table, currentSearchObj) => {
+export const search_ItemsLineage_joined_Entity_Domain = (username, table, currentSearchObj) => {
     console.log(currentSearchObj);
     const DOMAIN = 'DOMAIN' in currentSearchObj ? currentSearchObj['DOMAIN'] : '';
 

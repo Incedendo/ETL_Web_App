@@ -20,6 +20,7 @@ const RouteForm = ({
 
     const {
         debug,
+        appIDs,
         database,
         schema,
         table,
@@ -133,6 +134,7 @@ const RouteForm = ({
 
     return (
         <>
+            {!appIDs.length && <div style={{color:'red', textAlign:'center'}}>You are not in any groups. Please contact admin for access to GroupIDs</div>}
             {insertMessage !== '' && 
                 <div className="errorSignal">
                     {insertMessage}

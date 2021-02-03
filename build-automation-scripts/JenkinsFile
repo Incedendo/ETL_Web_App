@@ -1,0 +1,22 @@
+node('linux') {
+    try {
+		try {
+			git credentialsId: env.SSH_CONSUMERDEVOPS_CRED_ID_GIT, url: "git@github.aig.net:Consumer/pipeline-groovy-utilities.git", branch: "master", changelog: false
+    	} catch (Exception e) {
+    		throw e;
+		}
+	build();
+	} finally {
+		deleteDir();
+	}
+}
+
+def build() {
+	def buildProps = [
+		buildType: "publish",
+		appType: "JAVASCRIPT_NODEJS"
+    ]
+		
+	def jenkinsStages = load "./devopsFactory.groovy"	
+	jenkinsStages.execute(buildProps);	
+}

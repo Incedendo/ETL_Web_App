@@ -64,8 +64,8 @@ const GenericRowExpansion = ({ row, ...rest }) => {
     const [editMessage, setEditMessage] = useState('');
     const [editMessageClassname, setEditMessageClassname] = useState('');
 
-    seEffect(() => {
-        if(setEditMessage !== '') {
+    useEffect(() => {
+        if(editMessage !== '') {
             setTimeout(() => {
                 setEditMessage('');
             }, 1000);

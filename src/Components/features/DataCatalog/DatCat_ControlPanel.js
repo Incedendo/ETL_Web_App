@@ -5,13 +5,16 @@ import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
 
-//---------------Components--------------------
-import SearchModal from '../Modals/SearchModal';
-import DataCatalogRefresher from './DataCatalogRefresher';
+//-----------------react-------------------------
+import Select from 'react-select';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
+
+//---------------Components--------------------
+import SearchModal from '../Modals/SearchModal';
+import DataCatalogRefresher from './DataCatalogRefresher';
 import DataCatalogModal from './DataCatalogModal';
 import DomainOperatorModal from './DataSteward/DomainOperatorModal';
 import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
@@ -88,7 +91,18 @@ const DatCat_ControlPanel = ({ linkState }) => {
     const [insertError, setInsertError] = useState('');
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
-    
+    const taleOptions = [ 
+        'DATA_DOMAIN',
+        'DATA_STEWARD', 
+        'DATA_STEWARD_DOMAIN',
+        'CATALOG_ENTITY_DOMAIN',
+        'CATALOG_ENTITIES',
+        'CATALOG_ITEMS',
+        'CATALOG_ENTITY_LINEAGE',
+    ].map(table => ({
+        value: table,
+        label: table
+    }))
 
     useEffect(() =>{
         if(linkState !== undefined){
@@ -455,9 +469,9 @@ const DatCat_ControlPanel = ({ linkState }) => {
         <>
             {/* DatCat_ControlPanel */}
             <div>
-                <div style={{ 'float': 'left' }}>
-                    Select Catalog table:
-                    <DropDown 
+                <div style={{width: '15rem' , float: 'left', marginTop: '10px', marginRight: '10px' }}>
+                    {/* Select Catalog table: */}
+                    {/* <DropDown 
                         target='Table' 
                         currentVal={table} 
                         menus={[ 
@@ -477,6 +491,27 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         setTableLoaded={setTableLoaded}
                         setCurrentSearchCriteria={setCurrentSearchCriteria}
                         disabled={!columnsLoaded}
+                    /> */}
+                    <Select
+                        className="basic-single"
+                        classNamePrefix="select"
+                        // components={animatedComponents}
+                        defaultValue={taleOptions[0]}
+                        name="color"
+                        // isMulti
+                        options={taleOptions}
+                        isDisabled={!columnsLoaded}
+                        onChange={(val)=>{
+                            // console.log(val);
+                            let item = val.value;
+                            if (item !== table) {
+                                setTable(item);
+                                setShownModalUponChangingTable(true);
+                                setCommingFromLink(false);
+                                setTableLoaded(false);
+                                setCurrentSearchCriteria({});
+                            }
+                        }}
                     />
                 </div>
 
@@ -622,6 +657,29 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
 export default DatCat_ControlPanel;
 
+const DropDownSelect = ({ 
+    target, currentVal, menus, table,
+    setState, setShownModalUponChangingTable, 
+    setCommingFromLink, setTableLoaded, setCurrentSearchCriteria,
+    disabled
+}) => {
+    return (
+        <Select
+            className="basic-single"
+            classNamePrefix="select"
+            // components={animatedComponents}
+            defaultValue={options[0]}
+            name="color"
+            // isMulti
+            options={options}
+            onChange={(val)=>{
+                console.log(val);
+                handleAddSearchField(val.value);
+            }}
+        />
+    )
+}
+
 const DropDown = ({ 
     target, currentVal, menus, table,
     setState, setShownModalUponChangingTable, 
@@ -653,3 +711,4 @@ const DropDown = ({
         </DropdownButton>
     )
 }
+

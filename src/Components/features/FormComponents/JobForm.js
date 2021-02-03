@@ -292,124 +292,130 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                 ?
                 <div>Loading jobs...</div>
                 :
-                <Formik
-                    validationSchema={schema}
-                    // validationSchema={yup_schema}
+                <>
+                    {!appIDs.length && <div style={{color:'red', textAlign:'center'}}>You are not in any groups. Please contact admin for access to GroupIDs</div>}
+                    <Formik
+                        validationSchema={schema}
+                        // validationSchema={yup_schema}
 
-                    //destructure the action obj into {setSubmitting}
-                    onSubmit={(values, touched ) => {
-                        debug && console.log('values: ', values);
-                        debug && console.log('Touched Object: ', touched);
-                        setValidating(true);
-                        
-                        //all fields in values obj will be inserted to DB
-                        test_UniqueKeys_For_Insert_JobForm(values);
-                    }}
-                    initialValues={initialStates}
-                // validate={validate_R1A1}
-                >
-                    {({
-                        handleSubmit, isSubmitting,
-                        handleChange,
-                        handleBlur,
-                        values,
-                        touched,
-                        isValid,
-                        isInvalid,
-                        errors,
-                    }) => (
-                            <Form
-                                noValidate
-                                onSubmit={handleSubmit}>
+                        //destructure the action obj into {setSubmitting}
+                        onSubmit={(values, touched ) => {
+                            debug && console.log('values: ', values);
+                            debug && console.log('Touched Object: ', touched);
+                            setValidating(true);
+                            
+                            //all fields in values obj will be inserted to DB
+                            test_UniqueKeys_For_Insert_JobForm(values);
+                        }}
+                        initialValues={initialStates}
+                    // validate={validate_R1A1}
+                    >
+                        {({
+                            handleSubmit, isSubmitting,
+                            handleChange,
+                            handleBlur,
+                            values,
+                            touched,
+                            isValid,
+                            isInvalid,
+                            errors,
+                        }) => (
+                                <Form
+                                    noValidate
+                                    onSubmit={handleSubmit}>
 
-                                <Form.Group key={'GROUP ID'} as={Col} controlId={"formGroup" + 'GROUP ID'}>
-                                    <Form.Label>
-                                        GROUP ID
-                                    </Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        name='GROUP ID'
-                                        value={groupID}
-                                        onChange={(e) => {
-                                            handleChange(e);
-                                            setGroupID(e.target.value);
-                                            // getSourceTableList(e.target.value);
-                                        }}
-                                        onBlur={handleBlur}
-                                        disabled={false}
-                                        isValid={touched['GROUP_ID'] && !errors['GROUP_ID']}
-                                        isInvalid={errors['GROUP_ID']}
-                                    >   
-                                        {GroupIDOptions}
-                                    </Form.Control>
-                                </Form.Group>
+                                    <Form.Group key={'GROUP ID'} as={Col} controlId={"formGroup" + 'GROUP ID'}>
+                                        <Form.Label>
+                                            GROUP ID
+                                        </Form.Label>
+                                        <Form.Control
+                                            as="select"
+                                            name='GROUP ID'
+                                            value={groupID}
+                                            onChange={(e) => {
+                                                handleChange(e);
+                                                setGroupID(e.target.value);
+                                                // getSourceTableList(e.target.value);
+                                            }}
+                                            onBlur={handleBlur}
+                                            disabled={false}
+                                            isValid={touched['GROUP_ID'] && !errors['GROUP_ID']}
+                                            isInvalid={errors['GROUP_ID']}
+                                        >   
+                                            {GroupIDOptions}
+                                        </Form.Control>
+                                    </Form.Group>
 
-                                <Form.Group key={'SOURCE_TABLE'} as={Col} controlId={"formGroup" + 'SOURCE_TABLE'}>
-                                    <Form.Label>
-                                        SOURCE TABLE
-                                    </Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        name={'SOURCE_TABLE'}
-                                        value={sourceTable}
-                                        onChange={(e) => {
-                                            handleChange(e);
-                                            setSourceTable(e.target.value);
-                                        }}
-                                        onBlur={handleBlur}
-                                        disabled={false}
-                                        isValid={touched['SOURCE_TABLE'] && !errors['SOURCE_TABLE']}
-                                        isInvalid={errors['SOURCE_TABLE']}
-                                    >   
-                                        {sourceTableOptions.map(option => 
-                                            <option key={option} value={option} >{option}</option>
-                                        )}
-                                    </Form.Control>
-                                </Form.Group>
+                                    <Form.Group key={'SOURCE_TABLE'} as={Col} controlId={"formGroup" + 'SOURCE_TABLE'}>
+                                        <Form.Label>
+                                            SOURCE TABLE
+                                        </Form.Label>
+                                        <Form.Control
+                                            as="select"
+                                            name={'SOURCE_TABLE'}
+                                            value={sourceTable}
+                                            onChange={(e) => {
+                                                handleChange(e);
+                                                setSourceTable(e.target.value);
+                                            }}
+                                            onBlur={handleBlur}
+                                            disabled={false}
+                                            isValid={touched['SOURCE_TABLE'] && !errors['SOURCE_TABLE']}
+                                            isInvalid={errors['SOURCE_TABLE']}
+                                        >   
+                                            {sourceTableOptions.map(option => 
+                                                <option key={option} value={option} >{option}</option>
+                                            )}
+                                        </Form.Control>
+                                    </Form.Group>
 
-                                {updatedFields.map(field =>
-                                    <FormField
-                                        key={field}
-                                        field={field}
-                                        required = {requiredFieldsObj[field]}
-                                        requiredFields = {requiredFields}
-                                        values={values}
-                                        dataTypes={dataTypes}
-                                        handleChange={handleChange}
-                                        handleBlur={handleBlur}
-                                        touched={touched}
-                                        errors={errors}
-                                        disabled={false}
-                                        codeFields={codeFields}
-                                        dropdownFields={dropdownFields}
-                                    />
-                                )}
-
-                                <Button
-                                    // variant="primary"
-                                    type="submit" 
-                                    disabled={isSubmitting || validating}
-                                >
-                                    
-                                    {validating &&
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            role="status"
-                                            aria-hidden="true"
+                                    {updatedFields.map(field =>
+                                        <FormField
+                                            key={field}
+                                            field={field}
+                                            required = {requiredFieldsObj[field]}
+                                            requiredFields = {requiredFields}
+                                            values={values}
+                                            dataTypes={dataTypes}
+                                            handleChange={handleChange}
+                                            handleBlur={handleBlur}
+                                            touched={touched}
+                                            errors={errors}
+                                            disabled={false}
+                                            codeFields={codeFields}
+                                            dropdownFields={dropdownFields}
                                         />
-                                    }
+                                    )}
 
-                                    {!validating
-                                        ? <span style={{ 'marginLeft': '5px' }}>Create Job</span>
-                                        : <span style={{ 'marginLeft': '5px' }}>Validating Job...</span>
-                                    }
-                                </Button>
+                                    <div className="central-spinning-div">
+                                        <Button
+                                            // variant="primary"
+                                            type="submit" 
+                                            disabled={isSubmitting || validating}
+                                        >
+                                            
+                                            {validating &&
+                                                <Spinner
+                                                    as="span"
+                                                    animation="border"
+                                                    size="sm"
+                                                    role="status"
+                                                    aria-hidden="true"
+                                                />
+                                            }
 
-                            </Form>
-                        )}
-                </Formik>
+                                            {!validating
+                                                ? <span style={{ 'marginLeft': '5px' }}>Create Job</span>
+                                                : <span style={{ 'marginLeft': '5px' }}>Validating Job...</span>
+                                            }
+                                        </Button>
+                                    </div>
+                                    
+
+                                </Form>
+                            )}
+                    </Formik>
+                </>
             }
         </div>
     )

@@ -68,7 +68,7 @@ const FormField = ({
                                 onBlur={handleBlur}
                                 // placeholder={required === 'Y' ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
                                 // placeholder={requiredFields.indexOf(field) >= 0 ? "required " + dataTypes[field] : "optional " + dataTypes[field]}
-                                disabled={disabled}
+                                disabled={disabled || field === 'EXTRACT_CONFIG_ID'}
                                 isValid={touched[field] && !errors[field]}
                                 isInvalid={errors[field]}
                             />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
+import Spinner from 'react-bootstrap/Spinner';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import '../../../css/mymodal.scss';
@@ -469,10 +470,17 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                         insertUsingMergeStatement={insertUsingMergeStatement}
                         customCodeDataTypeObj={customCodeDataTypeObj}
                     />
-
+                    
                     {tableLoading && 
-                        <div style={{'display': 'flex', 'marginLeft': 'auto', 'marginRight': 'auto'}}>
-                            loading data ...
+                        <div style={{ marginLeft: '37%', marginRight: '36%' }}>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />
+                            <span style={{ 'marginLeft': '5px' }}>loading Table {table}...</span>
                         </div>
                     }
 

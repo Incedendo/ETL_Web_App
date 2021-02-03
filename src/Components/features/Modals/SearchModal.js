@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useOktaAuth } from '@okta/okta-react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
-import CustomAutoCompleteComponent from '../GridComponents/CustomAutoCompleteComp';
+import Select from 'react-select';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { search_multi_field, 
@@ -23,31 +22,14 @@ import {
     select_all_multi_field_catalog,
     select_all_multi_field_catalog_with_Extra_columns_joined
 } from '../../SQL_Operations/selectAll';
+
+import '../../../css/searchModal.scss';
 import '../../../css/mymodal.scss';
+import xIcon from '../../../media/svg/x-icon.svg';
 
 import { ETLF_tables } from '../../context/FieldTypesConfig';
-import { compositeTables } from '../../context/FieldTypesConfig';
 
-import Select from 'react-select';
 // import makeAnimated from 'react-select/animated';
-
-const groupStyles = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-};
-const groupBadgeStyles = {
-  backgroundColor: '#EBECF0',
-  borderRadius: '2em',
-  color: '#172B4D',
-  display: 'inline-block',
-  fontSize: 12,
-  fontWeight: 'normal',
-  lineHeight: '1',
-  minWidth: 1,
-  padding: '0.16666666666667em 0.5em',
-  textAlign: 'center',
-};
 
 const nonSearchableColumns = [
     'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
@@ -55,11 +37,7 @@ const nonSearchableColumns = [
     'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID', 'CATALOG_ENTITIES'
 ];
 
-// const animatedComponents = makeAnimated();
-
 const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
-
-    // const { authState, authService } = useOktaAuth();
     
     const {
         debug,
@@ -70,8 +48,6 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
-
-    // console.log(groupIDColumn);
 
     const [show, setShow] = useState(false);
     // console.log("search columns: " + searchFieldsFromDropdownArr);
@@ -237,7 +213,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             // const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
 
             // multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, joinedTable, joinedColumms, joinedCriterion); 
-            multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(table, currentSearchObj); 
+            multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(username, table, currentSearchObj); 
             
         }else if(table === 'DATA_STEWARD_DOMAIN'){
             multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(username, currentSearchObj);
@@ -427,7 +403,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                 Select search criteria ({remainingColumns.length} items) from list:
                             </div>
 
-                            <DropdownButton
+                            {/* <DropdownButton
                                 id="dropdown-basic-button"
                                 size="sm"
                                 title={'Select Search Field'}
@@ -443,7 +419,23 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                     </Dropdown.Item>
                                 )
                                 )}
-                            </DropdownButton>
+                            </DropdownButton> */}
+
+                            <div style={{width: '14rem', marginLeft: '1rem'}}>
+                                <Select
+                                    className="basic-single"
+                                    classNamePrefix="select"
+                                    // components={animatedComponents}
+                                    defaultValue={options[0]}
+                                    name="color"
+                                    // isMulti
+                                    options={options}
+                                    onChange={(val)=>{
+                                        console.log(val);
+                                        handleAddSearchField(val.value);
+                                    }}
+                                />
+                            </div>
 
                             <div 
                                 style={{
@@ -456,46 +448,52 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                 </Button>
                             </div>
                         </div>
-
-                        <Select
-                            className="basic-single"
-                            classNamePrefix="select"
-                            // components={animatedComponents}
-                            defaultValue={options[0]}
-                            name="color"
-                            // isMulti
-                            options={options}
-                            onChange={(val)=>{
-                                console.log(val);
-                                handleAddSearchField(val.value);
-                            }}
-                        />
+                            
+                        
+                        
 
                         <div className="searchModal-div">
                             <div className="searchFieldsDiv">
                                 {Object.keys(currentSearchObj).map(field =>
                                     <li key={field} className="field-div">
-                                        
-                                        <div style={{display:'flex', flexDirection: 'column'}}>
-                                            <span className="mr-10 field-width">
-                                                
-                                                <button
-                                                    style={{    
-                                                        backgroundColor: 'transparent',
-                                                        color: 'Red',
-                                                        border: 'none',
-                                                        fontSize: '1.5rem'
-                                                    }}
-                                                    // className="remove-button "
-                                                    onClick={() => handleRemoveSearchField(field)}
-                                                >
-                                                    x
-                                                </button>
-                                                {field}: 
-                                            </span>
-                                            <input placeholder={'enter search value here'} value={currentSearchObj[field]} onChange={(e) => assignValueToSearchField(field, e)} />
+                                        <span className="mr-10 field-width">
+                                            {field}: 
+                                        </span>
+                                        <input 
+                                            style={{
+                                                borderStyle: 'solid',
+                                                borderWidth: '1px',
+                                                borderColor: 'hsl(0,0%,80%)',
+                                                borderRadius: '4px', 
+                                                marginRight: '0.5rem', 
+                                                padding:'2px 8px'
+                                            }}
+                                            placeholder={'enter search value here'} 
+                                            value={currentSearchObj[field]} 
+                                            onChange={(e) => assignValueToSearchField(field, e)} 
+                                        />
+                                        <div className="closeButtonDiv">
+                                            <Button 
+                                                style={{
+                                                    height: '1.9rem',
+                                                    width: '1.9rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '25px',
+                                                    paddingBottom: '10px'
+                                                }}
+                                                variant="outline-danger" 
+                                                onClick={() => handleRemoveSearchField(field)}
+                                            >
+                                                {/* <img src={xIcon} /> */}
+                                                x
+                                            </Button>
                                         </div>
                                         
+                                        {/* <a onClick={() => handleRemoveSearchField(field)}>
+                                            <img src={xIcon} />
+                                        </a> */}
                                     </li>
                                 )}
                             </div>

@@ -1,0 +1,5 @@
+---
+applications:
+- name: YOUR-APP-NAME
+  memory: 1GB
+  instances: 1

@@ -587,7 +587,7 @@ const RowExpansion = React.memo(({ row }) => {
                         {key[0] === 'INGESTION_STATUS' &&
                             <button 
                                 onClick={submitJob}
-                                disabled={showPending}
+                                disabled={showPending || row.PRIVILEGE === 'READ ONLY'}
                             >
                                 Schedule Job
                             </button>
