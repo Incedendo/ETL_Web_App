@@ -3,31 +3,40 @@ import {  Field } from 'formik';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ReactMultiSelectCheckboxes from 'react-multiselect-checkboxes';
 
-const MultiSelectField = ({ field, dropdownFields, touched, errors }) => {
+const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholderButtonLabel, touched, errors, submitted }) => {
+
+    // useEffect(()=>{
+    //     if(submitted){
+    //         console.log("form is subbmited");
+    //     }
+    // }, [submitted]);
 
     useEffect(() => {
-        // console.log(dropdownFields);
+        console.log(dropdownFields);
         let selectOptions = [];
-        let option = {}
-        dropdownFields['CATALOG_ENTITIES'].map(field =>{
-            // console.log(field);
-            selectOptions.push({
-                'label': field,
-                'value': field,
-            });
-        })
-
+        if(isDatCatForm){
+            dropdownFields['CATALOG_ENTITIES'].map(field =>{
+                // console.log(field);
+                selectOptions.push({
+                    'label': field,
+                    'value': field,
+                });
+            }) 
+        }
+        else{
+            dropdownFields.map(field =>{
+                // console.log(field);
+                selectOptions.push({
+                    'label': field,
+                    'value': field,
+                });
+            }) 
+        }
         // console.log(selectOptions);
         setOptions(selectOptions);
     }, []);
 
-    // useEffect(() => {
-    //     if(selectedOption !== null)
-    //         console.log(selectedOption);
-    // }, [selectedOption]);
-
     const [options, setOptions] = useState([]);
-    const [selectedOption, setSelectedOption] = useState([]);
 
     const printChange = (values, setFieldValue, field) =>{
         // console.log(values);
@@ -45,15 +54,17 @@ const MultiSelectField = ({ field, dropdownFields, touched, errors }) => {
             style={{
                 "textAlign": "left"
             }}
+            onChange={()=>{
+                console.log('changing groupID dropdown');
+            }}
         >
             {({ field: { value }, form: { setFieldValue } }) => (
                 // <div className={errorTextAreaClassname + " " + validatedTextAreaClassname}>
                 // <div className={errorTextAreaClassname}>
                 <>
-
                     <ReactMultiSelectCheckboxes
-                        placeholderButtonLabel={'Select a target db, schema, table combination'}
-                        onChange={(values) => printChange(values, setFieldValue, field)}
+                        placeholderButtonLabel={placeholderButtonLabel}
+                        onChange={values => printChange(values, setFieldValue, field)}
                         options={options} 
                     />
 

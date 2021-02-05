@@ -24,8 +24,13 @@ import * as yup from 'yup'; // for everything
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
 import { getSearchFieldValue } from '../../sql_statements';
 import { compositeTables } from '../../context/FieldTypesConfig';
-import '../../../css/workspace.scss';
+
 import { SELECT_URL, ARN_APIGW_GET_SELECT, } from '../../context/URLs';
+
+import '../../../css/workspace.scss';
+import '../../../css/datcat_Controlpanel.scss';
+
+import './customStyleDropdown.js';
 
 // const TableOptions = () => (
 //     <div style={{ 'height': '90px' }}>
@@ -63,17 +68,16 @@ const DatCat_ControlPanel = ({ linkState }) => {
     const {
         debug,
         username,
-        database, schema,
         table, setTable,
         columns, 
-        setColumnsLoaded,columnsLoaded,
+        columnsLoaded, setColumnsLoaded,
         tableLoading,
         tableLoaded,setTableLoaded,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
     const {
-        isAdmin, isSteward
+        isAdmin, isSteward, isDomainOperator
     } = useContext(AdminContext);
 
     const mounted = useRef(true);
@@ -108,6 +112,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
         if(linkState !== undefined){
             console.log(linkState);
             setTable(linkState['table']);
+            // setTableLoaded(false);
             setCommingFromLink(true);
 
         }else{
@@ -117,12 +122,25 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setShownModalUponChangingTable(true);
 
             // the first time user clicks on the tab, still needs to enforce false to NOT show the result table
-            setTableLoaded(false);
+            // setTableLoaded(false);
             setCommingFromLink(false);
         }
         
         // console.log(dropdownFields);
     }, []);
+
+    useEffect(()=>{
+        // if(linkState !== undefined){
+        if(loadedConfig && comingFromLink && columnsLoaded){
+            console.log("Immediately get linked result based on Link state's params");
+
+            const searchStmt = linkState['searchStmt'];
+            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
+            console.log(searchStmt);
+            console.log(primaryKey);
+            axiosCallToGetTableRows(searchStmt, primaryKey);            
+        }
+    }, [loadedConfig, comingFromLink, columnsLoaded]);
 
     useEffect(() =>{
         console.log(fields);
@@ -166,19 +184,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
         
         return () => mounted.current = false;
     }, [table]);
-
-    useEffect(()=>{
-        // if(linkState !== undefined){
-        if(loadedConfig && comingFromLink && columnsLoaded){
-            console.log("Immediately get linked result based on Link state's params");
-
-            const searchStmt = linkState['searchStmt'];
-            const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
-            console.log(searchStmt);
-            console.log(primaryKey);
-            axiosCallToGetTableRows(searchStmt, primaryKey);            
-        }
-    }, [loadedConfig, comingFromLink, columnsLoaded]);
 
     const prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN = () => {
         if (authState.isAuthenticated && username !== '') {
@@ -469,14 +474,14 @@ const DatCat_ControlPanel = ({ linkState }) => {
         <>
             {/* DatCat_ControlPanel */}
             <div>
-                <div style={{width: '15rem' , float: 'left', marginTop: '10px', marginRight: '10px' }}>
+                <div className="tableDropdown" >
                     {/* Select Catalog table: */}
                     {/* <DropDown 
                         target='Table' 
                         currentVal={table} 
                         menus={[ 
                             'DATA_DOMAIN',
-                            'DATA_STEWARD', 
+                            'DATA_STEWARD',
                             'DATA_STEWARD_DOMAIN',
                             'CATALOG_ENTITY_DOMAIN',
                             'CATALOG_ENTITIES',
@@ -508,7 +513,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                                 setTable(item);
                                 setShownModalUponChangingTable(true);
                                 setCommingFromLink(false);
-                                setTableLoaded(false);
+                                setColumnsLoaded(false);
                                 setCurrentSearchCriteria({});
                             }
                         }}
@@ -528,7 +533,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     />
                 }
 
-                {table === 'DATA_DOMAIN' && isSteward &&
+                {table === 'DATA_DOMAIN' && (isSteward || isAdmin) && 
                     <DomainOperatorModal/>
                 }
 
@@ -583,7 +588,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     <div style={{
                         'fontWeight': 'bold',
                         "textAlign": "left",
-                        "marginBottom": "10px"
+                        "marginBottom": "10px",
+                        'color': 'red',
                     }}>
                         Table: {table}
                     </div>
@@ -635,18 +641,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     <ConfigurationGrid/> 
                 </>
             }
-
-            {/* {currentSearchCriteria.length > 0 &&
-                <div style={{ 'float': 'left' }}>
-                    <span style={{ 'fontWeight': 'bold' }}>Filtered by:</span> {currentSearchCriteria.map(col => <span key={col}>{col} |</span>)}
-                </div>
-            }
-
-            {comingFromLink &&
-                <div>
-                    Linked from: { linkState['filterState']['table'] } : { linkState['filterState']['value'] }
-                </div>
-            } */}
 
             {insertError !== '' && insertError}
         </>

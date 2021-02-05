@@ -102,7 +102,9 @@ const FormField = ({
                     {(fieldType === 'multiSelect') &&
                         <MultiSelectField
                             field={field}
+                            isDatCatForm={true}
                             dropdownFields={dropdownFields}
+                            placeholderButtonLabel={'Select a target db, schema, table combination'}
                             touched={touched}
                             errors={errors}
                         />

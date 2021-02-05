@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch, Redirect } from "react-router-dom";
 // import { Router, Route, Link, Switch, Redirect } from "react-router-dom";
 import { Security, SecureRoute,  ImplicitCallback, LoginCallback, Auth } from '@okta/okta-react';
 import { WorkspaceProvider } from './Components/context/WorkspaceContext';
 import { AdminProvider } from './Components/context/AdminContext';
-
+import { WorkspaceContext } from './Components/context/WorkspaceContext';
 import Navbar from './Components/layout/Navbar';
 import HomeNew from './Components/pages/HomeNew';
 import ETLFrameworkUseAuthOKTA from './Components/pages/ETLFrameworkUseAuthOKTA';
 import DataCatalog from './Components/pages/DataCatalog';
+import Admin from './Components/pages/Admin';
 import Login from './Components/auth/Login';
 import Logout from './Components/pages/Logout';
 import './App.css';
@@ -22,6 +23,10 @@ const REDIRECT_URI = ORIGIN + '/implicit/callback';
 const App = () => {
   console.log(ORIGIN);
   console.log(REDIRECT_URI);
+
+  // const {
+  //   isAdmin
+  // } = useContext(WorkspaceContext);
 
   return (
     <Router>
@@ -41,6 +46,7 @@ const App = () => {
                 <Route exact={true} path="/" component={HomeNew} />
                 <SecureRoute exact path = "/etlframework" component = {ETLFrameworkUseAuthOKTA} />
                 <SecureRoute exact path = "/datacatalog" component = {DataCatalog} />
+                {/* {isAdmin && <SecureRoute exact path = "/admin" component = {Admin} />} */}
                 {/* <Route path='/login' render={() => <Login baseUrl='https://devaigtech.oktapreview.com' />} /> */}
                 <Route path='/login' render={() => <Login baseUrl='https://uataigtech.oktapreview.com' />} />
                 <Route path='/logged_out' component={Logout} />

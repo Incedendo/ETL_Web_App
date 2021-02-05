@@ -438,8 +438,6 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
         }
     }
 
-
-
     return (
         <div className="job-modal">
             <Button className="button-margin"
@@ -470,7 +468,18 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                         insertUsingMergeStatement={insertUsingMergeStatement}
                         customCodeDataTypeObj={customCodeDataTypeObj}
                     />
-                    
+
+                    {/* <div style={{ marginLeft: '37%', marginRight: '36%' }}>
+                        <Spinner
+                            as="span"
+                            animation="border"
+                            size="sm"
+                            role="status"
+                            aria-hidden="true"
+                        />
+                        <span style={{ 'marginLeft': '5px' }}>loading Table {table}...</span>
+                    </div> */}
+
                     {tableLoading && 
                         <div style={{ marginLeft: '37%', marginRight: '36%' }}>
                             <Spinner
@@ -485,22 +494,12 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                     }
 
                     {privilege !== undefined && tableLoaded && 
-                        // <Table
-                        //     // propData={data}
-                        //     privilege={data['PRIVILEGE']}
-                        //     getStatement={proposed_get_statenent}
-                        //     tableName={tableName}
-                        //     route={route}
-                        //     isDataCatalog={false}
-                        // />
                         <GenericConfigurationGrid
                             rows={rows}
                             columns={columns}
                             numberColumns={numberColumns}
                             primaryKeys={primaryKeys}
                             searchCriteria={searchCriteria}
-                            // reloadTable={reloadTable}
-                            // setReloadTable={setReloadTable}
                             table={table}
                             sortingStates={sortingStates}
                             editingStateColumnExtensions={editingStateColumnExtensions}

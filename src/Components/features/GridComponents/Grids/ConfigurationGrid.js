@@ -391,8 +391,8 @@ const ConfigurationGrid = () => {
 
                 
                 <TableColumnResizing
-                    columnWidths={columnWidths}
-                    onColumnWidthsChange={setColumnWidths}
+                    defaultColumnWidths={columnWidths}
+                    // onColumnWidthsChange={setColumnWidths}
                 />
 
                 {/* Show the button to choose which columns to display on the table */}

@@ -25,14 +25,16 @@ const DataCatalogModal = ({
     const [item, setItem] = useState("");
 
     const {
-        isAdmin, isSteward
+        isAdmin, isSteward, isDomainOperator
     } = useContext(AdminContext);
 
     useEffect(()=>{
         setItem(tableItems[table]);
     }, [table]);
 
-    // console.log(table);    
+    // console.log("isSteward: " + isSteward);   
+    // console.log("isDomainOperator: " + isDomainOperator);  
+    // console.log("can operate 3 last table: " + (!isDomainOperator && !isSteward)) ;
 
     return (
         <div style={{ 'float': 'left' }}>
@@ -44,7 +46,10 @@ const DataCatalogModal = ({
                     || ( (table === 'DATA_STEWARD_DOMAIN' 
                             || table === 'DATA_DOMAIN' 
                             || table === 'CATALOG_ENTITY_DOMAIN'
-                        ) && !isSteward)
+                        ) && !isSteward && !isAdmin) 
+                    || (['CATALOG_ENTITIES', 'CATALOG_ENTITY_LINEAGE', 'CATALOG_ITEMS'].indexOf(table) >= 0 
+                        && !isDomainOperator && !isSteward && !isAdmin
+                    )
                 }
             >
                 Add {item}

@@ -2,22 +2,23 @@ import React, { useState, useEffect, useContext } from 'react';
 import {
     useOktaAuth
 } from '@okta/okta-react';
+import Tab from 'react-bootstrap/Tab';
+import Tabs from 'react-bootstrap/Tabs';
+
+import { WorkspaceContext } from '../context/WorkspaceContext';
+import { AdminContext } from '../context/AdminContext';
+import Welcome from '../features/Welcome';
+import WorkTab from '../features/Tabs/WorkTab';
+import PlaygroundTab from '../features/Tabs/PlaygroundTab';
+import AdminTabs from '../features/Admin/AdminTabs';
+import IDAssignmentForm from '../features/Admin/IDAssignmentForm';
+import { getSearchFieldValue } from '../sql_statements';
 
 import '../../App.css';
 import '../../css/dropdown.scss';
 import '../../css/home.css';
 import '../../css/workspace.scss';
 import '../../css/etlframework.scss';
-
-import { WorkspaceContext } from '../context/WorkspaceContext';
-import { AdminContext } from '../context/AdminContext';
-import Welcome from '../features/Welcome';
-import Tab from 'react-bootstrap/Tab';
-import Tabs from 'react-bootstrap/Tabs';
-import WorkTab from '../features/Tabs/WorkTab';
-import PlaygroundTab from '../features/Tabs/PlaygroundTab';
-import IDAssignmentForm from '../features/Admin/IDAssignmentForm';
-import { getSearchFieldValue } from '../sql_statements';
 
 const ETLFrameworkUseAuthOKTA = ( props ) => {
 
@@ -29,7 +30,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         setScopes,
         appIDs,
 
-        setTable, 
+        table, setTable, 
         setTableLoaded, tableLoading,
         tableLoaded, 
         tableSearching,
@@ -69,6 +70,12 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         //upon clicking the ETL Framework Tab, set the table to ETLF by default??????
         setTable("ETLF_EXTRACT_CONFIG");
     }, [])
+
+    // useEffect(()=>{
+    //     if(etlTabClicked)
+    //         setShownModalUponChangingTable(true);
+    // }, [table])
+
 
     useEffect(()=>{
         if(etlTabClicked || props['location']['state'] === undefined){
@@ -113,50 +120,50 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
 
     return authState.isAuthenticated ?
         <div className="App container">
-                <>  
-                    <Welcome />
-                    <h4>ETL Job Configurations</h4>
-                    {/* <small>You are running this app in <b>{process.env.NODE_ENV}</b> mode </small> 
-                    <small>You are running this app in <b>{process.env.REACT_APP_ENV}</b> mode </small>  */}
-                    
-
-                    <Tabs defaultActiveKey="Configuration" transition={false} id="noanim-tab-example"
-                        onSelect={(eventKey)=>{
-                            if (eventKey ==="Configuration"){
-                                debug && console.log("Config Tab");
-                                setTable("ETLF_EXTRACT_CONFIG");
-                            } else if (eventKey === "Schedule Jobs"){
-                                debug && console.log("Configuration Tab");
-                                setTable("ETLFCALL");
-                            } 
-                            setEtlTabClicked(true);
-                            setTableLoaded(false);
-                        }}
-                    >
-                        < Tab eventKey = "Configuration" title = "Configuration" disabled = {tableLoading}>
-                            <WorkTab
-                                shownModalUponChangingTable={shownModalUponChangingTable}
-                            />
-                        </Tab>
-                        <Tab eventKey="Schedule Jobs" title="Schedule Jobs" disabled = {tableLoading}>
-                            <WorkTab
-                                shownModalUponChangingTable={shownModalUponChangingTable}
-                            />
-                        </Tab>
-                        {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
-                            <PlaygroundTab />
-                        </Tab> */}
-
-                        {isAdmin && 
-                            <Tab eventKey="admin" title="Admin" disabled = {tableLoading}>
-                                
-                                <IDAssignmentForm />
-                            </Tab>
-                        }
+            <>  
+                <Welcome />
+                <h4>ETL Job Configurations</h4>
+                {/* <small>You are running this app in <b>{process.env.NODE_ENV}</b> mode </small> 
+                <small>You are running this app in <b>{process.env.REACT_APP_ENV}</b> mode </small>  */}
                 
+
+                <Tabs defaultActiveKey="Configuration" transition={false} id="noanim-tab-example"
+                    onSelect={(eventKey)=>{
+                        if (eventKey ==="Configuration"){
+                            debug && console.log("Config Tab");
+                            setTable("ETLF_EXTRACT_CONFIG");
+                        } else if (eventKey === "Schedule Jobs"){
+                            debug && console.log("Configuration Tab");
+                            setTable("ETLFCALL");
+                        } 
+                        setEtlTabClicked(true);
                         
-                    </Tabs>
-                </>
+                        setTableLoaded(false);
+                    }}
+                >
+                    < Tab eventKey = "Configuration" title = "Configuration" disabled = {tableLoading}>
+                        <WorkTab
+                            shownModalUponChangingTable={shownModalUponChangingTable}
+                        />
+                    </Tab>
+                    <Tab eventKey="Schedule Jobs" title="Schedule Jobs" disabled = {tableLoading}>
+                        <WorkTab
+                            shownModalUponChangingTable={shownModalUponChangingTable}
+                        />
+                    </Tab>
+                    {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
+                        <PlaygroundTab />
+                    </Tab> */}
+
+                    {isAdmin && 
+                        <Tab eventKey="admin" title="Admin" disabled = {tableLoading}>
+                            <AdminTabs />
+                        </Tab>
+                    }
+            
+                    
+                </Tabs>
+            </>
         </div> 
         :
         <button onClick={login}>Login</button>;

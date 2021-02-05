@@ -8,12 +8,14 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
-import { createYupSchema } from "../../RouteConfigurations/yupSchemaCreator";
-import { INSERT_URL } from '../../../context/URLs';
+import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
+import { INSERT_URL } from '../../context/URLs';
+// import '../../../css/forms.scss';
+import '../../../css/rowExpansion.scss';
 
-import { WorkspaceContext } from '../../../context/WorkspaceContext';
+import { WorkspaceContext } from '../../context/WorkspaceContext';
 
-const DomainOperatorForm = ({ }) => {
+const AddAdminForm = () => {
     
     const { authState } = useOktaAuth();
 
@@ -21,13 +23,8 @@ const DomainOperatorForm = ({ }) => {
         debug, username
     } = useContext(WorkspaceContext);
 
-
-    //Jobs Configurations
-    // const [schema, setSchema] = useState([]);
-
     const schema = yup.object({
-        email: yup.string().email().required(),
-        domains: yup.string().required()
+        email: yup.string().required()
     });
 
     const [validating, setValidating] = useState(false);
@@ -46,40 +43,31 @@ const DomainOperatorForm = ({ }) => {
         debug && console.log(validating)
     }, [validating])
 
-    const assignOperatorToDomainsSQL = (email, domains) =>{
-        let sql = `MERGE INTO "SHARED_TOOLS_DEV"."ETL"."DOMAIN_AUTHORIZATION" TT
-        USING (
-            select 
-                ABS(HASH( UPPER(TRIM('` + email + `')),UPPER(TRIM(table1.value)) )) as DOMAIN_AUTHORIZATION_ID,
-                UPPER(TRIM('` + email +`')) AS USERNAME, 
-                UPPER(TRIM(table1.value)) as DOMAIN
-            from table(strtok_split_to_table('`+ domains +`', ',')) as table1
+    const addAdminSQL = (email) =>{
+        let sql = `MERGE INTO "SHARED_TOOLS_DEV"."ETL"."DATCAT_ADMIN" TT
+        USING ( 
+            select table1.value as USERNAME
+            from table(strtok_split_to_table('`+ email + `', ',')) as table1
         ) st 
-        ON (TT.DOMAIN_AUTHORIZATION_ID = ST.DOMAIN_AUTHORIZATION_ID)
+        ON (TT.USERNAME = ST.USERNAME)
         WHEN NOT matched THEN
-        INSERT (
-            DOMAIN_AUTHORIZATION_ID, USERNAME, DOMAIN
-        ) 
-        VALUES 
-        (
-            st.DOMAIN_AUTHORIZATION_ID, st.USERNAME, st.DOMAIN
-        );`
+        INSERT ( USERNAME ) VALUES ( UPPER(TRIM(st.USERNAME)) );`
 
         console.log(sql);
     
         return sql;
     } 
 
-    function assignOperatorToDomains(values) {
+    function addAdmin(values) {
         if (authState.isAuthenticated  && username !== '') {
             const options = {
                 headers: {
                     'Content-Type': 'application/json'
                 },
             }
-
+    
             axios.post(INSERT_URL, {
-                'sqlStatement': assignOperatorToDomainsSQL(values.email, values.domains)
+                'sqlStatement': addAdminSQL(values.email)
             }, options)
             .then(response => {
                 console.log(response);
@@ -110,13 +98,12 @@ const DomainOperatorForm = ({ }) => {
                 //destructure the action obj into {setSubmitting}
                 onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
                     console.log('values: ', values);
-                    assignOperatorToDomains(values);
-                    setValidating(true);
+                    addAdmin(values);
                     resetForm();
+                    setValidating(true);
                 }}
                 initialValues={{
-                    email: '',
-                    domains: ''
+                    email: ''
                 }}
             >
                 {({
@@ -132,41 +119,32 @@ const DomainOperatorForm = ({ }) => {
                         <Form
                             noValidate
                             onSubmit={handleSubmit}>
-                            <Form.Group controlId="formBasicEmail">
-                                <Form.Label>User Email:</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    // id={field}
-                                    name='email'
-                                    value={values['email']}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    placeholder={'i.e: john.doe@aig.com'}
-                                    // disabled={disabled}
-                                    isValid={touched['email'] && !errors['email']}
-                                    isInvalid={errors['email']}
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors['email']}
-                                </Form.Control.Feedback>
-                            </Form.Group> 
-                            <Form.Group controlId="exampleForm.ControlSelect1">
-                                <Form.Label>Domains:</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    // id={field}
-                                    name='domains'
-                                    value={values['domains']}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    placeholder={'use comma to assign multiple Domain Operators'}// disabled={disabled}
-                                    isValid={touched['domains'] && !errors['domains']}
-                                    isInvalid={errors['domains']}
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors['domains']}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                            <Form.Row>
+                                <Form.Group as={Col} controlId="formBasicEmail">
+                                    <Form.Label>Username:</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        // id={field}
+                                        name='email'
+                                        value={values['email']} onChange={handleChange}
+                                        // value={email}
+                                        // onChange={ e => {
+                                        //     handleChange(e);
+                                        //     setEmail(e.target.value);
+                                        // }}
+                                        onBlur={handleBlur}
+                                        placeholder={'i.e: john.doe@aig.com'}
+                                        disabled={validating}
+                                        isValid={touched['email'] && !errors['email']}
+                                        isInvalid={errors['email']}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors['email']}
+                                    </Form.Control.Feedback>
+                                </Form.Group> 
+                            </Form.Row>
+                              
+                             
 
                             <div className="central-spinning-div">
                                 <Button
@@ -199,6 +177,6 @@ const DomainOperatorForm = ({ }) => {
     )
 }
 
-export default DomainOperatorForm;
+export default AddAdminForm;
 
  

@@ -25,7 +25,7 @@ import {
 
 import '../../../css/searchModal.scss';
 import '../../../css/mymodal.scss';
-import xIcon from '../../../media/svg/x-icon.svg';
+import '../DataCatalog/customStyleDropdown.js';
 
 import { ETLF_tables } from '../../context/FieldTypesConfig';
 
@@ -63,7 +63,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             console.table(columns);
         }
         if(columnsLoaded){
-            console.log("COLUMN LOADED!!!!!!");
+            // console.log("COLUMN LOADED!!!!!!");
             let searchFieldsFromDropdownArr = columns.map(column => column.name)
 
             // console.table(searchFieldsFromDropdownArr);
@@ -90,18 +90,18 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             //     setShow(shown);
             // }
             setShow(shown);
-        }else{ 
-            console.log("columns NOT LOADED in SEARCH MODAL!!!!!!");
+        }else{
+            console.log("column not yet loaded in config...")
         }
     }, [columnsLoaded]);
 
-    useEffect(() =>{
-        if( remainingColumns.length > 0){
-            console.log("remaining columns:...");
-            console.table(remainingColumns)
+    // useEffect(() =>{
+    //     if( remainingColumns.length > 0){
+    //         console.log("remaining columns:...");
+    //         console.table(remainingColumns)
             
-        }
-    }, [remainingColumns]);
+    //     }
+    // }, [remainingColumns]);
 
     // useEffect(() =>{
     //     let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
@@ -263,6 +263,8 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                             SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                             UNION
                             SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                            UNION
+                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
                         )
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
@@ -278,11 +280,13 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 selectAllStmt = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
                 CASE
                     WHEN '` + username +`' IN (
-                        SELECT DISTINCT EMAIL FROM
+                        SELECT EMAIL FROM
                         (
                             SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                             UNION
                             SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                            UNION
+                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
                         )
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
@@ -315,8 +319,14 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 selectAllStmt = `SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, 
                 CASE
                     WHEN '` + username +`' IN (
-                        SELECT EMAIL
-                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                        // SELECT EMAIL
+                        // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                        SELECT EMAIL FROM
+                        (
+                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                            UNION
+                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+                        )
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE
@@ -329,8 +339,14 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 selectAllStmt = `SELECT DD.*,
                 CASE
                     WHEN '` + username +`' IN (
-                        SELECT EMAIL
-                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                        // SELECT EMAIL
+                        // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                        SELECT EMAIL FROM
+                        (
+                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                            UNION
+                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+                        )
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE
@@ -340,8 +356,14 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 selectAllStmt = `SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, 
                 CASE
                     WHEN '` + username +`' IN (
-                        SELECT EMAIL
-                        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                        // SELECT EMAIL
+                        // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                        SELECT EMAIL FROM
+                        (
+                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                            UNION
+                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+                        )
                     ) THEN 'READ/WRITE'
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE
@@ -421,7 +443,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                 )}
                             </DropdownButton> */}
 
-                            <div style={{width: '14rem', marginLeft: '1rem'}}>
+                            <div className="criteriaDropDown">
                                 <Select
                                     className="basic-single"
                                     classNamePrefix="select"
@@ -448,9 +470,6 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                 </Button>
                             </div>
                         </div>
-                            
-                        
-                        
 
                         <div className="searchModal-div">
                             <div className="searchFieldsDiv">
@@ -459,15 +478,8 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                         <span className="mr-10 field-width">
                                             {field}: 
                                         </span>
-                                        <input 
-                                            style={{
-                                                borderStyle: 'solid',
-                                                borderWidth: '1px',
-                                                borderColor: 'hsl(0,0%,80%)',
-                                                borderRadius: '4px', 
-                                                marginRight: '0.5rem', 
-                                                padding:'2px 8px'
-                                            }}
+                                        <input
+                                            className="searchInput"
                                             placeholder={'enter search value here'} 
                                             value={currentSearchObj[field]} 
                                             onChange={(e) => assignValueToSearchField(field, e)} 
@@ -475,19 +487,22 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                                         <div className="closeButtonDiv">
                                             <Button 
                                                 style={{
-                                                    height: '1.9rem',
-                                                    width: '1.9rem',
+                                                    position: 'relative',
+                                                    height: '1.85rem',
+                                                    width: '1.85rem',
+                                                    borderRadius: '0px 4px 4px 0px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
                                                     fontSize: '25px',
-                                                    paddingBottom: '10px'
+                                                    marginLeft: '-1px',
+                                                    borderColor: '#cccccc',
                                                 }}
                                                 variant="outline-danger" 
                                                 onClick={() => handleRemoveSearchField(field)}
                                             >
                                                 {/* <img src={xIcon} /> */}
-                                                x
+                                                <span className="closeSpan">x</span>
                                             </Button>
                                         </div>
                                         

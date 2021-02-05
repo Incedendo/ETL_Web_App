@@ -83,6 +83,8 @@ export const WorkspaceProvider = (props) => {
     const [columnWidths, setColumnWidths] = useState([]);
     const [tableColumnExtensions, setTableColumnExtensions] = useState([]);
     const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);    
+    
+    
     //Prepare data for the 'Configure Route' Modal in ETLFramework Comp
     const [routeOptions, setRouteOptions] = useState({});
     const [system_configs, setSystem_configs] = useState({});
@@ -100,9 +102,9 @@ export const WorkspaceProvider = (props) => {
         if(process.env.NODE_ENV === 'development') setDebug(true);
     }, [process.env.NODE_ENV]);
 
-    useEffect(() => {
-        debug && console.log("Type of routeConfigs: ", routeConfigs.constructor === Object)
-    },[]);
+    // useEffect(() => {
+    //     debug && console.log("Type of routeConfigs: ", routeConfigs.constructor === Object)
+    // },[]);
 
     useEffect(()=>{
         debug && console.log(authState);
@@ -141,7 +143,7 @@ export const WorkspaceProvider = (props) => {
         if (authState.isAuthenticated && username !== '') {
             const { accessToken } = authState;
             // debug && console.log("ACcess token ETLF_ACCESS_AUTHORIZATION: ", accessToken);
-            debug && console.log("Access token from authState: ", accessToken);
+            // debug && console.log("Access token from authState: ", accessToken);
             
             const proposed_get_statenent = "SELECT APP_ID FROM SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION WHERE UPPER(USERNAME) = '"
                 + username.toUpperCase() + "';";
@@ -175,7 +177,7 @@ export const WorkspaceProvider = (props) => {
         if (authState.isAuthenticated && username !== '') {
             const { accessToken } = authState;
             // debug && console.log("ACcess token ETLF_ACCESS_AUTHORIZATION: ", accessToken);
-            debug && console.log("Access token from authState: ", accessToken);
+            // debug && console.log("Access token from authState: ", accessToken);
             
             const SELECT_ROUTE = `SELECT DISTINCT
 CONCAT('Route ',ROUTE_ID,' - ', 'Action ',ACTION_ID, ': ', ROUTE_NAME) CHOICE_OPTION,
@@ -187,7 +189,7 @@ CONCAT('Route ',ROUTE_ID,' - ', 'Action ',ACTION_ID, ': ', ROUTE_NAME) CHOICE_OP
 FROM ETLF_ROUTE_COLUMNS
 ORDER BY ROUTE_ID, ACTION_ID `;
             
-            debug && console.log(SELECT_ROUTE);
+            // debug && console.log(SELECT_ROUTE);
             
             axios.get(SELECT_URL, {
                 headers: {
@@ -203,7 +205,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             })
                 //have to setState in .then() due to asynchronous opetaions
                 .then(response => {
-                    console.log('ROute options: ', response.data);
+                    // console.log('ROute options: ', response.data);
                     let routes = {};
                     response.data.map(route =>{
                         routes[route.CHOICE_OPTION] = {
@@ -214,7 +216,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                             'TGT_TECH': route.TGT_TECH
                         }
                     })
-                    console.log(routes);
+                    // console.log(routes);
                     setRouteOptions(routes);
                 })
                 .catch(err => debug && console.log("error from loading ETLF_ACCESS_AUTHORIZATION:", err.message))
@@ -226,46 +228,59 @@ ORDER BY ROUTE_ID, ACTION_ID `;
     useEffect(() => {
         let isMounted = true;
 
-        debug && console.log('Current Table: ', table)
+        // debug && console.log('Current Table: ', table)
         // if (accessToken !== '' && table !== '' && username !== '') {
         if (authState.isAuthenticated && table !== '' && username !== '') {
+
+            clearCurrentConfig();
+
             setTableLoaded(false);
             setColumnsLoaded(false);
             setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
             setNonEditableColumns(TABLES_NON_EDITABLE_COLUMNS[table]);
             // Use Username to generate Get Statement Inner Join
             // with Authorization table.
+
+
+
             let sqlGetColumnsStmt =
             "SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM " + database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + schema + "' AND TABLE_NAME = '"
             + table + "' ORDER BY ORDINAL_POSITION ASC;";
-            console.log(sqlGetColumnsStmt);
-            
-            axios.get(SELECT_URL, {
-                headers: {
-                    'type': 'TOKEN',
-                    'methodArn': ARN_APIGW_GET_SELECT,
-                    // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                    'authorizorToken': accessToken
-                },
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: sqlGetColumnsStmt,
-                }
-            })
-                //have to setState in .then() due to asynchronous opetaions
-                .then(response => {
-                    // debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
-                    if(table in gridConfigs){
-                        reloadGridConfig();
-                    }else{
-                        console.log("calling prepareGridConfig after User choose table from dropdown...");
-                        prepareGridConfig(response.data);
-                    }
-                    
-                    // setColumnsLoaded(true);
-                })
-                .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
+            // console.log(sqlGetColumnsStmt);
+
+            if(table in gridConfigs){
+                // debug && console.log("table already in gridconfig => reloadConfig()")
+                reloadGridConfig();
+            }else{
+
                 
+                axios.get(SELECT_URL, {
+                    headers: {
+                        'type': 'TOKEN',
+                        'methodArn': ARN_APIGW_GET_SELECT,
+                        // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                        'authorizorToken': accessToken
+                    },
+                    //params maps to event.queryStringParameters in lambda
+                    params: {
+                        sqlStatement: sqlGetColumnsStmt,
+                    }
+                })
+                    //have to setState in .then() due to asynchronous opetaions
+                    .then(response => {
+                        // debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
+                        // if(table in gridConfigs){
+                        //     reloadGridConfig();
+                        // }else{
+                        //     console.log("calling prepareGridConfig after User choose table from dropdown...");
+                        //     prepareGridConfig(response.data);
+                        // }
+                        // debug && console.log("Get Table config for the first time... => prepareGridConfig()");
+                        prepareGridConfig(response.data);
+                        // setColumnsLoaded(true);
+                    })
+                    .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
+            }
         } 
 
         return () => {
@@ -281,20 +296,23 @@ ORDER BY ROUTE_ID, ACTION_ID `;
     useEffect(() => {
         console.log("Current Gridconfigs: ", gridConfigs);
         if(table in gridConfigs){
+            console.log("gridConfig for table " + table + ": " + gridConfigs[table]);
+            // setColumnsLoaded(true);
+
             reloadGridConfig();
         }
         
     }, [gridConfigs]);
 
-    useEffect(()=>{
-        if(columns.length !== 0){
-            setColumnsLoaded(true);
-        }
-    }, [columns]);
+    // useEffect(()=>{
+    //     if(columns.length !== 0){
+    //         setColumnsLoaded(true);
+    //     }
+    // }, [columns]);
 
     useEffect(() =>{
         if(columnsLoaded){
-            debug && console.log("Columns loaded in WorkSpace Context..")
+            debug && console.log("Columns loaded in WorkSpace Context for table: " + table);
         }
     }, [columnsLoaded])
 
@@ -308,11 +326,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         // setSortingStates(gridConfigs[table]["sortingStates"]);
         setNumberColumns([]);
         setColumnDataTypes([]);
-        
     }
 
     const reloadGridConfig = () => {
-        clearCurrentConfig();
         
         console.log("only reloading existing gridconfig for table: " + table);
         console.log(gridConfigs);
@@ -324,13 +340,14 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         setNumberColumns(gridConfigs[table]["numericColumns"]);
         setColumnDataTypes(gridConfigs[table]["dataTypeObj"]);
         
+        setColumnsLoaded(true);
     }
 
     //saving configs 
     const prepareGridConfig = (data) => {
         console.log(data);
         if(data.length != 0){
-            console.log("prepare grid config for table: "+ table);
+            console.log("prepareGridConfig() for table: "+ table);
             // console.log(data);
             let headers = []
             data.map(row => headers.push(row.COLUMN_NAME));
@@ -338,24 +355,24 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
             headers.push("PRIVILEGE");
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
-                console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
+                // console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
                 headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
             }
             if(headers.length === 0 )
                 return;
 
 
-            console.log("header b4 appending: " + headers);
+            // console.log("header b4 appending: " + headers);
             if(table === 'ETLFCALL'){
                 headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
             }else if(table === 'ETLF_CUSTOM_CODE'){
                 headers.unshift('SOURCE_TABLE');
             }//add extra columns to the grid for these tables
             else if(table === 'DATA_STEWARD_DOMAIN'){
+                headers.unshift('FNAME');
+                headers.unshift('LNAME');
                 headers.unshift('DOMAIN');
                 headers.unshift('EMAIL');
-                headers.unshift('FNAME');
-                headers.unshift('FNAME');
             }else if(table === 'CATALOG_ENTITIES'){
                 headers.unshift('DOMAIN');
             }else if(['CATALOG_ENTITY_DOMAIN', 'CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) >= 0 ){
@@ -365,19 +382,19 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 headers.unshift('DOMAIN');
             }
             
-            console.log("header after appending: " + headers);
+            // console.log("header after appending: " + headers);
             let columns = []; 
             headers.map(header => columns.push({
                 name: header,
                 title: header
             }))
 
-            console.log(columns);
-            console.log(headers);
+            // console.log(columns);
+            // console.log(headers);
 
             const columnWidths = headers.map(header => ({
                 columnName: header,
-                width: 150
+                width: 180
             }))
 
             const tableColumnExtensions = headers.map(header => ({
@@ -416,6 +433,8 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 }
             }
 
+            // clearCurrentConfig();
+
             // setHeaders(headers);
             // setColumns(columns);
             // setColumnWidths(columnWidths);
@@ -434,7 +453,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 dataTypeObj,
             }
 
-            console.log("current table to set Config:", table);
+            debug && console.log(tableGridConfig);
+
+            // console.log("current table to set Config:", table);
             setGridConfigs({
                 ...gridConfigs,
                 [table]: tableGridConfig
@@ -444,8 +465,8 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
     //'EXTRACT_CONFIG_ID'
     const loadTableRows = (dbTableRows, primaryKey) => {
-        console.log('1st column to distinguish rows in results: ' + primaryKey[0]);
-        console.log('Rows to set rows: ', dbTableRows);
+        debug && console.log('1st column to distinguish rows in results: ' + primaryKey[0]);
+        debug && console.log('Rows to set rows: ', dbTableRows);
 
         setPrivilege(dbTableRows.map(row => row.PRIVILEGE));
         setRows([]);
@@ -1212,7 +1233,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
         headers, setHeaders,
         columns, setColumns,
-        columnsLoaded,
+        columnsLoaded, setColumnsLoaded,
         rows, setRows,
         addedRows, setAddedRows,
         privilege, setPrivilege,

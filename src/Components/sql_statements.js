@@ -96,8 +96,12 @@ export const search_multi_field_catalog_DataDomain = (username, db, schema, tabl
     SELECT ec.*,
     CASE
         WHEN '` + username +`' IN (
-            SELECT EMAIL
-            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+            SELECT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+            )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
     END AS PRIVILEGE
@@ -120,11 +124,13 @@ export const search_ItemsLineage_joined_Entity_Domain = (username, table, curren
         SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
         CASE
             WHEN '` + username +`' IN (
-                SELECT DISTINCT EMAIL FROM
+                SELECT  EMAIL FROM
                 (
                     SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                     UNION
                     SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                    UNION
+                    SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
                 )
             ) THEN 'READ/WRITE'
             ELSE 'READ ONLY'
@@ -174,6 +180,8 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (username, currentSearchObj
                 SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                 UNION
                 SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
             )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
@@ -200,8 +208,12 @@ export const search_composite_DATA_STEWARD_DOMAIN = (username, currentSearchObj)
     let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 
     CASE
         WHEN '` + username +`' IN (
-            SELECT EMAIL
-            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+            SELECT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+            )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
     END AS PRIVILEGE
@@ -223,8 +235,12 @@ export const search_composite_CATALOG_ENTITY_DOMAIN = (username, currentSearchOb
     let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE,
     CASE
         WHEN '` + username +`' IN (
-            SELECT EMAIL
-            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+            SELECT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+            )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
     END AS PRIVILEGE

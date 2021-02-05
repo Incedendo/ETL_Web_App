@@ -43,8 +43,12 @@ const sql_linking_dataSteward_To_dataDomain = (username, searchObj) => {
     const sql = `SELECT A.*,
     CASE
         WHEN '` + username +`' IN (
-            SELECT EMAIL
-            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+            SELECT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+            )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
     END AS PRIVILEGE
@@ -112,11 +116,13 @@ const sql_linking_dataDomain_To_catalogEntities = (username, searchObj) => {
     const sql = `SELECT C.DOMAIN, E.*,
     CASE
         WHEN '` + username +`' IN (
-            SELECT DISTINCT EMAIL FROM
+            SELECT EMAIL FROM
             (
                 SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                 UNION
                 SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
             )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
@@ -150,8 +156,12 @@ const sql_linking_catalogEntities_To_dataDomain = (username, searchObj) => {
     const sql = `SELECT E.*,
     CASE
         WHEN '` + username +`' IN (
-            SELECT EMAIL
-            FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+            SELECT EMAIL FROM
+            (
+                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+            )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
     END AS PRIVILEGE
@@ -191,11 +201,13 @@ const sql_linking_catalogEntities_To_Item_Lineage = (username, searchObj, destin
     const sql = `SELECT C2.*, D.*, 
     CASE
         WHEN '` + username +`' IN (
-            SELECT DISTINCT EMAIL FROM
+            SELECT EMAIL FROM
             (
                 SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                 UNION
                 SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
             )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
@@ -249,11 +261,13 @@ const sql_linking_ItemsLineage_To_CatalogEntities = (username, searchObj) => {
     const sql = `SELECT J.DOMAINS AS DOMAIN, J.*,
     CASE
         WHEN '` + username +`' IN (
-            SELECT DISTINCT EMAIL FROM
+            SELECT EMAIL FROM
             (
                 SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                 UNION
                 SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
             )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
@@ -324,11 +338,13 @@ const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = (username, searc
     const sql = `SELECT D.DOMAIN, D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*,
     CASE
         WHEN '` + username +`' IN (
-            SELECT DISTINCT EMAIL FROM
+            SELECT EMAIL FROM
             (
                 SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
                 UNION
                 SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
+                UNION
+                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
             )
         ) THEN 'READ/WRITE'
         ELSE 'READ ONLY'
@@ -399,12 +415,6 @@ const CustomizedLink = ({ row }) => {
     const {
         debug, username , table
     } = useContext(WorkspaceContext);
-
-    // useEffect(()=>{
-    //     if(debug){
-    //         console.log("====> Table: " + table);
-    //     }
-    // }, []);
 
     const linkedTablesObject = fieldTypesConfigs[table]['links'];
 

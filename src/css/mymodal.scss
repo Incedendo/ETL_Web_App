@@ -53,15 +53,17 @@
 }
 
 .field-div{
+    position: relative;
+    margin-top: 0.1rem;
     margin-bottom: 1rem;
     display: flex;
     flex-direction: row;
     align-items: center;
+    height: 1.85rem;
 }
 
 .searchModal-div{
     margin-top: 10px;
-    margin-left: 10px;
     border-top: solid;
     padding-top: 10px;
 }
@@ -73,8 +75,6 @@
 }
 
 .search-count{
-    margin-left: 10px;
-    // font-weight: bold;
 }
 
 .auto-suggest-box-modal{
