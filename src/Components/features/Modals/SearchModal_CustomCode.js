@@ -69,7 +69,7 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     return (
         <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
             <Button className=""
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => { setShow(true); }}>
                 Search Custom Code
             </Button>

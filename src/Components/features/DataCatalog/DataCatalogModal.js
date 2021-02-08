@@ -39,7 +39,7 @@ const DataCatalogModal = ({
     return (
         <div style={{ 'float': 'left' }}>
             <Button className="button-margin"
-                variant="primary"
+                variant="outline-primary"
                 onClick={()=>setShow(true)}
                 disabled={
                     (table === 'DATA_STEWARD'  && !isAdmin)

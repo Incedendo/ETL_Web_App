@@ -353,7 +353,8 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             data.map(row => headers.push(row.COLUMN_NAME));
 
             //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
-            headers.push("PRIVILEGE");
+            // headers.push("PRIVILEGE");
+            headers.push("EDITABLE");
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
                 // console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
                 headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
@@ -478,6 +479,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             dbTableRows.map((row, index) => ({
                 // id: row[primaryKey],
                 id: index,
+                EDITABLE: row.PRIVILEGE === 'READ/WRITE' ? 'YES' : 'NO',
                 ...row
             }))
         )
@@ -1095,11 +1097,23 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                     debug && console.log("Status: ", response.status);
                     if (response.status === 200) {
                         if (response.data[0]['number of rows inserted'] > 0) {
+                            debug && console.log("insert success...");
                             setInsertSuccess(true);
                             setInsertError('');
 
                             let newRows = [...rows];
-                            if(table === 'CATALOG_ENTITY_DOMAIN'){
+                            if(table === 'DATA_STEWARD_DOMAIN'){
+                                let insertedRows = []
+                                values['DATA_DOMAIN_ID'].map(domainID => {
+                                    insertedRows.push({
+                                        'DATA_DOMAIN_ID': domainID,
+                                        'DATA_STEWARD_ID': values['DATA_STEWARD_ID']
+                                    })
+                                }) 
+                                newRows = [...newRows, ...insertedRows];
+                                console.log(insertedRows);
+                            }
+                            else if(table === 'CATALOG_ENTITY_DOMAIN'){
                                 let insertedRows = []
                                 values['CATALOG_ENTITIES_ID'].map(entityID => {
                                     insertedRows.push({
@@ -1111,7 +1125,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                                 console.log(insertedRows);
                             }else{
                                 // if(performReload) setReloadTable(true);
-                                values['PRIVILEGE'] = 'READ/WRITE';       
+                                values['EDITABLE'] = 'YES';       
                                                             
                                 //CONVER ALL NON-NUMERIC VAL TO UPPER CASE B4 SAVING:    
                                 (Object.keys(values)).map(col => {

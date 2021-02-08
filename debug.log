@@ -244,3 +244,7 @@
 [0205/135546.672:ERROR:registration_protocol_win.cc(130)] TransactNamedPipe: The pipe has been ended. (0x6D)
 [0205/142926.428:ERROR:registration_protocol_win.cc(130)] TransactNamedPipe: The pipe has been ended. (0x6D)
 [0205/163048.197:ERROR:registration_protocol_win.cc(130)] TransactNamedPipe: The pipe has been ended. (0x6D)
+[0208/080945.862:ERROR:registration_protocol_win.cc(130)] TransactNamedPipe: The pipe has been ended. (0x6D)
+[0208/102056.768:ERROR:registration_protocol_win.cc(130)] TransactNamedPipe: The pipe has been ended. (0x6D)
+[0208/122428.875:ERROR:registration_protocol_win.cc(130)] TransactNamedPipe: The pipe has been ended. (0x6D)
+[0208/131210.088:ERROR:registration_protocol_win.cc(130)] TransactNamedPipe: The pipe has been ended. (0x6D)

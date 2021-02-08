@@ -4,14 +4,13 @@ import { Formik, Field } from 'formik';
 import axios from 'axios';
 import * as yup from 'yup'; // for everything
 import Form from 'react-bootstrap/Form';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
-import { createYupSchema } from "../../RouteConfigurations/yupSchemaCreator";
-import { INSERT_URL } from '../../../context/URLs';
+import MultiSelectField from '../../FormComponents/MultiSelectField';
+import SubmitButton from '../../FormComponents/SubmitButton';
 
 import { WorkspaceContext } from '../../../context/WorkspaceContext';
+import { AdminContext } from '../../../context/AdminContext';
+import { SELECT_URL, ARN_APIGW_GET_SELECT, INSERT_URL } from '../../../context/URLs';
 
 const DomainOperatorForm = ({ }) => {
     
@@ -21,6 +20,13 @@ const DomainOperatorForm = ({ }) => {
         debug, username
     } = useContext(WorkspaceContext);
 
+    const {
+        isAdmin, isSteward
+    } = useContext(AdminContext);
+
+
+    const [domains, setDomain] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     //Jobs Configurations
     // const [schema, setSchema] = useState([]);
@@ -35,11 +41,61 @@ const DomainOperatorForm = ({ }) => {
     const [insertMessageClassname, setInsertMessageClassname] = useState('');
 
     useEffect(()=>{
+        let mounted = true;
+        if (authState.isAuthenticated && username !== '') {
+            const { accessToken } = authState;
+            let sql = '';
+
+            if(isAdmin){
+                sql = `SELECT DOMAIN FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN;`;
+            }
+            else if(isSteward){
+                sql = `SELECT DOMAIN FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
+                INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD_DOMAIN" DSD
+                ON DD.DATA_DOMAIN_ID = DSD.DATA_DOMAIN_ID
+                INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS
+                ON DSD.DATA_STEWARD_ID = DS.DATA_STEWARD_ID
+                WHERE DS.EMAIL = UPPER(TRIM('` + username + `'));`;
+            }
+
+            axios.get(SELECT_URL, {
+                headers: {
+                    'type': 'TOKEN',
+                    'methodArn': ARN_APIGW_GET_SELECT,
+                    // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                    'authorizorToken': accessToken
+                },
+                //params maps to event.queryStringParameters in lambda
+                params: {
+                    sqlStatement: sql,
+                }
+            })//have to setState in .then() due to asynchronous opetaions
+            .then(response => {
+                // returning the data here allows the caller to get it through another .then(...)
+                // console.log('---------GET RESPONSE-----------');
+                debug && console.log(response.data);
+
+                if(mounted){
+                    setDomain(response.data.map(item => item.DOMAIN));
+                    setLoading(false);
+                }
+            })
+        }
+
+        return ()=> mounted = false;
+    }, [])
+
+    useEffect(()=>{
+        let mounted = true;
+        
         if(insertMessage !== ''){
             setTimeout(()=>{
-                setInsertMessage('');
+                if(mounted)
+                    setInsertMessage('');
             }, 2000);
         }
+
+        return ()=> mounted = false;
     }, [insertMessage]);
 
     useEffect(()=>{
@@ -47,6 +103,9 @@ const DomainOperatorForm = ({ }) => {
     }, [validating])
 
     const assignOperatorToDomainsSQL = (email, domains) =>{
+
+        domains = domains.map(domain => domain.replace(/'/g, "\\'"));
+
         let sql = `MERGE INTO "SHARED_TOOLS_DEV"."ETL"."DOMAIN_AUTHORIZATION" TT
         USING (
             select 
@@ -131,7 +190,58 @@ const DomainOperatorForm = ({ }) => {
                 }) => (
                         <Form
                             noValidate
-                            onSubmit={handleSubmit}>
+                            onSubmit={handleSubmit}
+                        >
+                            
+                            <Form.Group controlId="exampleForm.ControlSelect1">
+                                <Form.Label>Domains:</Form.Label>
+                                {loading && <span style={{marginLeft: '10px'}}>
+                                    <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />
+                                </span>
+                                }
+
+                                {(!loading && domains.length > 0)
+                                && <MultiSelectField 
+                                        field={'domains'}
+                                        isDatCatForm={false}
+                                        dropdownFields={domains}
+                                        placeholderButtonLabel={'Select Domains      '}
+                                        touched={touched}
+                                        errors={errors}
+                                    />
+                                }
+
+                                {(!loading && domains.length===0)
+                                && <span style={{marginLeft: '10px', color: 'red'}}>Error: You own zero Domains</span>
+                                }   
+                                {/* <Form.Control
+                                    as="select"
+                                    name='domains'
+                                    value={values['domains']}
+                                    onChange={(e) => {
+                                        // console.log(e.target.value);
+                                        // console.log(domains);
+                                        // console.log(values);
+                                        handleChange(e);
+                                    }}
+                                    onBlur={handleBlur}
+                                    placeholder={'use comma to assign multiple Domain Operators'}// disabled={disabled}
+                                    isValid={touched['domains'] && !errors['domains']}
+                                    isInvalid={errors['domains']}
+                                >   
+                                    {domains.map(item => <option key={item} value={item} >{item}</option>)}
+                                </Form.Control> */}
+                                <Form.Control.Feedback type="invalid">
+                                    {errors['domains']}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+
                             <Form.Group controlId="formBasicEmail">
                                 <Form.Label>User Email:</Form.Label>
                                 <Form.Control
@@ -150,47 +260,15 @@ const DomainOperatorForm = ({ }) => {
                                     {errors['email']}
                                 </Form.Control.Feedback>
                             </Form.Group> 
-                            <Form.Group controlId="exampleForm.ControlSelect1">
-                                <Form.Label>Domains:</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    // id={field}
-                                    name='domains'
-                                    value={values['domains']}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    placeholder={'use comma to assign multiple Domain Operators'}// disabled={disabled}
-                                    isValid={touched['domains'] && !errors['domains']}
-                                    isInvalid={errors['domains']}
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors['domains']}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                            
+                            <SubmitButton 
+                                validating={validating}
+                                errors={errors}
+                                touched={touched}
+                                defaultName={'Add'}
+                                SpinningName={'Adding...'}
+                            />
 
-                            <div className="central-spinning-div">
-                                <Button
-                                    // variant="primary"
-                                    type="submit" 
-                                    disabled={validating}
-                                >
-                                    
-                                    {validating &&
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        />
-                                    }
-
-                                    {!validating
-                                        ? <span style={{ 'marginLeft': '5px' }}>Add</span>
-                                        : <span style={{ 'marginLeft': '5px' }}>Adding...</span>
-                                    }
-                                </Button>
-                            </div>
                         </Form>
                     )}
             </Formik>

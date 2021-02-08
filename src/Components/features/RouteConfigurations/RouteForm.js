@@ -221,7 +221,7 @@ const RouteForm = ({
 
                                     <div className="central-spinning-div">  
                                         <Button
-                                            // variant="primary"
+                                            variant="outline-primary"
                                             type="submit" 
                                             disabled={isSubmitting || validating}
                                         >

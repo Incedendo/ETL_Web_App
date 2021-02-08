@@ -441,7 +441,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     return (
         <div className="job-modal">
             <Button className="button-margin"
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => setShow(true)}>
                 Custom Code
             </Button>

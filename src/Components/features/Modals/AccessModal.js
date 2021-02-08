@@ -34,7 +34,7 @@ const AccessModal = () => {
     return (
         <>
             <Button className="plus-button"
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => setShow(true)}>
                 +
             </Button>

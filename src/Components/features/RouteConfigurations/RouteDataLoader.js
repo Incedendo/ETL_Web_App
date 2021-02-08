@@ -101,7 +101,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         setRequiredFields({});
         setOptionalFields({});
         setFields([]);
-        if(route !== 'Select Route'){
+        if(route !== 'Select Route' && route !== ''){
             console.log("current route: ", route);
 
             const currentRoute = (route.split(':'))[1].trim();
@@ -658,8 +658,20 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         setValidationSchema(yup_schema);
     }
 
-    const selectRouteOptions = Object.keys(routeOptions);
-    selectRouteOptions.unshift('Select Route');
+    // const selectRouteOptions = Object.keys(routeOptions);
+    // selectRouteOptions.unshift('Select Route');
+
+    
+    let selectRouteOptions = Object.keys(routeOptions);
+    selectRouteOptions = selectRouteOptions.map(route => ({
+        label: route,
+        value: route
+    }))
+
+    selectRouteOptions.unshift({
+        label: 'Select an item',
+        value: ''
+    });
 
     return (
         <div>
@@ -697,9 +709,14 @@ const RouteDataLoader = ({ setActionModalShow }) => {
                                     isInvalid={touched.route && !!errors.route}
                                 // disabled={!fields.length}
                                 >
-                                    {routeOptions !== undefined && selectRouteOptions.map(route =>
-                                        <option key={route}>
+                                    {/* {routeOptions !== undefined && selectRouteOptions.map(route =>
+                                        <option key={route} value={route}>
                                             {route}
+                                        </option>
+                                    )} */}
+                                    {routeOptions !== undefined && selectRouteOptions.map(route =>
+                                        <option key={route.label} value={route.value}>
+                                            {route.label}
                                         </option>
                                     )}
                                 </Form.Control>

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import Form from 'react-bootstrap/Form';
@@ -7,10 +7,7 @@ import Col from 'react-bootstrap/Col';
 
 import FormEditableField from './FormEditableField';
 import MultiSelectField from './MultiSelectField';
-import { getFieldType, getFieldType2 } from './FormUtils';
-
-const sm_left = "2";
-const sm_right = "10";
+import { getFieldType2 } from './FormUtils';
 
 const FormField = ({  
     field, requiredFields, values, dataTypes, 
@@ -21,6 +18,15 @@ const FormField = ({
     const {
         table
     } = useContext(WorkspaceContext);
+
+    const [placeholder, setPlaceholder] = useState('');
+
+    useEffect(() => {
+        if(table === 'CATALOG_ENTITY_DOMAIN')
+            setPlaceholder('Select a target db, schema, table combination');
+        else if(table === 'DATA_STEWARD_DOMAIN')
+            setPlaceholder('Select Domains');
+    }, [table]);
 
     //get the field type to determine what Component of Field to render
     // let fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
@@ -36,12 +42,21 @@ const FormField = ({
     // console.log(values);
     // console.log("field: " + field + " , has value: "+ dropdownFields[field]);
 
-    let dropdownOptions = ['Select an item'];
-    if(field in dropdownFields){
-        dropdownFields[field].map(item => dropdownOptions.push(item));
-    }
+    // let dropdownOptions = ['Select an item'];
+    // if(field in dropdownFields){
+    //     dropdownFields[field].map(item => dropdownOptions.push(item));
+    // }
 
-    
+    let dropdownOptions = [{
+        label: 'Select an item',
+        value: ''
+    }];
+    if(field in dropdownFields){
+        dropdownFields[field].map(item => dropdownOptions.push({
+            label: item,
+            value: item
+        }));
+    }
     
     // if (field === 'ROUTE_ID' || field === 'ACTION_ID') console.log("RouteID: ", values[field])
 
@@ -94,7 +109,10 @@ const FormField = ({
                             isValid={touched[field] && !errors[field]}
                             isInvalid={errors[field]}
                         >   
-                            {dropdownOptions.map(item => <option key={item} value={item} >{item}</option>)}
+                            {dropdownOptions.map(item => 
+                                // <option key={item} value={item} >{item}</option>
+                                <option key={item.label} value={item.value} >{item.label}</option>
+                            )}
                         </Form.Control>
                         
                     }
@@ -104,7 +122,7 @@ const FormField = ({
                             field={field}
                             isDatCatForm={true}
                             dropdownFields={dropdownFields}
-                            placeholderButtonLabel={'Select a target db, schema, table combination'}
+                            placeholder={placeholder}
                             touched={touched}
                             errors={errors}
                         />

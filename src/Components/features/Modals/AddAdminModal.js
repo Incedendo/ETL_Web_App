@@ -9,10 +9,10 @@ const AddAdminModal = (props) => {
     const [show, setShow] = useState(false);
 
     return (
-        <>
+        <div style={{displat: 'float', float: 'left', marginRight: '20px'}}>
             <Button 
                 // className="button-margin"
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => setShow(true)}>
                 Add New Admin
             </Button>
@@ -34,7 +34,7 @@ const AddAdminModal = (props) => {
                     <AddAdminForm />
                 </Modal.Body>
             </Modal>
-        </>
+        </div>
     )
 }
 

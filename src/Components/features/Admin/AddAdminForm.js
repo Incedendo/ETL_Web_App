@@ -5,10 +5,7 @@ import axios from 'axios';
 import * as yup from 'yup'; // for everything
 import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
-import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
+import SubmitButton from '../FormComponents/SubmitButton';
 import { INSERT_URL } from '../../context/URLs';
 // import '../../../css/forms.scss';
 import '../../../css/rowExpansion.scss';
@@ -144,31 +141,14 @@ const AddAdminForm = () => {
                                 </Form.Group> 
                             </Form.Row>
                               
-                             
+                            <SubmitButton 
+                                validating={validating}
+                                errors={errors}
+                                touched={touched}
+                                defaultName={'Add'}
+                                SpinningName={'Adding...'}
+                            />
 
-                            <div className="central-spinning-div">
-                                <Button
-                                    // variant="primary"
-                                    type="submit" 
-                                    disabled={validating}
-                                >
-                                    
-                                    {validating &&
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        />
-                                    }
-
-                                    {!validating
-                                        ? <span style={{ 'marginLeft': '5px' }}>Add</span>
-                                        : <span style={{ 'marginLeft': '5px' }}>Adding...</span>
-                                    }
-                                </Button>
-                            </div>
                         </Form>
                     )}
             </Formik>

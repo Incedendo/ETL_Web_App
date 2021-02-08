@@ -5,6 +5,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Select from 'react-select';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
+import { AdminContext } from '../../context/AdminContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { search_multi_field, 
     search_multi_field_catalog, 
@@ -17,8 +18,8 @@ import { search_multi_field,
 } from '../../sql_statements';
 import { 
     select_all_etl_tables,
-    select_all_composite_DATA_STEWARD_DOMAIN,
-    select_all_composite_CATALOG_ENTITY_DOMAIN,
+    select_all_DATA_STEWARD_DOMAIN,
+    select_all_CATALOG_ENTITY_DOMAIN,
     select_all_multi_field_catalog,
     select_all_multi_field_catalog_with_Extra_columns_joined
 } from '../../SQL_Operations/selectAll';
@@ -48,6 +49,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
+    const { isAdmin, isSteward } = useContext(AdminContext);
 
     const [show, setShow] = useState(false);
     // console.log("search columns: " + searchFieldsFromDropdownArr);
@@ -246,51 +248,62 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         if (verifySearchObj()) {
             let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
             let selectAllStmt = '';
+
+            const caseAdmin = `'READ/WRITE' as PRIVILEGE`;
+            const caseSteward = `CASE
+                WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
+                THEN 'READ/WRITE'
+                ELSE 'READ ONLY'
+            END AS PRIVILEGE`;
+            const caseOperator = `CASE
+                WHEN AA.USERNAME IS NOT NULL
+                THEN 'READ/WRITE'
+                ELSE 'READ ONLY'
+            END AS PRIVILEGE`;
+
+            let privilegeLogic = ``;
+            
+
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
                 selectAllStmt = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
             }
             else if(table === 'CATALOG_ENTITIES'){
+
+                if(isAdmin){
+                    privilegeLogic = caseAdmin;
+                }else if(isSteward){
+                    privilegeLogic = caseSteward;
+                }else{
+                    privilegeLogic = caseOperator;
+                }
                 // selectAllStmt = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
                 // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);\
 
                 //------should be data stewards AND operators
-                selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, 
-                CASE
-                    WHEN '` + username +`' IN (
-                        SELECT DISTINCT EMAIL FROM
-                        (
-                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                            UNION
-                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
-                            UNION
-                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                        )
-                    ) THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE 
+                selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*,` + privilegeLogic + `
                 FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                 ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-                ON (AA.DOMAIN = C.DOMAIN);`
+                ON (AA.DOMAIN = C.DOMAIN)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+                ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID);`;
             }else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE' ){
-                selectAllStmt = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
-                CASE
-                    WHEN '` + username +`' IN (
-                        SELECT EMAIL FROM
-                        (
-                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                            UNION
-                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
-                            UNION
-                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                        )
-                    ) THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE 
+
+                if(isAdmin){
+                    privilegeLogic = caseAdmin;
+                }else if(isSteward){
+                    privilegeLogic = caseSteward;
+                }else{
+                    privilegeLogic = caseOperator;
+                }
+
+                selectAllStmt = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `
                 FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
                 ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
@@ -299,79 +312,57 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                 ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-                ON (AA.DOMAIN = C.DOMAIN);`;
+                ON (AA.DOMAIN = C.DOMAIN)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+                ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID);`;
             }
             //---------------------------------ONLY ADMIN---------------------------------------
             else if(table === 'DATA_STEWARD'){
                 // console.log("table NOTTTTTT in ETLF Framework");
-                selectAllStmt = `SELECT DS.*, 
-                CASE
-                    WHEN '` + username +`' IN (
-                        SELECT USERNAME
-                        FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                    ) THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE
+                if(isAdmin){
+                    privilegeLogic = caseAdmin;
+                }else{
+                    privilegeLogic = caseSteward;
+                }
+
+                selectAllStmt = `SELECT DS.*, ` + privilegeLogic + `
                 FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS;`;
             }
             //---------------------------------STEWARD---------------------------------------
-            else if(table === 'DATA_STEWARD_DOMAIN'){
-                selectAllStmt = `SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, 
-                CASE
-                    WHEN '` + username +`' IN (
-                        // SELECT EMAIL
-                        // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                        SELECT EMAIL FROM
-                        (
-                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                            UNION
-                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                        )
-                    ) THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE
-                FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN E
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD B 
-                ON (E.DATA_STEWARD_ID = B.DATA_STEWARD_ID)  
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
-            }else if(table === 'DATA_DOMAIN'){
-                selectAllStmt = `SELECT DD.*,
-                CASE
-                    WHEN '` + username +`' IN (
-                        // SELECT EMAIL
-                        // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                        SELECT EMAIL FROM
-                        (
-                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                            UNION
-                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                        )
-                    ) THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE
-                FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" DD;`
+            else if(table === 'DATA_DOMAIN'){
+
+                if(isAdmin){
+                    privilegeLogic = caseAdmin;
+                }else{
+                    privilegeLogic = caseSteward;
+                }
+
+                selectAllStmt = `SELECT DD.*, ` + privilegeLogic + `
+                FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" DD
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+                ON (DSD.DATA_DOMAIN_ID = DD.DATA_DOMAIN_ID)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID);`
+
+                // CASE
+                //     WHEN '` + username +`' IN (
+                //         // SELECT EMAIL
+                //         // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                //         SELECT EMAIL FROM
+                //         (
+                //             SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
+                //             UNION
+                //             SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
+                //         )
+                //     ) THEN 'READ/WRITE'
+                //     ELSE 'READ ONLY'
+                // END AS PRIVILEGE
+            }else if(table === 'DATA_STEWARD_DOMAIN'){
+                selectAllStmt = select_all_DATA_STEWARD_DOMAIN;
             }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-                // selectAllStmt = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
-                selectAllStmt = `SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, 
-                CASE
-                    WHEN '` + username +`' IN (
-                        // SELECT EMAIL
-                        // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                        SELECT EMAIL FROM
-                        (
-                            SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                            UNION
-                            SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                        )
-                    ) THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE
-                FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN E
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES B 
-                ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID);`;
+                selectAllStmt = select_all_CATALOG_ENTITY_DOMAIN;
             }
                 
             // debug && console.log(selectAllStmt);
@@ -390,7 +381,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     return (
         <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
             <Button className=""
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => {
                     setShow(true);
                 }}>

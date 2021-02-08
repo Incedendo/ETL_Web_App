@@ -9,10 +9,10 @@ const IDAssignmentModal = (props) => {
     const [show, setShow] = useState(false);
 
     return (
-        <>
+        <div style={{displat: 'float', float: 'left', marginRight: '20px'}}>
             <Button 
                 // className="button-margin"
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => setShow(true)}>
                 Assign Group IDs to user
             </Button>
@@ -36,7 +36,7 @@ const IDAssignmentModal = (props) => {
                     />
                 </Modal.Body>
             </Modal>
-        </>
+        </div>
     )
 }
 

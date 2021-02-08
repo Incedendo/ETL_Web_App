@@ -11,6 +11,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
 import { INSERT_URL } from '../../context/URLs';
 
+import SubmitButton from '../FormComponents/SubmitButton';
 import MultiSelectField from '../FormComponents/MultiSelectField';
 import ReactMultiSelectCheckboxes from 'react-multiselect-checkboxes';
 
@@ -251,31 +252,14 @@ const IDAssignmentForm = ({ setShow }) => {
                                 </Form.Group>
                             </Form.Row>
                               
-                             
+                            <SubmitButton 
+                                validating={validating}
+                                errors={errors}
+                                touched={touched}
+                                defaultName={'Add'}
+                                SpinningName={'Adding...'}
+                            />
 
-                            <div className="central-spinning-div">
-                                <Button
-                                    // variant="primary"
-                                    type="submit" 
-                                    disabled={validating}
-                                >
-                                    
-                                    {validating &&
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        />
-                                    }
-
-                                    {!validating
-                                        ? <span style={{ 'marginLeft': '5px' }}>Add</span>
-                                        : <span style={{ 'marginLeft': '5px' }}>Adding...</span>
-                                    }
-                                </Button>
-                            </div>
                         </Form>
                     )}
             </Formik>

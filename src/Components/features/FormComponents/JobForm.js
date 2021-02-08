@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
-import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import FormField from './FormField';
 import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
@@ -17,6 +16,8 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { generateMergeStatement } from '../../SQL_Operations/Insert';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { TABLESNOWFLAKE_URL, ARN_APIGW_GET_TABLE_SNOWFLAKE } from '../../context/URLs';
+
+import SubmitButton from '../FormComponents/SubmitButton';
 
 const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
@@ -35,6 +36,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     const [initialStates, setInitialStates] = useState({
         // ETLFCALL_ID: uuidv4(),
         // ETLFCALL_ID: 'dummyStr',
+        SOURCE_TABLE: '',
         JSON_PARAM: "",
         WAREHOUSE: "WH_GR_GP_XS",
         RUN_MODE: "C",
@@ -47,7 +49,11 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]['dropdownFields']);
     const [groupID, setGroupID] = useState(appIDs[0]);
     const [sourceTable, setSourceTable] = useState('');
-    const [sourceTableOptions, setSourceTableOptions] = useState(['Select an item']);
+    const [sourceTableOptions, setSourceTableOptions] = useState([{
+        label: 'Select an item',
+        value: ''
+    }]);
+    const [loadingTablesBasedonGroupIDs, setLoading] = useState(false);
 
     //NOT DISPLAYING the following fields on the Job Form
     const excludedFields = [
@@ -129,8 +135,6 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                     }];
                 }
 
-
-
                 if (col === "ETLFCALL_ID"){
                     custom_config.validations = custom_config.validations.concat([
                         {
@@ -186,13 +190,23 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
             //have to setState in .then() due to asynchronous opetaions
             .then(response => {
                 // debug && console.log(response.data.rows);
-                const sourceTables = response.data.rows.map(item => item.SOURCE_TABLE);
-                console.log(sourceTables);
+                let sourceTables = response.data.rows.map(item => item.SOURCE_TABLE);
+                // console.log(sourceTables);
+
+                sourceTables = sourceTables.map(table => ({
+                    label: table,
+                    value: table
+                }))
                 
                 setSourceTableOptions([
-                    'Select an item',
+                    {
+                        label: 'Select an item',
+                        value: ''
+                    },
                     ...sourceTables
-                ])
+                ]);
+
+                setLoading(false);
             })
             .catch(err => debug && console.log("error from loading ETLF_SYSTEM_CONFIG:", err.message))
     }, [groupID]);
@@ -286,6 +300,14 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     updatedFields.splice(updatedFields.indexOf('GROUP_ID'), 1);
     updatedFields.splice(updatedFields.indexOf('SOURCE_TABLE'), 1);
 
+    const handleDropDownField = value => {
+        if(value === 'Select an item'){
+            console.log("setting empty string");
+            setSourceTable('');
+        }else
+            setSourceTable(value);
+    }
+
     return (
         <div>
             {!fields.length
@@ -311,7 +333,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                     // validate={validate_R1A1}
                     >
                         {({
-                            handleSubmit, isSubmitting,
+                            handleSubmit,
                             handleChange,
                             handleBlur,
                             values,
@@ -335,6 +357,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                             onChange={(e) => {
                                                 handleChange(e);
                                                 setGroupID(e.target.value);
+                                                setLoading(true);
                                                 // getSourceTableList(e.target.value);
                                             }}
                                             onBlur={handleBlur}
@@ -350,13 +373,23 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                         <Form.Label>
                                             SOURCE TABLE
                                         </Form.Label>
-                                        <Form.Control
+                                        {loadingTablesBasedonGroupIDs
+                                            ? <div>
+                                                <Spinner
+                                                    as="span"
+                                                    animation="border"
+                                                    size="sm"
+                                                    role="status"
+                                                    aria-hidden="true"
+                                                />
+                                            </div> 
+                                            : <Form.Control
                                             as="select"
                                             name={'SOURCE_TABLE'}
                                             value={sourceTable}
                                             onChange={(e) => {
                                                 handleChange(e);
-                                                setSourceTable(e.target.value);
+                                                handleDropDownField(e.target.value);
                                             }}
                                             onBlur={handleBlur}
                                             disabled={false}
@@ -364,9 +397,11 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                             isInvalid={errors['SOURCE_TABLE']}
                                         >   
                                             {sourceTableOptions.map(option => 
-                                                <option key={option} value={option} >{option}</option>
+                                                <option key={option.label} value={option.value} >{option.label}</option>
                                             )}
                                         </Form.Control>
+                                        }
+                                        
                                     </Form.Group>
 
                                     {updatedFields.map(field =>
@@ -387,29 +422,13 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                         />
                                     )}
 
-                                    <div className="central-spinning-div">
-                                        <Button
-                                            // variant="primary"
-                                            type="submit" 
-                                            disabled={isSubmitting || validating}
-                                        >
-                                            
-                                            {validating &&
-                                                <Spinner
-                                                    as="span"
-                                                    animation="border"
-                                                    size="sm"
-                                                    role="status"
-                                                    aria-hidden="true"
-                                                />
-                                            }
-
-                                            {!validating
-                                                ? <span style={{ 'marginLeft': '5px' }}>Create Job</span>
-                                                : <span style={{ 'marginLeft': '5px' }}>Validating Job...</span>
-                                            }
-                                        </Button>
-                                    </div>
+                                    <SubmitButton 
+                                        validating={validating}
+                                        errors={errors}
+                                        touched={touched}
+                                        defaultName={'Create Job'}
+                                        SpinningName={'Validating Job...'}
+                                    />
                                     
 
                                 </Form>

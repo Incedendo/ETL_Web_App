@@ -123,16 +123,8 @@ export const search_ItemsLineage_joined_Entity_Domain = (username, table, curren
     FROM (
         SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
         CASE
-            WHEN '` + username +`' IN (
-                SELECT  EMAIL FROM
-                (
-                    SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                    UNION
-                    SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
-                    UNION
-                    SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                )
-            ) THEN 'READ/WRITE'
+            WHEN AA.USERNAME IS NOT NULL
+            THEN 'READ/WRITE'
             ELSE 'READ ONLY'
         END AS PRIVILEGE 
         FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
@@ -174,16 +166,8 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (username, currentSearchObj
     let sql_statement = 
     `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE,
     CASE
-        WHEN '` + username +`' IN (
-            SELECT DISTINCT EMAIL FROM
-            (
-                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                UNION
-                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION
-                UNION
-                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-            )
-        ) THEN 'READ/WRITE'
+        WHEN AA.USERNAME IS NOT NULL
+        THEN 'READ/WRITE'
         ELSE 'READ ONLY'
     END AS PRIVILEGE 
     FROM (

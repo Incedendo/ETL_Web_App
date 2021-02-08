@@ -12,7 +12,7 @@ const Route_Action_Modal = (props) => {
         <>
             <Button 
                 // className="button-margin"
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => setShow(true)}>
                 Configure New Job
             </Button>

@@ -25,7 +25,7 @@ const CustomCodeModal = ({
             <div className="central-spinning-div">
                 <Button 
                     className="button-margin"
-                    variant="primary"
+                    variant="outline-primary"
                     disabled={privilege === 'READ ONLY' }
                     onClick={() => setShow(true)}
                 >

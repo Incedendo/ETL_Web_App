@@ -10,7 +10,7 @@ import { generateMergeStatement,
     generateMergeUpdateStatement,
     generateAuditStmt } from '../../SQL_Operations/Insert';
 import '../../../css/rowExpansion.scss';
-import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, DATA_CATALOG_TABLE } from '../../context/FieldTypesConfig';
+import { fieldTypesConfigs, HIDDEN_FIELDS_IN_ROW_EXPANSION, DATA_CATALOG_TABLE } from '../../context/FieldTypesConfig';
 import { 
     merge_update_data_steward,
     merge_update_data_domain,
@@ -19,15 +19,12 @@ import {
     merge_catalog_entity_lineage
 } from '../DataCatalog/datcatsql/datcat_merge_update';
 
-import WrapperField from '../GenericTable/WrapperField';
 import PrimaryKeyField from '../GenericTable/PrimaryKeyField';
 import CodeField from '../GenericTable/CodeField';
 import DropdownField from '../GenericTable/DropdownField';
 
 import '../../../css/rowExpansion.scss';
 
-// const url = "https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/update";
-const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
 
 
@@ -38,20 +35,14 @@ const options = {
 }
 
 const RowExpansion = React.memo(({ row }) => {
-
-    const { authState } = useOktaAuth();
-
     const {
         debug,
         database, schema, table, appIDs, 
         rows, setRows,
         nonEditableColumns,
-        primaryKeys, searchCriteria, columnDataTypes,
+        primaryKeys, columnDataTypes,
         setEditSuccess,
         editError, setEditError,
-        setReloadTable,
-
-        setGenericTableDataTypeObj,
 
         routeOptions,
         routeConfigs,
@@ -60,8 +51,6 @@ const RowExpansion = React.memo(({ row }) => {
         codeFields,
 
         performAuditOperation,
-
-        ARN_APIGW_GET_TABLE_SNOWFLAKE
     } = useContext(WorkspaceContext);
 
     debug && console.log(row);
@@ -69,8 +58,6 @@ const RowExpansion = React.memo(({ row }) => {
     debug && console.log(table);
     
     const [state, setState] = useState(row);
-    const [oldtates, setOldStates] = useState({});
-    const [updatedStates, setUpdatedStates] = useState({});
     const [changed, setChanged] = useState(false);
     const [isLoading, setLoading] = useState(false);
     const [showPending, setShowPending] = useState(false);
@@ -81,26 +68,11 @@ const RowExpansion = React.memo(({ row }) => {
     const [route, setRoute] = useState("Route Not in List");
     const [action, setAction] = useState("");
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]['dropdownFields']);
-    
-
-    const initialValue = 1;
-    // const semaphore = new Semaphore(initialValue);
 
     const table_configs = {
         "ETLF_EXTRACT_CONFIG": "GROUP_ID",
         "ETLFCALL": "WORK_GROUP_ID"
     }
-
-    //GENERAL FOR ALL TABLE, IDEALLY FOR JUST ID COLUMNS THAT NEVER WANT TO SHOW
-    const excludedFields = [
-        "PRIVILEGE", "RN", "TOTAL_NUM_ROWS", "id",
-        'CREATEDDT', 'LASTMODIFIEDDT',
-        'EXTRACT_CONFIG_ID', 'CUSTOM_CODE_ID', 'ETLFCALL_ID',
-        "DATA_STEWARD_ID", "DATA_DOMAIN_ID","CATALOG_ENTITIES_ID","CATALOG_ENTITY_LINEAGE_ID","CATALOG_ITEMS_ID",
-        'CREATEDDATE', 'LASTMODIFIEDDATE', 
-        'DOMAINS', //duplicate of DOMAIN
-        // "ROUTE_ID", 'ACTION_ID'
-    ];
 
     useEffect(()=> {
         setEditError('');
@@ -550,7 +522,7 @@ const RowExpansion = React.memo(({ row }) => {
         Object.entries(modifiedRowBasedOnRouteAndAction).map((key, index) =>{
             console.log(key);
             const field = key[0];
-            if (excludedFields.indexOf(field) < 0) {
+            if (HIDDEN_FIELDS_IN_ROW_EXPANSION.indexOf(field) < 0) {
                 
                 const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
                 debug && console.log(field + ": " + fieldType);

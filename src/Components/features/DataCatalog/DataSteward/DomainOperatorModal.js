@@ -12,7 +12,7 @@ const DomainOperatorModal = () => {
     return (
         <div style={{float: "left", marginTop: '10px',marginLeft: "10px", marginRight: "10px"}}>
             <Button className=""
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => {
                     setShow(true);
                 }}>

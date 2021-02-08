@@ -15,7 +15,7 @@ const JobModal = ({ data, uniqueCols, dataTypes }) => {
         <div style={{ 'float': 'left', 'marginLeft': '10px', 'marginRight': '10px' }} className="job-modal">
             <Button 
                 // className="button-margin"
-                variant="primary"
+                variant="outline-primary"
                 onClick={() => setShow(true)}>
                 Create Job
             </Button>

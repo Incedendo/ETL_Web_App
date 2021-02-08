@@ -3,19 +3,14 @@ import {  Field } from 'formik';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ReactMultiSelectCheckboxes from 'react-multiselect-checkboxes';
 
-const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholderButtonLabel, touched, errors, submitted }) => {
-
-    // useEffect(()=>{
-    //     if(submitted){
-    //         console.log("form is subbmited");
-    //     }
-    // }, [submitted]);
+const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, touched, errors, submitted }) => {
 
     useEffect(() => {
+        let mounted = true;
         console.log(dropdownFields);
         let selectOptions = [];
         if(isDatCatForm){
-            dropdownFields['CATALOG_ENTITIES'].map(field =>{
+            dropdownFields[field].map(field =>{
                 // console.log(field);
                 selectOptions.push({
                     'label': field,
@@ -33,7 +28,10 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholderButt
             }) 
         }
         // console.log(selectOptions);
-        setOptions(selectOptions);
+        if(mounted) 
+            setOptions(selectOptions);
+
+        return () => mounted = false;
     }, []);
 
     const [options, setOptions] = useState([]);
@@ -42,6 +40,8 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholderButt
         // console.log(values);
         let selectedOptions = [];
         values.map(option => selectedOptions.push(option['label']));
+
+        console.log(`Field ${field} is: ${selectedOptions}`);
         setFieldValue(field, selectedOptions);
 
     }
@@ -63,7 +63,7 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholderButt
                 // <div className={errorTextAreaClassname}>
                 <>
                     <ReactMultiSelectCheckboxes
-                        placeholderButtonLabel={placeholderButtonLabel}
+                        placeholderButtonLabel={placeholder}
                         onChange={values => printChange(values, setFieldValue, field)}
                         options={options} 
                     />

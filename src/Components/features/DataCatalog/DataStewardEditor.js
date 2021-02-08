@@ -2,13 +2,15 @@ import React, { useState, useEffect, useContext } from 'react';
 // import { useOktaAuth } from '@okta/okta-react';
 import {WorkspaceContext} from '../../context/WorkspaceContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
-import { Formik, Field } from 'formik';
+import { Formik, connect, getIn } from 'formik';
 import { generateMergeStatement } from '../../SQL_Operations/Insert';
 // import axios from 'axios';
 import Form from 'react-bootstrap/Form';
 import FormField from '../FormComponents/FormField';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
+
+import SubmitDatCatButton from '../FormComponents/SubmitDatCatButton';
 
 import { 
     merge_data_steward,
@@ -48,7 +50,6 @@ const DataStewardEditor = ({
     useEffect(()=>{
         let state = {};
         Object.keys(dropdownFields).map( dropdownField => {
-            
             state[dropdownField] = 'select a value'
         })
         setInitialStates(state);
@@ -109,28 +110,26 @@ const DataStewardEditor = ({
         if(table === 'DATA_STEWARD'){
             console.log("reaching data_Steward table");
             mergeStmt = merge_data_steward(values, fields);
-            console.log(mergeStmt);
-
             console.log(values);
 
             insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }else if(table === 'DATA_DOMAIN'){
             console.log("reaching data_Steward table");
             mergeStmt = merge_data_domain(values, fields);
-            console.log(mergeStmt);
-
             console.log(values);
 
             insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }
         else if(table === 'DATA_STEWARD_DOMAIN'){
             console.log('reach DATA_STEWARD_DOMAIN');
+
+            let selectedDomainIDs = values.DOMAIN.map(domain => dropdownObject['DOMAIN'][domain]);
+
             let submitedValues = {
-                'DATA_DOMAIN_ID': dropdownObject['DOMAIN'][values['DOMAIN']],
+                'DATA_DOMAIN_ID': selectedDomainIDs,
                 'DATA_STEWARD_ID': dropdownObject['EMAIL'][values['EMAIL']]
             }
             console.log(submitedValues);
-            console.log(mergeStmt);
 
             mergeStmt = merge_data_steward_domain(submitedValues);
             insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
@@ -151,7 +150,6 @@ const DataStewardEditor = ({
             console.log(submitedValues);
 
             mergeStmt = merge_catalog_entity_domain(submitedValues);
-            console.log(mergeStmt);
             insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ENTITIES'){
             
@@ -165,29 +163,25 @@ const DataStewardEditor = ({
             
             submitedValues['CATALOG_ENTITIES_ID'] = dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']]
             delete submitedValues['CATALOG_ENTITIES'];
-            // console.log(submitedValues);
 
             mergeStmt = merge_catalog_entity_lineage(submitedValues, fields);
-            console.log(mergeStmt);
 
             console.log(submitedValues);
             insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ITEMS'){
             let submitedValues = {...values};
             submitedValues['CATALOG_ENTITIES_ID'] = dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']];
-
             // console.log(submitedValues);
 
             mergeStmt = merge_catalog_items(submitedValues, fields);
-            console.log(mergeStmt);
-
-            console.log(submitedValues);
             insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else{
             mergeStmt = getMergeStatement(values);
         }
 
         setValidating(false);
+
+        debug && console.log(mergeStmt);
         // setShow(false);
     }
 
@@ -235,33 +229,15 @@ const DataStewardEditor = ({
                             />
                         )}  
 
-                        <Button
-                            // variant="primary"
-                            type="submit" 
-                            disabled={isSubmitting || validating}
-                            style={{
-                                'marginLeft': 'auto',
-                                'display': 'block',
-                                'marginRight': 'auto'
-                            }}
-                        >
-                            
-                            {inserting &&
-                                <Spinner
-                                    as="span"
-                                    animation="border"
-                                    size="sm"
-                                    role="status"
-                                    aria-hidden="true"
-                                />
-                            }
-
-                            {!inserting
-                                ? <span style={{ 'marginLeft': '5px' }}>Add {table} item</span>
-                                : <span style={{ 'marginLeft': '5px' }}>Inserting Data...</span>
-                            }
-                        </Button>
-
+                        <SubmitDatCatButton 
+                            table={table}
+                            isSubmitting={isSubmitting}
+                            validating={validating}
+                            inserting={inserting}
+                            errors={errors}
+                            touched={touched}
+                        />
+                
                     </Form>
                 )}
         </Formik>
