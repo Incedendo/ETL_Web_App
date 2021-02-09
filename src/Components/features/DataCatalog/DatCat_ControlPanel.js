@@ -131,6 +131,13 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
     useEffect(()=>{
         // if(linkState !== undefined){
+        if(loadedConfig ){
+            console.log("Config loaded in Data Control Panels....");           
+        }
+    }, [loadedConfig]);
+
+    useEffect(()=>{
+        // if(linkState !== undefined){
         if(loadedConfig && comingFromLink && columnsLoaded){
             console.log("Immediately get linked result based on Link state's params");
 
@@ -271,7 +278,13 @@ const DatCat_ControlPanel = ({ linkState }) => {
             let dropdownObj = {}
             
             //1
-            const DATA_DOMAIN_SQL = 'SELECT DOMAIN, DATA_DOMAIN_ID FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN;';
+            const DATA_DOMAIN_SQL = `SELECT DD.DOMAIN, DD.DATA_DOMAIN_ID FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
+            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD_DOMAIN" DSD
+            ON DD.DATA_DOMAIN_ID = DSD.DATA_DOMAIN_ID
+            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS
+            ON DSD.DATA_STEWARD_ID = DS.DATA_STEWARD_ID
+            WHERE DS.EMAIL = UPPER(TRIM('` + username + `'));`;
+            
             axios.get(SELECT_URL, {
                 headers: {
                     'type': 'TOKEN',

@@ -43,7 +43,8 @@ const DataCatalogRefresher = () => {
             const updateLineage = axios.post(INSERT_URL, {
                 'sqlStatement': mergeUpdateCatalogEntityLineageFromView
                 } , options);
-            debug && console.log("Refreshing the Datacatalog now....")
+            
+                debug && console.log("Refreshing the Datacatalog now....")
             simulateNetworkRequest().then(() => {
                 setRefreshing(false);
             });

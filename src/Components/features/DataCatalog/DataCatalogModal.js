@@ -42,11 +42,10 @@ const DataCatalogModal = ({
                 variant="outline-primary"
                 onClick={()=>setShow(true)}
                 disabled={
-                    (table === 'DATA_STEWARD'  && !isAdmin)
-                    || ( (table === 'DATA_STEWARD_DOMAIN' 
-                            || table === 'DATA_DOMAIN' 
-                            || table === 'CATALOG_ENTITY_DOMAIN'
-                        ) && !isSteward && !isAdmin) 
+                    ( ['DATA_DOMAIN', 'DATA_STEWARD', 'DATA_STEWARD_DOMAIN' ].indexOf(table) >= 0 
+                        && !isAdmin)
+                    || ( table === 'CATALOG_ENTITY_DOMAIN'
+                         && !isSteward && !isAdmin) 
                     || (['CATALOG_ENTITIES', 'CATALOG_ENTITY_LINEAGE', 'CATALOG_ITEMS'].indexOf(table) >= 0 
                         && !isDomainOperator && !isSteward && !isAdmin
                     )

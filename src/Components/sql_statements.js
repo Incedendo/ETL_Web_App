@@ -71,16 +71,9 @@ export const search_multi_field_catalog = (username, db, schema, table, currentS
     return sql_statement;
 }
 
-export const search_multi_field_catalog_DataSteward = (username, db, schema, table, currentSearchObj, start, end) => {
+export const search_multi_field_catalog_DataSteward = (privilegeLogic, db, schema, table, currentSearchObj, start, end) => {
     let sql_statement = `SELECT * FROM(
-    SELECT ec.*,
-    CASE
-        WHEN '` + username +`' IN (
-            SELECT USERNAME
-            FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-        ) THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE
+    SELECT ec.*, ` + privilegeLogic + `
     FROM "`+
         db + `"."` +
         schema + `"."` +
@@ -91,42 +84,30 @@ export const search_multi_field_catalog_DataSteward = (username, db, schema, tab
     return sql_statement;
 }
 
-export const search_multi_field_catalog_DataDomain = (username, db, schema, table, currentSearchObj, start, end) => {
+export const search_multi_field_catalog_DataDomain = (privilegeLogic, db, schema, table, currentSearchObj, start, end) => {
     let sql_statement = `SELECT * FROM(
-    SELECT ec.*,
-    CASE
-        WHEN '` + username +`' IN (
-            SELECT EMAIL FROM
-            (
-                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                UNION
-                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-            )
-        ) THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE
+    SELECT ec.*, ` + privilegeLogic + `
     FROM "`+
         db + `"."` +
         schema + `"."` +
         table + `" ec 
+    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+    ON (DSD.DATA_DOMAIN_ID = ec.DATA_DOMAIN_ID)
+    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
     WHERE ` + getSearchFieldValue(currentSearchObj) + `
     );`;
     
     return sql_statement;
 }
 
-export const search_ItemsLineage_joined_Entity_Domain = (username, table, currentSearchObj) => {
+export const search_ItemsLineage_joined_Entity_Domain = (privilegeLogic, table, currentSearchObj) => {
     console.log(currentSearchObj);
     const DOMAIN = 'DOMAIN' in currentSearchObj ? currentSearchObj['DOMAIN'] : '';
 
     let sql_statement = `SELECT J.DOMAINS AS DOMAIN, J.*
     FROM (
-        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, 
-        CASE
-            WHEN AA.USERNAME IS NOT NULL
-            THEN 'READ/WRITE'
-            ELSE 'READ ONLY'
-        END AS PRIVILEGE 
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `
         FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
         INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
         ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID
@@ -135,6 +116,12 @@ export const search_ItemsLineage_joined_Entity_Domain = (username, table, curren
         ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
         LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
         ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+        ON (AA.DOMAIN = C.DOMAIN)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
         WHERE ` + `UPPER(TRIM(DOMAINS)) LIKE UPPER(TRIM('%` + DOMAIN + `%'))
         ` + getSearchFieldValueExcludingColumns(currentSearchObj, ['DOMAIN', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'], 'I') + `
     ) J`
@@ -143,7 +130,7 @@ export const search_ItemsLineage_joined_Entity_Domain = (username, table, curren
     return sql_statement;
 }
 
-export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (username, currentSearchObj) =>{
+export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (privilegeLogic, currentSearchObj) =>{
     console.log(currentSearchObj);
 
     const DOMAIN = 'DOMAIN' in currentSearchObj ? currentSearchObj['DOMAIN'] : '';
@@ -164,19 +151,20 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (username, currentSearchObj
     // WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + ';';
 
     let sql_statement = 
-    `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE,
-    CASE
-        WHEN AA.USERNAME IS NOT NULL
-        THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE 
+    `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE, J.PRIVILEGE
     FROM (
-        SELECT NVL(C.DOMAIN, '') DOMAINS, E.* 
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.*,  ` + privilegeLogic + `
         FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
         LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
         ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
         LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
         ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+        ON (AA.DOMAIN = C.DOMAIN)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
         WHERE UPPER(TRIM(E.TARGET_DATABASE)) LIKE UPPER(TRIM('%` + TARGET_DATABASE + `%'))
         AND UPPER(TRIM(E.TARGET_SCHEMA)) LIKE UPPER(TRIM('%` + TARGET_SCHEMA + `%'))
         AND UPPER(TRIM(E.TARGET_TABLE)) LIKE UPPER(TRIM('%` + TARGET_TABLE + `%'))
@@ -186,21 +174,10 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (username, currentSearchObj
     return sql_statement;
 }
 
-export const search_composite_DATA_STEWARD_DOMAIN = (username, currentSearchObj) =>{
+export const search_composite_DATA_STEWARD_DOMAIN = ( currentSearchObj) =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 
-    CASE
-        WHEN '` + username +`' IN (
-            SELECT EMAIL FROM
-            (
-                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                UNION
-                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-            )
-        ) THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE
+    let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE
     FROM
     (SELECT A.FNAME, A.LNAME, A.EMAIL, B.DATA_STEWARD_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD A
@@ -213,21 +190,10 @@ export const search_composite_DATA_STEWARD_DOMAIN = (username, currentSearchObj)
     return sql_statement;
 }
 
-export const search_composite_CATALOG_ENTITY_DOMAIN = (username, currentSearchObj) =>{
+export const search_composite_CATALOG_ENTITY_DOMAIN = (currentSearchObj) =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE,
-    CASE
-        WHEN '` + username +`' IN (
-            SELECT EMAIL FROM
-            (
-                SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                UNION
-                SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-            )
-        ) THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE
+    let sql_statement = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE
     FROM
     (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A

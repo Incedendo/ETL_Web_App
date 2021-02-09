@@ -33,7 +33,7 @@ import { ETLF_tables } from '../../context/FieldTypesConfig';
 // import makeAnimated from 'react-select/animated';
 
 const nonSearchableColumns = [
-    'PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
+    'EDITABLE','PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
     'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
     'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID', 'CATALOG_ENTITIES'
 ];
@@ -56,6 +56,20 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     const [remainingColumns, setRemainingColumns] = useState([]);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [options, setOptions] = useState({});
+
+    const caseAdmin = `'READ/WRITE' as PRIVILEGE`;
+    const caseSteward = `CASE
+        WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
+        THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE`;
+    const caseOperator = `CASE
+        WHEN AA.USERNAME IS NOT NULL
+        THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE`;
+
+    let privilegeLogic = ``;
 
     useEffect(()=>{
         if(debug){
@@ -209,27 +223,49 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end);
             }
         }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-            //item and lineage tables
-            // const joinedTable = joinedTableDataCatalog[table]['joinedTable'];
-            // const joinedColumms = joinedTableDataCatalog[table]['joinedColumns'];
-            // const joinedCriterion = joinedTableDataCatalog[table]['joinedCriterion'];
-
-            // multiSearchSqlStatement = search_multi_field_catalog_with_Extra_columns_joined(database, schema, table, currentSearchObj, joinedTable, joinedColumms, joinedCriterion); 
-            multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(username, table, currentSearchObj); 
-            
+            if(isAdmin){
+                privilegeLogic = caseAdmin;
+            }else if(isSteward){
+                privilegeLogic = caseSteward;
+            }else{
+                privilegeLogic = caseOperator;
+            }
+            multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj); 
         }else if(table === 'DATA_STEWARD_DOMAIN'){
-            multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(username, currentSearchObj);
+            multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-            multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(username, currentSearchObj);
+            multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
         }else if(table === 'CATALOG_ENTITIES'){
-            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(username, currentSearchObj);
+            if(isAdmin){
+                privilegeLogic = caseAdmin;
+            }else if(isSteward){
+                privilegeLogic = caseSteward;
+            }else{
+                privilegeLogic = caseOperator;
+            }
+            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(privilegeLogic, currentSearchObj);
         }else if(table === 'DATA_STEWARD'){
-            multiSearchSqlStatement = search_multi_field_catalog_DataSteward(username, database, schema, table, currentSearchObj, start, end);
+            if(isAdmin){
+                privilegeLogic = caseAdmin;
+            }else{
+                privilegeLogic = `CASE
+                    WHEN ec.EMAIL = UPPER(TRIM('` + username + `'))
+                    THEN 'READ/WRITE'
+                    ELSE 'READ ONLY'
+                END AS PRIVILEGE`;
+            }
+            multiSearchSqlStatement = search_multi_field_catalog_DataSteward(privilegeLogic, database, schema, table, currentSearchObj, start, end);
         }else if(table === 'DATA_DOMAIN'){
-            multiSearchSqlStatement = search_multi_field_catalog_DataDomain(username, database, schema, table, currentSearchObj, start, end);
-        }else{
-            multiSearchSqlStatement = search_multi_field_catalog(username, database, schema, table, currentSearchObj, start, end);
+            if(isAdmin){
+                privilegeLogic = caseAdmin;
+            }else{
+                privilegeLogic = caseSteward;
+            }
+            multiSearchSqlStatement = search_multi_field_catalog_DataDomain(privilegeLogic, database, schema, table, currentSearchObj, start, end);
         }
+        // else{
+        //     multiSearchSqlStatement = search_multi_field_catalog(privilegeLogic, database, schema, table, currentSearchObj, start, end);
+        // }
             
         debug && console.log(multiSearchSqlStatement);
 
@@ -249,21 +285,6 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
             let selectAllStmt = '';
 
-            const caseAdmin = `'READ/WRITE' as PRIVILEGE`;
-            const caseSteward = `CASE
-                WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
-                THEN 'READ/WRITE'
-                ELSE 'READ ONLY'
-            END AS PRIVILEGE`;
-            const caseOperator = `CASE
-                WHEN AA.USERNAME IS NOT NULL
-                THEN 'READ/WRITE'
-                ELSE 'READ ONLY'
-            END AS PRIVILEGE`;
-
-            let privilegeLogic = ``;
-            
-
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
                 selectAllStmt = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
@@ -281,7 +302,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);\
 
                 //------should be data stewards AND operators
-                selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*,` + privilegeLogic + `
+                selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, ` + privilegeLogic + `
                 FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
                 LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
                 ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  

@@ -20,7 +20,7 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  customCodeDataTypeObj, setS
     const { authState } = useOktaAuth();
 
     const {
-        debug,
+        debug, appIDs,
         genericTableDataTypeObj,
     } = useContext(WorkspaceContext);
 
