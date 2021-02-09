@@ -73,7 +73,7 @@ const DataCatalogRefresher = () => {
     const handleClick = () => setRefreshing(true);
 
     return (
-        <div style={{marginTop: '10px', marginLeft: '10px', float: 'right' }}>
+        <div style={{marginTop: '10px', float: 'right' }}>
             <Button
                 variant="warning"
                 disabled={isRefreshing || !columnsLoaded}

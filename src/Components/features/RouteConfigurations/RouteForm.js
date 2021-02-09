@@ -5,6 +5,7 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import FormField from '../FormComponents/FormField';
+import SubmitButton from '../FormComponents/SubmitButton';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 // import { createYupSchema } from "./yupSchemaCreator";
 import { generateMergeStatement } from '../../SQL_Operations/Insert';
@@ -163,7 +164,7 @@ const RouteForm = ({
                 initialValues={states}
             >
                 {({
-                    handleSubmit, isSubmitting,
+                    handleSubmit, 
                     handleChange,
                     handleBlur,
                     values,
@@ -219,28 +220,13 @@ const RouteForm = ({
                                         />
                                     )}
 
-                                    <div className="central-spinning-div">  
-                                        <Button
-                                            variant="outline-primary"
-                                            type="submit" 
-                                            disabled={isSubmitting || validating}
-                                        >
-                                            {validating &&
-                                                <Spinner
-                                                    as="span"
-                                                    animation="border"
-                                                    size="sm"
-                                                    role="status"
-                                                    aria-hidden="true"
-                                                />
-                                            }
-
-                                            {!validating
-                                                ? <span style={{ 'marginLeft': '5px' }}>Save Configuration</span>
-                                                : <span style={{ 'marginLeft': '5px' }}>Validating Configuration...</span>
-                                            }
-                                        </Button>
-                                    </div>
+                                    <SubmitButton 
+                                        validating={validating}
+                                        errors={errors}
+                                        touched={touched}
+                                        defaultName={'Save Configuration'}
+                                        SpinningName={'Validating Configuration...'}
+                                    />
                                 </>
                             }
                         </Form>

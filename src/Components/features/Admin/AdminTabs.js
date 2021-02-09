@@ -24,7 +24,7 @@ const AdminTabs = () => {
 
             <IDAssignmentModal/>
 
-            <Tabs defaultActiveKey="" transition={false} id="noanim-tab-example"
+            {/* <Tabs defaultActiveKey="" transition={false} id="noanim-tab-example"
                 onSelect={(eventKey)=>{
                     if (eventKey ==="Add Admin"){
                         debug && console.log("Add Admin");
@@ -42,7 +42,7 @@ const AdminTabs = () => {
                     <IDAssignmentForm />
                 </Tab>
                 
-            </Tabs>
+            </Tabs> */}
         </div>
     )
 }

@@ -22,26 +22,26 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     const [searchValue, setSearchValue] = useState('');
     const [fontSize, setFontsize] = useState(15);
 
-    useEffect(()=> {
-        // setTable('ETLF_CUSTOM_CODE');
-    }, [])
+    // useEffect(()=> {
+    //     // setTable('ETLF_CUSTOM_CODE');
+    // }, [])
 
-    const multiSearch_ETLF_EXTRACT_CONFIG = () => {
-        let searchStmt = 
-        `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
-            row_number() OVER(ORDER BY ec.GROUP_ID ASC) rn,
-            COUNT(*) OVER() total_num_rows
-            FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
-            FULL OUTER JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-            ON ec.GROUP_ID = auth.APP_ID AND auth.USERNAME = 'kiet.nguyen@aig.com'
-            WHERE EXTRACT_CONFIG_ID IN (
-                SELECT EXTRACT_CONFIG_ID FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE"
-                WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')
-        );`;
+    // const multiSearch_ETLF_EXTRACT_CONFIG = () => {
+    //     let searchStmt = 
+    //     `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+    //         row_number() OVER(ORDER BY ec.GROUP_ID ASC) rn,
+    //         COUNT(*) OVER() total_num_rows
+    //         FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
+    //         FULL OUTER JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
+    //         ON ec.GROUP_ID = auth.APP_ID AND auth.USERNAME = 'kiet.nguyen@aig.com'
+    //         WHERE EXTRACT_CONFIG_ID IN (
+    //             SELECT EXTRACT_CONFIG_ID FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE"
+    //             WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')
+    //     );`;
         
-        debug && console.log(searchStmt)
-        axiosCallToGetTableRows( searchStmt, ['EXTRACT_CONFIG_ID'] );
-    }
+    //     debug && console.log(searchStmt)
+    //     axiosCallToGetTableRows( searchStmt, ['EXTRACT_CONFIG_ID'] );
+    // }
 
     const multiSearch_CUSTOM_CODE = () => {
 
@@ -49,16 +49,25 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
             'CUSTOM_CODE': searchValue
         })
 
-        let searchStmt = `SELECT A.SOURCE_TABLE, B.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
-        FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" A
+        // let searchStmt = `
+        // SELECT A.SOURCE_TABLE, B.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+        // FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" A
+        // LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
+        // ON A.GROUP_ID = auth.APP_ID 
+        // INNER JOIN (
+        //     SELECT * FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE"
+        //     WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')
+        // ) B
+        // ON A.EXTRACT_CONFIG_ID = B.EXTRACT_CONFIG_ID`
+
+        let searchStmt = `
+        SELECT EEC.SOURCE_TABLE, ECC.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+        FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EEC
         LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-        ON A.GROUP_ID = auth.APP_ID 
-            //AND auth.USERNAME = 'kiet.nguyen@aig.com'
-        INNER JOIN (
-            SELECT * FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE"
-            WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')
-        ) B
-        ON A.EXTRACT_CONFIG_ID = B.EXTRACT_CONFIG_ID`
+        ON EEC.GROUP_ID = auth.APP_ID 
+        INNER JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE" ECC
+        ON EEC.EXTRACT_CONFIG_ID = ECC.EXTRACT_CONFIG_ID
+        WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%');`
         
         debug && console.log(searchStmt);
         
@@ -67,7 +76,7 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     }
 
     return (
-        <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
+        <div style={{float: "left", marginRight: "10px"}}>
             <Button className=""
                 variant="outline-primary"
                 onClick={() => { setShow(true); }}>

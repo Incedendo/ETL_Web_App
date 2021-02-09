@@ -85,7 +85,7 @@ const ConfigurationGrid = () => {
     const [defaultHiddenColumnNames] = useState([]);
     const [totalSummaryItems] = useState([
         { columnName: 'EXTRACT_CONFIG_ID', type: 'count' },
-        { columnName: 'PRIVILEGE', type: 'count' },
+        { columnName: 'EDITABLE', type: 'count' },
     ]);
 
     const [numberFilterOperations] = useState([

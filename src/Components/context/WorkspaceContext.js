@@ -354,7 +354,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
             //add PRIVILEGE Column to array of headers (because the row contains a JOIN with AUTHORIZATION table)
             // headers.push("PRIVILEGE");
-            headers.push("EDITABLE");
+            if(table !== 'CATALOG_ENTITY_DOMAIN' && table !== 'DATA_STEWARD_DOMAIN'){
+                headers.push("EDITABLE");
+            }
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
                 // console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
                 headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);

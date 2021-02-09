@@ -36,7 +36,11 @@ const HomeNew = () => {
   const mainContent = authState.isAuthenticated ? (
     <div>
       <p className="lead">
-        You have entered the <Link to="/workspace">Work space</Link> portal,{' '}
+        You have entered the Work space portal
+      </p>
+
+      <p className="lead">
+        You can start with <Link to="/etlframework">ETL Framework</Link> or <Link to="/datacatalog">Data Catalog</Link> 
       </p>
 
       <button className="btn btn-light btn-lg" onClick={logout}>

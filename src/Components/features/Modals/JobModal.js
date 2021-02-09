@@ -12,7 +12,7 @@ const JobModal = ({ data, uniqueCols, dataTypes }) => {
     // console.log(dataTypes);
 
     return (
-        <div style={{ 'float': 'left', 'marginLeft': '10px', 'marginRight': '10px' }} className="job-modal">
+        <div style={{ 'float': 'left', 'marginRight': '20px' }} className="job-modal">
             <Button 
                 // className="button-margin"
                 variant="outline-primary"

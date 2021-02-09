@@ -7,7 +7,8 @@ import Select from 'react-select';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
 import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
-import { search_multi_field, 
+import { 
+    getSearchFieldValue, search_multi_field, 
     search_multi_field_catalog, 
     search_multi_field_catalog_DataSteward,
     search_multi_field_catalog_DataDomain,
@@ -35,7 +36,8 @@ import { ETLF_tables } from '../../context/FieldTypesConfig';
 const nonSearchableColumns = [
     'EDITABLE','PRIVILEGE','CREATEDDATE','LASTMODIFIEDDATE',
     'DATA_STEWARD_ID', "DATA_DOMAIN_ID", 'CATALOG_ENTITIES_ID',
-    'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID', 'CATALOG_ENTITIES'
+    'CATALOG_ITEMS_ID', 'CATALOG_ENTITY_LINEAGE_ID', 'CATALOG_ENTITIES',
+    'CUSTOM_CODE_ID', 'CREATEDDT', 'LASTMODIFIEDDT'
 ];
 
 const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
@@ -87,6 +89,10 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             for(let item of nonSearchableColumns){
                 if(searchFieldsFromDropdownArr.indexOf(item) > -1)
                     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
+            }
+
+            if(table === 'ETLF_CUSTOM_CODE'){
+                searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('SOURCE_TABLE'),1);
             }
 
             // console.table(searchFieldsFromDropdownArr);
@@ -209,7 +215,16 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         let multiSearchSqlStatement = '';
         if(ETLF_tables.indexOf(table) >= 0){
             // console.log("table is in ETLF Framework");
-            if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
+            if(table === 'ETLF_CUSTOM_CODE'){
+                multiSearchSqlStatement = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+                FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE" EC
+                INNER JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EEC
+                ON (EC.EXTRACT_CONFIG_ID = EEC.EXTRACT_CONFIG_ID)
+                LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" EAA
+                ON (EEC.GROUP_ID = EAA.APP_ID)
+                WHERE ` + getSearchFieldValue(currentSearchObj);
+            }
+            else if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
 
                 //update 'GROUP_ID'  to 'WORK_GROUP_ID' in searchObject
                 let newSearchObj = {}
@@ -400,7 +415,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     // }, [remainingColumns]);
 
     return (
-        <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
+        <div style={{float: "left", marginRight: "20px"}}>
             <Button className=""
                 variant="outline-primary"
                 onClick={() => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { WorkspaceContext } from '../context/WorkspaceContext';
+import { AdminContext } from '../context/AdminContext';
 import Button from 'react-bootstrap/Button';
 import { useOktaAuth } from '@okta/okta-react';
 
@@ -12,6 +13,10 @@ const Welcome = () => {
     const {
         debug, username, name, 
     } = useContext(WorkspaceContext);
+
+    const {
+        isAdmin
+    } = useContext(AdminContext);
 
     const { authState, authService } = useOktaAuth();
     
@@ -32,7 +37,7 @@ const Welcome = () => {
 
     return(
         <div className="userInfo">
-            <h5>Welcome, {name.split(',')[1]} ({username}) </h5>
+            <h5>Welcome, {name.split(',')[1]} ({username}){isAdmin && <span>(Admin)</span>} </h5>
             <Button 
                 style={{
                     "position": "relative",

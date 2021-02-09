@@ -602,7 +602,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         'fontWeight': 'bold',
                         "textAlign": "left",
                         "marginBottom": "10px",
-                        'color': 'red',
+                        'color': 'green',
                     }}>
                         Table: {table}
                     </div>

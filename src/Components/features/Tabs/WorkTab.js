@@ -53,7 +53,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
                         && Object.keys(system_configs).length !== 0 
                         && system_configs.constructor === Object &&
                         // (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
-                        <div style={{float: "left", marginLeft: "10px", marginRight: "10px"}}>
+                        <div style={{float: "left", marginRight: "20px"}}>
                             <Route_Action_Modal />
                         </div>
                     }
@@ -136,6 +136,15 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
             "display": "flex",
             "flexDirection": "column"
         }}> 
+            <div style={{
+                'fontWeight': 'bold',
+                "textAlign": "left",
+                "marginBottom": "10px",
+                'color': 'GREEN',
+            }}>
+                Table: {table}
+            </div>
+
             <TableConfigPanel />
 
             <InsertStatus />
