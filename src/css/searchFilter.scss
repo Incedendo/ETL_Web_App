@@ -1,0 +1,16 @@
+a{
+    .filter-link{
+        color: #007bff;
+        background-color: transparent;
+        cursor: pointer;
+        &:hover{
+            text-decoration: underline;
+        }
+    }
+} 
+
+.parent-div{
+    display: flex;
+    float: left;
+    margin-bottom: 10px;
+}

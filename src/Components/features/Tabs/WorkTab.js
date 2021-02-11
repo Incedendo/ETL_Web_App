@@ -10,6 +10,7 @@ import SearchModal from '../Modals/SearchModal';
 import SearchModal_CustomCode from '../Modals/SearchModal_CustomCode';
 import JobModal from '../Modals/JobModal';
 import Route_Action_Modal from '../Modals/Route_Action_Modal';
+import SearchFilter from '../DataCatalog/SearchFilter';
 
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
@@ -152,42 +153,13 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
 
             {tableLoaded && 
                 <>
-                    {Object.keys(currentSearchCriteria).length > 0 &&
-                        <div style={{ 
-                            'display': 'flex', 
-                            'float': 'left',
-                            "marginBottom": "10px"
-                        }}>
-                            <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Filtered by: </span> 
-                            {/* {renderFilteredCriteria} */}
-
-
-                            {Object.keys(currentSearchCriteria).map(col => {
-                                if((Object.keys(currentSearchCriteria)).indexOf(col) === (Object.keys(currentSearchCriteria)).length -1 )
-                                    return(
-                                        <span 
-                                            key={col}
-                                            style={{ 'marginRight': '5px' }}
-                                        >
-                                            {col}: {currentSearchCriteria[col]} 
-                                        </span>
-                                    )
-                                else
-                                    return(
-                                        <span 
-                                            key={col}
-                                            style={{ 'marginRight': '5px' }}
-                                        >
-                                            {col}: {currentSearchCriteria[col]} | 
-                                        </span>
-                                    )
-                            })} 
-                        </div>
-                    }
-
+                    <SearchFilter 
+                        currentSearchCriteria={currentSearchCriteria}
+                        setCurrentSearchCriteria={setCurrentSearchCriteria}
+                    />
+                    
                     <ConfigurationGrid/>
                 </>
-            
             }
 
             {tableSearching && <div>seaching...</div>}

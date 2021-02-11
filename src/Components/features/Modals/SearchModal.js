@@ -6,7 +6,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import Select from 'react-select';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
-import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
+import { fieldTypesConfigs, ETLF_tables } from '../../context/FieldTypesConfig';
 import { 
     getSearchFieldValue, search_multi_field, 
     search_multi_field_catalog, 
@@ -29,8 +29,6 @@ import '../../../css/searchModal.scss';
 import '../../../css/mymodal.scss';
 import '../DataCatalog/customStyleDropdown.js';
 
-import { ETLF_tables } from '../../context/FieldTypesConfig';
-
 // import makeAnimated from 'react-select/animated';
 
 const nonSearchableColumns = [
@@ -46,8 +44,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         debug,
         username,
         database, schema, table, 
-        columns, 
-        columnsLoaded,
+        columns,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
@@ -75,102 +72,39 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
     useEffect(()=>{
         if(debug){
-            // console.log(username);
-            // console.log(currentSearchObj);
             console.log(table);
-            console.table(columns);
+            console.log(columns);
         }
-        if(columnsLoaded){
-            // console.log("COLUMN LOADED!!!!!!");
-            let searchFieldsFromDropdownArr = columns.map(column => column.name)
 
-            // console.table(searchFieldsFromDropdownArr);
-            
-            for(let item of nonSearchableColumns){
-                if(searchFieldsFromDropdownArr.indexOf(item) > -1)
-                    searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
-            }
+        let searchFieldsFromDropdownArr = columns.map(column => column.name)
 
-            if(table === 'ETLF_CUSTOM_CODE'){
-                searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('SOURCE_TABLE'),1);
-            }
-
-            // console.table(searchFieldsFromDropdownArr);
-
-            setRemainingColumns([]);
-            setRemainingColumns(searchFieldsFromDropdownArr);
-
-            let colOptions = []
-            searchFieldsFromDropdownArr.map(col => colOptions.push({
-                value: col,
-                label: col
-            }))
-
-            setOptions(colOptions);
-
-            // if(table !== 'ETLF_EXTRACT_CONFIG' && table !== 'ETLF_CUSTOM_CODE' && table !== 'ETLFCALL'){
-            //     setShow(shown);
-            // }
-            setShow(shown);
-        }else{
-            console.log("column not yet loaded in config...")
-        }
-    }, [columnsLoaded]);
-
-    // useEffect(() =>{
-    //     if( remainingColumns.length > 0){
-    //         console.log("remaining columns:...");
-    //         console.table(remainingColumns)
-            
-    //     }
-    // }, [remainingColumns]);
-
-    // useEffect(() =>{
-    //     let searchFieldsFromDropdownArr = (Object.keys(compositeTables)).indexOf(table) < 0
-    //     ? columns.map(column => column.name)
-    //     : columns;
-
-    //     if(table === 'CATALOG_ENTITY_DOMAIN' || table === 'CATALOG_ENTITIES'
-    //         || table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'
-    //     ){
-    //         if(searchFieldsFromDropdownArr.indexOf("TARGET_TABLE") < 0)
-    //             searchFieldsFromDropdownArr.unshift('TARGET_TABLE');
-    //         if(searchFieldsFromDropdownArr.indexOf("TARGET_SCHEMA") < 0)
-    //             searchFieldsFromDropdownArr.unshift('TARGET_SCHEMA');
-    //         if(searchFieldsFromDropdownArr.indexOf("TARGET_DATABASE") < 0) 
-    //             searchFieldsFromDropdownArr.unshift('TARGET_DATABASE');
-    //         if(searchFieldsFromDropdownArr.indexOf("DOMAIN") < 0)
-    //             searchFieldsFromDropdownArr.unshift('DOMAIN');
-    //         if(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES') > -1)
-    //             searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('CATALOG_ENTITIES'),1);
-    //     }
+        // console.table(searchFieldsFromDropdownArr);
         
-    //     for(let item of nonSearchableColumns){
-    //         if(searchFieldsFromDropdownArr.indexOf(item) > -1)
-    //             searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
-    //     }
+        for(let item of nonSearchableColumns){
+            if(searchFieldsFromDropdownArr.indexOf(item) > -1)
+                searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf(item),1);
+        }
 
-    //     setRemainingColumns(searchFieldsFromDropdownArr);
-    // }, [])
+        if(table === 'ETLF_CUSTOM_CODE'){
+            searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf('SOURCE_TABLE'),1);
+        }
 
-    // if(searchFieldsFromDropdownArr.indexOf("PRIVILEGE") > -1)
-    //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("PRIVILEGE"),1);
-    // if(searchFieldsFromDropdownArr.indexOf("CREATEDDATE") > -1)
-    //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("CREATEDDATE"),1);
-    // if(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE") > -1)
-    //     searchFieldsFromDropdownArr.splice(searchFieldsFromDropdownArr.indexOf("LASTMODIFIEDDATE"),1);
+        // console.table(searchFieldsFromDropdownArr);
 
-    // useEffect(() =>{
-    //     if( (Object.keys(currentSearchObj) !== 0)){
-    //         console.log("setting current search criteria... in Search modal")
-    //         setCurrentSearchCriteria(Object.keys(currentSearchObj));
-    //     }
-    // }, [currentSearchObj]);
+        setRemainingColumns([]);
+        setRemainingColumns(searchFieldsFromDropdownArr);
+
+        let colOptions = []
+        searchFieldsFromDropdownArr.map(col => colOptions.push({
+            value: col,
+            label: col
+        }))
+
+        setOptions(colOptions);
+        setShow(shown);
+    }, [table, columns]);
 
     const handleAddSearchField = value => {
-        //remove a primary keys fron the list of remaining columns
-        // let currentSearchKeys = Object.keys(currentSearchObj);
-        // currentSearchKeys.push(value);
 
         setRemainingColumns(remainingColumns.filter(item => item !== value));
         setCurrentSearchObj({ ...currentSearchObj, [value]: '' });

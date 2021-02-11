@@ -267,18 +267,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                     }
                 })
                     //have to setState in .then() due to asynchronous opetaions
-                    .then(response => {
-                        // debug && console.log("column list for ETLF_EXTRACT_CONFIG:", response.data);
-                        // if(table in gridConfigs){
-                        //     reloadGridConfig();
-                        // }else{
-                        //     console.log("calling prepareGridConfig after User choose table from dropdown...");
-                        //     prepareGridConfig(response.data);
-                        // }
-                        // debug && console.log("Get Table config for the first time... => prepareGridConfig()");
-                        prepareGridConfig(response.data);
-                        // setColumnsLoaded(true);
-                    })
+                    .then(response => prepareGridConfig(response.data))
                     .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
             }
         } 
@@ -296,19 +285,13 @@ ORDER BY ROUTE_ID, ACTION_ID `;
     useEffect(() => {
         console.log("Current Gridconfigs: ", gridConfigs);
         if(table in gridConfigs){
+            clearCurrentConfig();
             console.log("gridConfig for table " + table + ": " + gridConfigs[table]);
-            // setColumnsLoaded(true);
 
             reloadGridConfig();
         }
         
     }, [gridConfigs]);
-
-    // useEffect(()=>{
-    //     if(columns.length !== 0){
-    //         setColumnsLoaded(true);
-    //     }
-    // }, [columns]);
 
     useEffect(() =>{
         if(columnsLoaded){

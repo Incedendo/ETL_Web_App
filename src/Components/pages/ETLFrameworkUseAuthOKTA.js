@@ -11,7 +11,7 @@ import Welcome from '../features/Welcome';
 import WorkTab from '../features/Tabs/WorkTab';
 import PlaygroundTab from '../features/Tabs/PlaygroundTab';
 import AdminTabs from '../features/Admin/AdminTabs';
-import IDAssignmentForm from '../features/Admin/IDAssignmentForm';
+import IDAssignmentForm from '../features/Admin/AddAdminForm';
 import { getSearchFieldValue } from '../sql_statements';
 
 import '../../App.css';
@@ -137,7 +137,9 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                             setTable("ETLFCALL");
                         } 
                         setEtlTabClicked(true);
-                        
+
+                        //issue: it's showing 2 modals
+                        // setShownModalUponChangingTable(true);
                         setTableLoaded(false);
                     }}
                 >

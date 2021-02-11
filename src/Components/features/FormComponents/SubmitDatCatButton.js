@@ -21,7 +21,7 @@ const SubmitDatCatButton = ({ table, isSubmitting, validating, inserting, errors
                 variant={variant}
                 // variant={errors.length ? 'outline-danger' : 'outline-success'}
                 type="submit" 
-                disabled={isSubmitting || validating || inserting}
+                disabled={isSubmitting || validating || inserting || Object.keys(errors).length}
                 style={{
                     'marginLeft': 'auto',
                     'display': 'block',

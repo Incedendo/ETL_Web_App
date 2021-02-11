@@ -210,7 +210,7 @@ const DataStewardEditor = ({
                     <Form
                         noValidate
                         onSubmit={handleSubmit}>
-
+                            
                         {fields.sort().map(field =>
                             <FormField
                                 key={field}
@@ -228,6 +228,8 @@ const DataStewardEditor = ({
                                 dropdownFields={dropdownFields}
                             />
                         )}  
+
+                        {Object.keys(errors).length > 0 && <span className="error-span">* Forms inputs have errors.</span>}
 
                         <SubmitDatCatButton 
                             table={table}

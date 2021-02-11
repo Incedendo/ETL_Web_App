@@ -19,7 +19,7 @@ const SubmitButton = ({ validating, errors, touched, defaultName, SpinningName }
             <Button
                 variant={variant}
                 type="submit" 
-                disabled={validating}
+                disabled={validating || Object.keys(errors).length}
             >
                 
                 {validating &&

@@ -5,6 +5,15 @@ import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
 
+//----------------auxilary class---------------
+import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
+import axios from 'axios';
+import * as yup from 'yup'; // for everything
+import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
+import { compositeTables, DATA_CATALOG_TABLE } from '../../context/FieldTypesConfig';
+
+import { SELECT_URL, ARN_APIGW_GET_SELECT, } from '../../context/URLs';
+
 //-----------------react-------------------------
 import Select from 'react-select';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -16,17 +25,11 @@ import Spinner from 'react-bootstrap/Spinner';
 import SearchModal from '../Modals/SearchModal';
 import DataCatalogRefresher from './DataCatalogRefresher';
 import DataCatalogModal from './DataCatalogModal';
+import SearchFilter from './SearchFilter';
 import DomainOperatorModal from './DataSteward/DomainOperatorModal';
 import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
-import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
-import axios from 'axios';
-import * as yup from 'yup'; // for everything
-import { createYupSchema } from "../RouteConfigurations/yupSchemaCreator";
-import { getSearchFieldValue } from '../../sql_statements';
-import { compositeTables } from '../../context/FieldTypesConfig';
 
-import { SELECT_URL, ARN_APIGW_GET_SELECT, } from '../../context/URLs';
-
+//---------------CSS---------------------------
 import '../../../css/workspace.scss';
 import '../../../css/datcat_Controlpanel.scss';
 
@@ -117,9 +120,9 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
         }else{
             //linkstate is undefined, show default first table and show the search modal.
-            // console.log("linkstate is undefined...");
+            console.log("linkstate is undefined..., default is to set table to DATA_DOMAIN!!!");
             setTable('DATA_DOMAIN');
-            setShownModalUponChangingTable(true);
+            
 
             // the first time user clicks on the tab, still needs to enforce false to NOT show the result table
             // setTableLoaded(false);
@@ -128,6 +131,14 @@ const DatCat_ControlPanel = ({ linkState }) => {
         
         // console.log(dropdownFields);
     }, []);
+
+    useEffect(() => {
+        if(DATA_CATALOG_TABLE.indexOf(table) >= 0){
+            // console.log("Table: " + table);
+            // console.log("only show Search Modal if table is in Data Catalog???")
+            setShownModalUponChangingTable(true);
+        }
+    }, [table])
 
     useEffect(()=>{
         // if(linkState !== undefined){
@@ -552,7 +563,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
                 <DataCatalogRefresher />
 
-                {!columnsLoaded ?
+                {!columnsLoaded &&
                     <div style={{
                         height: '4rem',
                         display: 'flex',
@@ -568,7 +579,9 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         />
                         {/* <span style={{ 'marginLeft': '5px' }}>loading columns...</span> */}
                     </div>
-                    :
+                }
+                
+                {DATA_CATALOG_TABLE.indexOf(table) >= 0  && columnsLoaded &&
                     <div style={{ paddingTop: '10px', float: 'right' }}>
                         <SearchModal
                             groupIDColumn={'GroupID Not applicable for Catalog'}
@@ -618,38 +631,10 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         </div>
                     }
 
-                    {Object.keys(currentSearchCriteria).length > 0 &&
-                        <div style={{ 
-                            'display': 'flex', 
-                            'float': 'left',
-                            "marginBottom": "10px"
-                        }}>
-                            <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Filtered by: </span> 
-                            {/* {renderFilteredCriteria} */}
-
-
-                            {Object.keys(currentSearchCriteria).map(col => {
-                                if((Object.keys(currentSearchCriteria)).indexOf(col) === (Object.keys(currentSearchCriteria)).length -1 )
-                                    return(
-                                        <span 
-                                            key={col}
-                                            style={{ 'marginRight': '5px' }}
-                                        >
-                                            {col}: {currentSearchCriteria[col]} 
-                                        </span>
-                                    )
-                                else
-                                    return(
-                                        <span 
-                                            key={col}
-                                            style={{ 'marginRight': '5px' }}
-                                        >
-                                            {col}: {currentSearchCriteria[col]} | 
-                                        </span>
-                                    )
-                            })} 
-                        </div>
-                    }
+                    <SearchFilter 
+                        currentSearchCriteria={currentSearchCriteria}
+                        setCurrentSearchCriteria={setCurrentSearchCriteria}
+                    />
 
                     <ConfigurationGrid/> 
                 </>
