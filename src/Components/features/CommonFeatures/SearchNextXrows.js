@@ -39,9 +39,17 @@ const SearchNextXrows = ({ steps }) => {
         }
     }, [fetching]);
 
+    const getPrevLoHi = () => {
+        console.log(`steps back= ${steps}`);
+        const temp = lo;
+        setLo(temp-steps);
+        setHi(temp-1);
+        setFetching(true);
+    }
 
-    const updateLoHi = () => {
-        console.log(`steps = ${steps}`);
+
+    const getNextLoHi = () => {
+        console.log(`steps up = ${steps}`);
         const temp = hi;
         setLo(temp+1);
         setHi(temp+steps);
@@ -72,10 +80,19 @@ const SearchNextXrows = ({ steps }) => {
 
     return(
         <>
+            {lo > 1 
+                && 
+                <div>
+                    <button onClick={getPrevLoHi}>Prev {steps}</button>
+                </div>
+            }
+            <div>
+                    ({lo} - {hi})
+            </div>
             {hi <= selectAllCounts 
                 && 
                 <div>
-                    ({lo} - {hi}) <button onClick={updateLoHi}>Next {steps}</button>
+                    <button onClick={getNextLoHi}>Next {steps}</button>
                 </div>
             }
         </>

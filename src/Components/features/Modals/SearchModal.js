@@ -245,6 +245,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             let selectAllStmtFirstX = '';
             let selectAllEveryX = ``;
             let selectCountAllStmt = ``;
+            let bodySQL = ``;
             
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
@@ -279,7 +280,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     
                     //------should be data stewards AND operators
     
-                    const bodySQL = `
+                    bodySQL = `
                     FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
                     ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
@@ -290,20 +291,12 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
                     ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`
-    
-                    selectCountAllStmt = selectCount + bodySQL;
+                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
                     
                     selectAllEveryX = `SELECT * FROM (
                         SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN` 
                         + bodySQL +`
                     )`;
-                    setSelectAllStmtEveryX(selectAllEveryX);
-    
-                    selectAllStmtFirstX = selectAllEveryX +`
-                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
-    
-                    console.log(selectAllStmtFirstX);
                 }else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE' ){
     
                     if(isAdmin){
@@ -314,7 +307,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                         privilegeLogic = caseOperator;
                     }
                     const tableKey = table === 'CATALOG_ITEMS' ? 'CATALOG_ITEMS_ID' : 'CATALOG_ENTITY_LINEAGE_ID'
-                    const bodySQL = `
+                    bodySQL = `
                     FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
                     ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
@@ -327,18 +320,12 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
                     ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`
-    
-                    selectCountAllStmt = selectCount + bodySQL;
+                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
 
                     selectAllEveryX = `SELECT * FROM (
                         SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY I.`+ tableKey +` ASC) RN`
                         + bodySQL +`
                     )`;
-                    setSelectAllStmtEveryX(selectAllEveryX);
-    
-                    selectAllStmtFirstX = selectAllEveryX + `
-                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
                 }
                 //---------------------------------ONLY ADMIN---------------------------------------
                 else if(table === 'DATA_STEWARD'){
@@ -348,18 +335,13 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     }else{
                         privilegeLogic = caseSteward;
                     }
-    
-                    selectCountAllStmt = selectCount + `
-                    FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS;`;
-                    console.log(selectCountAllStmt);
+                    
+                    bodySQL = `FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS`;
+                    
                     selectAllEveryX = `SELECT * FROM (
-                        SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN
-                        FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS
+                        SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN`
+                        + bodySQL + `
                     )`;
-                    setSelectAllStmtEveryX(selectAllEveryX);
-
-                    selectAllStmtFirstX = selectAllEveryX + `
-                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
                 }
                 //---------------------------------STEWARD---------------------------------------
                 else if(table === 'DATA_DOMAIN'){
@@ -370,65 +352,54 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                         privilegeLogic = caseSteward;
                     }
     
-                    const bodySQL = `
+                    bodySQL = `
                     FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" DD
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
                     ON (DSD.DATA_DOMAIN_ID = DD.DATA_DOMAIN_ID)
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`
-    
-                    selectCountAllStmt = selectCount + bodySQL;
-                    console.log(selectCountAllStmt);
+                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
     
                     selectAllEveryX = `SELECT * FROM (
                         SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`
                         + bodySQL + `
                     )`;
-                    setSelectAllStmtEveryX(selectAllEveryX);
-
-                    selectAllStmtFirstX = selectAllEveryX + `
-                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
     
                 }else if(table === 'DATA_STEWARD_DOMAIN'){
     
-                    const bodySQL = `
+                    bodySQL = `
                     FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN E
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD B 
                     ON (E.DATA_STEWARD_ID = B.DATA_STEWARD_ID)  
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                     ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
                     
-                    selectCountAllStmt = selectCount + bodySQL;
                     selectAllEveryX = `SELECT * FROM (
                         SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, row_number() OVER(ORDER BY E.DATA_STEWARD_ID ASC) RN`
                         + bodySQL + `
                     )`;
-                    setSelectAllStmtEveryX(selectAllEveryX);
-
-                    selectAllStmtFirstX = selectAllEveryX + `
-                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
     
                 }else if(table === 'CATALOG_ENTITY_DOMAIN'){
     
-                    const bodySQL = `
+                    bodySQL = `
                     FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN E
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES B 
                     ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                    ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`
-    
-                    selectCountAllStmt = selectCount + bodySQL;
+                    ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
+
                     selectAllEveryX = `SELECT * FROM (
                         SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
                         + bodySQL + `
                     )`;
-                    setSelectAllStmtEveryX(selectAllEveryX);
-
-                    selectAllStmtFirstX = selectAllEveryX + `
-                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
-
                 }
 
+                selectCountAllStmt = selectCount + bodySQL;
+                setSelectAllStmtEveryX(selectAllEveryX);
+
+                selectAllStmtFirstX = selectAllEveryX +`
+                WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+
+                console.log(selectAllStmtFirstX);
                 axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
             
             } 
