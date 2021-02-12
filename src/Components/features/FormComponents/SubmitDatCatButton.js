@@ -40,7 +40,7 @@ const SubmitDatCatButton = ({ table, isSubmitting, validating, inserting, errors
                 }
 
                 {!inserting
-                    ? <span style={{ 'marginLeft': '5px' }}>Add {table} item</span>
+                    ? <span style={{ 'marginLeft': '5px' }}>Add {table}</span>
                     : <span style={{ 'marginLeft': '5px' }}>Inserting Data...</span>
                 }
             </Button>

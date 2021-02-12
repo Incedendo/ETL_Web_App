@@ -15,12 +15,13 @@ import {
 const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
     const {
         debug, username ,
-        database, schema, table,
+        database, schema, table, rows,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
     const { isAdmin, isSteward } = useContext(AdminContext);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
+    const [counts, setCounts] = useState(0);
 
     const caseAdmin = `'READ/WRITE' as PRIVILEGE`;
     const caseSteward = `CASE
@@ -36,6 +37,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
 
     let privilegeLogic = ``;
 
+    console.log(table);
     const uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
 
     const singleSearch = (currentSearchObj) => {

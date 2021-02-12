@@ -11,6 +11,7 @@ import SearchModal_CustomCode from '../Modals/SearchModal_CustomCode';
 import JobModal from '../Modals/JobModal';
 import Route_Action_Modal from '../Modals/Route_Action_Modal';
 import SearchFilter from '../DataCatalog/SearchFilter';
+import SearchResultInfo from '../CommonFeatures/SearchResultInfo';
 
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
@@ -21,7 +22,7 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
         table, 
         columnDataTypes, 
         tableLoaded, tableLoading, tableSearching, setReloadTable,
-        primaryKeys, setPrimaryKeys, columns, columnsLoaded,
+        primaryKeys, setPrimaryKeys, rows, columnsLoaded,
         insertError, editError,
         system_configs
     } = useContext(WorkspaceContext);
@@ -153,11 +154,12 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
 
             {tableLoaded && 
                 <>
+                    <SearchResultInfo />
                     <SearchFilter 
                         currentSearchCriteria={currentSearchCriteria}
                         setCurrentSearchCriteria={setCurrentSearchCriteria}
                     />
-                    
+
                     <ConfigurationGrid/>
                 </>
             }

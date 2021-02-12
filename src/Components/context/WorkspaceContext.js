@@ -4,6 +4,7 @@ import axios from 'axios';
 import { get_custom_table } from '../sql_statements';
 import { NumberEditor } from '../features/GridComponents/Grids/GridHelperClass';
 import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS } from './FieldTypesConfig';
+import { steps } from '../context/privilege';
 import { generateAuditStmt } from '../SQL_Operations/Insert';
 export const WorkspaceContext = createContext();
 import { SELECT_URL,
@@ -12,6 +13,8 @@ import { SELECT_URL,
     INSERT_URL,
     ARN_APIGW_GET_SELECT,
     ARN_APIGW_GET_TABLE_SNOWFLAKE } from './URLs';
+
+
 
 export const WorkspaceProvider = (props) => {
     const { authState, authService } = useOktaAuth();
@@ -76,6 +79,7 @@ export const WorkspaceProvider = (props) => {
     const [columns, setColumns] = useState([]);
     const [columnsLoaded, setColumnsLoaded] = useState(false);
     const [rows, setRows] = useState([]);
+    
     const [addedRows, setAddedRows] = useState([]);
     const [privilege, setPrivilege] = useState([]);
     const [editingStateColumnExtensions, setEditingStateColumnExtensions] = useState([]);
@@ -84,7 +88,12 @@ export const WorkspaceProvider = (props) => {
     const [tableColumnExtensions, setTableColumnExtensions] = useState([]);
     const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);    
     
-    
+    // Search Info States
+    const [selectAllCounts, setAllCounts] = useState(0);
+    const [lo, setLo] = useState(1);
+    const [hi, setHi] = useState(steps);
+    const [selectAllStmtEveryX, setSelectAllStmtEveryX] = useState('');
+
     //Prepare data for the 'Configure Route' Modal in ETLFramework Comp
     const [routeOptions, setRouteOptions] = useState({});
     const [system_configs, setSystem_configs] = useState({});
@@ -852,6 +861,98 @@ ORDER BY ROUTE_ID, ACTION_ID `;
     //         });
     // }
 
+    const clearLoHi = () =>{
+        setLo(1);
+        setHi(steps);
+    }
+
+
+    //for Search All
+    const axiosCallToGetCountsAndTableRows = (getCountsSQL, getRowsSQL, primaryKey) => {
+        console.log("calling axiosCallToGetTableRows on table: ", table);
+        
+        setCodeFields(fieldTypesConfigs[table]['codeFields']);
+
+        console.log(gridConfigs);
+
+        const headers =  {
+            'type': 'TOKEN',
+            'methodArn': ARN_APIGW_GET_SELECT,
+            // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+            'authorizorToken': accessToken
+        };
+
+        debug && console.log(headers);
+
+        debug && console.log("%c SQL AxiosCallToGetTable", "color: red; font-weight:bold");
+        setTableLoaded(false);
+        setTableLoading(true);
+
+        setTableSeaching(true);
+        setColumnID('');
+        setSearchValue('');
+
+        setEditMode(false);
+        setInsertMode(false);
+
+        setEditError('');
+        setInsertError('');
+
+        debug && console.log('Table name:', table);
+
+        const getCounts = axios.get(SELECT_URL, {
+            headers,
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: getCountsSQL,
+            }
+        });
+        const getRows = axios.get(SELECT_URL, {
+            headers,
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: getRowsSQL,
+            }
+        });
+        
+        debug && console.log('%c Counting time axios call:', 'color: orange; font-weight: bold');
+        debug && console.time("calling API to load table");
+        axios
+            .all([getCounts, getRows])
+            .then(axios.spread((...responses) => {
+                // returning the data here allows the caller to get it through another .then(...)
+                // console.log('---------GET RESPONSE-----------');
+                const counts = responses[0].data;
+                console.log("COunt for Entities: " + counts[0].COUNT);
+                setAllCounts(counts[0].COUNT);
+                const rows = responses[1].data;
+                
+                debug && console.log(rows);
+                
+                // if(rows.length > 0 && (Object.keys(rows[0])).indexOf('CATALOG_ENTITIES_HASH') > -1){
+                //     rows = rows.map(row => {
+                //         let newObj ={...rows};
+                //         delete newObj['CATALOG_ENTITIES_HASH']
+                //         return newObj;
+                //     });
+                // }
+
+                loadTableRows(rows, primaryKey); 
+            }))
+            .catch(error => {
+                debug && console.log(error);
+                setRows([]);
+                setSearchCriteria([]);
+                setTable('');
+            })
+            .finally(() => {
+                setTableLoaded(true);
+                setTableLoading(false);
+                setTableSeaching(false);
+                debug && console.timeEnd("calling API to load table");
+            });
+    }
+
     const axiosCallToGetTableRows = (get_statenent, primaryKey) => {
         console.log("calling axiosCallToGetTableRows on table: ", table);
         
@@ -896,8 +997,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 // returning the data here allows the caller to get it through another .then(...)
                 // console.log('---------GET RESPONSE-----------');
                 
-                
-                let rows = response.data;
+                const rows = response.data;
+                //this wont work when you click next20 it will reset the count to 20
+                // setAllCounts(rows.length);
                 debug && console.log(rows);
                 
                 // if(rows.length > 0 && (Object.keys(rows[0])).indexOf('CATALOG_ENTITIES_HASH') > -1){
@@ -1244,12 +1346,19 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         columnDataTypes, setColumnDataTypes,
         columnWidths, setColumnWidths,
 
+        //search Info States
+        selectAllCounts,
+        lo, setLo,
+        hi, setHi,
+        clearLoHi,
+        selectAllStmtEveryX, setSelectAllStmtEveryX,
         //functions
         
 
         //API calls
         axiosCallToGetTable,
         axiosCallToGetTableRows,
+        axiosCallToGetCountsAndTableRows,
         loadTableNamesInAdvance, 
         insertUsingMergeStatement,
         performAuditOperation,

@@ -24,19 +24,10 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
 
     const {
         debug,
-        username, setUsername,
-        setAccessToken,
-        name, setName,
-        setScopes,
         appIDs,
-
         table, setTable, 
         setTableLoaded, tableLoading,
-        tableLoaded, 
-        tableSearching,
-
-        editMode,
-
+        columnsLoaded,
         axiosCallToGetTableRows
     } = useContext(WorkspaceContext);
 
@@ -56,7 +47,6 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         authService.login('/');
     }
  
-
     useEffect(() => {
         setLoadingAppIDs(false);
         debug && console.log('APP IDs', appIDs);
@@ -69,50 +59,50 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
     useEffect(()=>{
         //upon clicking the ETL Framework Tab, set the table to ETLF by default??????
         setTable("ETLF_EXTRACT_CONFIG");
-    }, [])
+    }, []);
+
 
     // useEffect(()=>{
-    //     if(etlTabClicked)
-    //         setShownModalUponChangingTable(true);
-    // }, [table])
+    //     if(etlTabClicked || props['location']['state'] === undefined){
+    //         setTableLoaded(false);
+    //     }else if(props['location']['state'] !== undefined && !etlTabClicked){
+    //         console.log("COming from Linked Component, what to do now???")
 
+    //         const linkedState = props['location']['state'];
+    //         console.log(linkedState);
+
+    //         setTable(linkedState['table']);
+    //         console.log("use search statement to fetch only target value");
+
+    //         let searchStmt = linkedState['searchStmt'];
+    //         console.log(searchStmt);
+
+    //         axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
+    //     }
+    // }, [etlTabClicked])
 
     useEffect(()=>{
-        if(etlTabClicked || props['location']['state'] === undefined){
+        if( props['location']['state'] === undefined){
+            setTable('ETLF_EXTRACT_CONFIG');
             // setShownModalUponChangingTable(true);
-            setTableLoaded(false);
-            // setCommingFromLink(false);
-        }else if(props['location']['state'] !== undefined ){
-
+        }else if(props['location']['state'] !== undefined){
             console.log("COming from Linked Component, what to do now???")
-
             const linkedState = props['location']['state'];
-            console.log(linkedState);
-
             setTable(linkedState['table']);
-            
-            let currentSearchObj=  linkedState['searchObj'];
+            console.log("use search statement to fetch only target value");
+        }
+    }, [])
 
-            console.log("use search sstatement to fetch only target value")
-            
-            // let searchStmt = 
-            // `SELECT ec.*
-            // , COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
-            // row_number() OVER(ORDER BY ec.`+ 'GROUP_ID' +` ASC) rn,
-            // COUNT(*) OVER() total_num_rows
-            // FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
-            // JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-            // ON ec.` + 'GROUP_ID' + ` = auth.APP_ID AND auth.USERNAME = '`
-            //         + username.toLowerCase() + `'
-            // WHERE ` + getSearchFieldValue(currentSearchObj) + `
-            // ;`;
-
+    useEffect(() => {
+        if(columnsLoaded && props['location']['state'] !== undefined){
+            const linkedState = props['location']['state'];
+            // console.log(linkedState);
             let searchStmt = linkedState['searchStmt'];
             console.log(searchStmt);
-
             axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
         }
-    }, [etlTabClicked])
+        
+    }, [columnsLoaded]);
 
     if (authState.isPending) {
         return <div> Loading... </div>;
@@ -136,10 +126,10 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                             debug && console.log("Configuration Tab");
                             setTable("ETLFCALL");
                         } 
-                        setEtlTabClicked(true);
+                        // if(!etlTabClicked){
+                        //     setEtlTabClicked(true);
+                        // }
 
-                        //issue: it's showing 2 modals
-                        // setShownModalUponChangingTable(true);
                         setTableLoaded(false);
                     }}
                 >

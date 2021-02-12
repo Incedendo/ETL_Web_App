@@ -7,6 +7,7 @@ import Select from 'react-select';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
 import { fieldTypesConfigs, ETLF_tables } from '../../context/FieldTypesConfig';
+import { steps } from '../../context/privilege';
 import { 
     getSearchFieldValue, search_multi_field, 
     search_multi_field_catalog, 
@@ -18,7 +19,7 @@ import {
     search_CATALOG_ENTITIES_JOINED_DOMAIN
 } from '../../sql_statements';
 import { 
-    select_all_etl_tables,
+    select_all_etl_tables, select_all_etl_tables_body, selectAllEveryX_etl,
     select_all_DATA_STEWARD_DOMAIN,
     select_all_CATALOG_ENTITY_DOMAIN,
     select_all_multi_field_catalog,
@@ -38,6 +39,9 @@ const nonSearchableColumns = [
     'CUSTOM_CODE_ID', 'CREATEDDT', 'LASTMODIFIEDDT'
 ];
 
+const startingLo = 1;
+const startingHi = steps;
+
 const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     
     const {
@@ -45,7 +49,9 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         username,
         database, schema, table, 
         columns,
-        axiosCallToGetTableRows
+        axiosCallToGetTableRows,
+        axiosCallToGetCountsAndTableRows, 
+        clearLoHi, setSelectAllStmtEveryX
     } = useContext(WorkspaceContext);
 
     const { isAdmin, isSteward } = useContext(AdminContext);
@@ -55,7 +61,9 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     const [remainingColumns, setRemainingColumns] = useState([]);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [options, setOptions] = useState({});
+    
 
+    const selectCount = `SELECT COUNT(*) as COUNT`;
     const caseAdmin = `'READ/WRITE' as PRIVILEGE`;
     const caseSteward = `CASE
         WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
@@ -135,8 +143,9 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     }
 
     const multiSearch = () => {
+        clearLoHi();
         let start = 0;
-        let end = 100;
+        let end = 0;
         // const searchTable = 'ETLF_SYSTEM_CONFIG';
         console.log(table);
         // if (verifySearchObj()) {
@@ -226,120 +235,208 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
     const selectAll = () => {
         setCurrentSearchCriteria({});
+        clearLoHi();
         let start = 0;
         let end = 100;
         // const searchTable = 'ETLF_SYSTEM_CONFIG';
         console.log(table);
         if (verifySearchObj()) {
             let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
-            let selectAllStmt = '';
-
+            let selectAllStmtFirstX = '';
+            let selectAllEveryX = ``;
+            let selectCountAllStmt = ``;
+            
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
-                selectAllStmt = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj, start, end)
-            }
-            else if(table === 'CATALOG_ENTITIES'){
-
-                if(isAdmin){
-                    privilegeLogic = caseAdmin;
-                }else if(isSteward){
-                    privilegeLogic = caseSteward;
-                }else{
-                    privilegeLogic = caseOperator;
-                }
-                // selectAllStmt = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
-                // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);\
-
-                //------should be data stewards AND operators
-                selectAllStmt = `SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, ` + privilegeLogic + `
-                FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-                ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-                ON (AA.DOMAIN = C.DOMAIN)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-                ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-                ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID);`;
-            }else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE' ){
-
-                if(isAdmin){
-                    privilegeLogic = caseAdmin;
-                }else if(isSteward){
-                    privilegeLogic = caseSteward;
-                }else{
-                    privilegeLogic = caseOperator;
-                }
-
-                selectAllStmt = `SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `
-                FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-                ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-                ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-                ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-                ON (AA.DOMAIN = C.DOMAIN)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-                ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-                ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID);`;
-            }
-            //---------------------------------ONLY ADMIN---------------------------------------
-            else if(table === 'DATA_STEWARD'){
-                // console.log("table NOTTTTTT in ETLF Framework");
-                if(isAdmin){
-                    privilegeLogic = caseAdmin;
-                }else{
-                    privilegeLogic = caseSteward;
-                }
-
-                selectAllStmt = `SELECT DS.*, ` + privilegeLogic + `
-                FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS;`;
-            }
-            //---------------------------------STEWARD---------------------------------------
-            else if(table === 'DATA_DOMAIN'){
-
-                if(isAdmin){
-                    privilegeLogic = caseAdmin;
-                }else{
-                    privilegeLogic = caseSteward;
-                }
-
-                selectAllStmt = `SELECT DD.*, ` + privilegeLogic + `
-                FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" DD
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-                ON (DSD.DATA_DOMAIN_ID = DD.DATA_DOMAIN_ID)
-                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-                ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID);`
-
-                // CASE
-                //     WHEN '` + username +`' IN (
-                //         // SELECT EMAIL
-                //         // FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                //         SELECT EMAIL FROM
-                //         (
-                //             SELECT EMAIL FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD
-                //             UNION
-                //             SELECT USERNAME FROM SHARED_TOOLS_DEV.ETL.DATCAT_ADMIN
-                //         )
-                //     ) THEN 'READ/WRITE'
-                //     ELSE 'READ ONLY'
-                // END AS PRIVILEGE
-            }else if(table === 'DATA_STEWARD_DOMAIN'){
-                selectAllStmt = select_all_DATA_STEWARD_DOMAIN;
-            }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-                selectAllStmt = select_all_CATALOG_ENTITY_DOMAIN;
-            }
+                const bodySQL = select_all_etl_tables_body(username, database, schema, table, groupIDColumn, currentSearchObj);
                 
-            // debug && console.log(selectAllStmt);
+                selectCountAllStmt = selectCount + bodySQL;
+
+                selectAllEveryX = selectAllEveryX_etl(username, database, schema, table, groupIDColumn, currentSearchObj);
+                setSelectAllStmtEveryX(selectAllEveryX);
+                console.log(selectAllEveryX);
+
+                selectAllStmtFirstX = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj);
+
+                console.log(selectCountAllStmt);
+                console.log(selectAllStmtFirstX);
+                axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
+                // axiosCallToGetTableRows( selectAllStmtFirstX , uniqueKeysToSeparateRows );
+            }
+            else{
+                
+                if(table === 'CATALOG_ENTITIES'){
+
+                    if(isAdmin){
+                        privilegeLogic = caseAdmin;
+                    }else if(isSteward){
+                        privilegeLogic = caseSteward;
+                    }else{
+                        privilegeLogic = caseOperator;
+                    }
+                    // selectAllStmtFirstX = select_all_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+                    // searchStmt = sql_linking_catalogEntities_To_dataDomain(searchObj);\
+    
+                    //------should be data stewards AND operators
+    
+                    const bodySQL = `
+                    FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+                    ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                    ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+                    ON (AA.DOMAIN = C.DOMAIN)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+                    ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`
+    
+                    selectCountAllStmt = selectCount + bodySQL;
+                    
+                    selectAllEveryX = `SELECT * FROM (
+                        SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN` 
+                        + bodySQL +`
+                    )`;
+                    setSelectAllStmtEveryX(selectAllEveryX);
+    
+                    selectAllStmtFirstX = selectAllEveryX +`
+                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+    
+                    console.log(selectAllStmtFirstX);
+                }else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE' ){
+    
+                    if(isAdmin){
+                        privilegeLogic = caseAdmin;
+                    }else if(isSteward){
+                        privilegeLogic = caseSteward;
+                    }else{
+                        privilegeLogic = caseOperator;
+                    }
+                    const tableKey = table === 'CATALOG_ITEMS' ? 'CATALOG_ITEMS_ID' : 'CATALOG_ENTITY_LINEAGE_ID'
+                    const bodySQL = `
+                    FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+                    ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+                    ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                    ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+                    ON (AA.DOMAIN = C.DOMAIN)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+                    ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`
+    
+                    selectCountAllStmt = selectCount + bodySQL;
+
+                    selectAllEveryX = `SELECT * FROM (
+                        SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY I.`+ tableKey +` ASC) RN`
+                        + bodySQL +`
+                    )`;
+                    setSelectAllStmtEveryX(selectAllEveryX);
+    
+                    selectAllStmtFirstX = selectAllEveryX + `
+                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+                }
+                //---------------------------------ONLY ADMIN---------------------------------------
+                else if(table === 'DATA_STEWARD'){
+                    // console.log("table NOTTTTTT in ETLF Framework");
+                    if(isAdmin){
+                        privilegeLogic = caseAdmin;
+                    }else{
+                        privilegeLogic = caseSteward;
+                    }
+    
+                    selectCountAllStmt = selectCount + `
+                    FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS;`;
+                    console.log(selectCountAllStmt);
+                    selectAllEveryX = `SELECT * FROM (
+                        SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN
+                        FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS
+                    )`;
+                    setSelectAllStmtEveryX(selectAllEveryX);
+
+                    selectAllStmtFirstX = selectAllEveryX + `
+                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+                }
+                //---------------------------------STEWARD---------------------------------------
+                else if(table === 'DATA_DOMAIN'){
+    
+                    if(isAdmin){
+                        privilegeLogic = caseAdmin;
+                    }else{
+                        privilegeLogic = caseSteward;
+                    }
+    
+                    const bodySQL = `
+                    FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" DD
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+                    ON (DSD.DATA_DOMAIN_ID = DD.DATA_DOMAIN_ID)
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+                    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`
+    
+                    selectCountAllStmt = selectCount + bodySQL;
+                    console.log(selectCountAllStmt);
+    
+                    selectAllEveryX = `SELECT * FROM (
+                        SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`
+                        + bodySQL + `
+                    )`;
+                    setSelectAllStmtEveryX(selectAllEveryX);
+
+                    selectAllStmtFirstX = selectAllEveryX + `
+                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+    
+                }else if(table === 'DATA_STEWARD_DOMAIN'){
+    
+                    const bodySQL = `
+                    FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN E
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD B 
+                    ON (E.DATA_STEWARD_ID = B.DATA_STEWARD_ID)  
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                    ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
+                    
+                    selectCountAllStmt = selectCount + bodySQL;
+                    selectAllEveryX = `SELECT * FROM (
+                        SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, row_number() OVER(ORDER BY E.DATA_STEWARD_ID ASC) RN`
+                        + bodySQL + `
+                    )`;
+                    setSelectAllStmtEveryX(selectAllEveryX);
+
+                    selectAllStmtFirstX = selectAllEveryX + `
+                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+    
+                }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+    
+                    const bodySQL = `
+                    FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN E
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES B 
+                    ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+                    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+                    ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`
+    
+                    selectCountAllStmt = selectCount + bodySQL;
+                    selectAllEveryX = `SELECT * FROM (
+                        SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
+                        + bodySQL + `
+                    )`;
+                    setSelectAllStmtEveryX(selectAllEveryX);
+
+                    selectAllStmtFirstX = selectAllEveryX + `
+                    WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+
+                }
+
+                axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
+            
+            } 
+            setShow(false);
+            // debug && console.log(selectAllStmtFirstX);
 
             // console.log(primaryKey);
-            axiosCallToGetTableRows( selectAllStmt , uniqueKeysToSeparateRows );
-            setShow(false);
+            
         }
     }
 

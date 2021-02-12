@@ -28,6 +28,7 @@ import DataCatalogModal from './DataCatalogModal';
 import SearchFilter from './SearchFilter';
 import DomainOperatorModal from './DataSteward/DomainOperatorModal';
 import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
+import SearchResultInfo from '../CommonFeatures/SearchResultInfo';
 
 //---------------CSS---------------------------
 import '../../../css/workspace.scss';
@@ -72,7 +73,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
         debug,
         username,
         table, setTable,
-        columns, 
+        rows, columns, 
         columnsLoaded, setColumnsLoaded,
         tableLoading,
         tableLoaded,setTableLoaded,
@@ -94,6 +95,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
     const [dropdownObject, setDropdownObject] = useState({});
     const [loadedConfig, setLoadedConfig] = useState(false);
     const [comingFromLink, setCommingFromLink] = useState(false);
+    const [counts, setCounts] = useState(0);
 
     const [insertError, setInsertError] = useState('');
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
@@ -117,13 +119,14 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setTable(linkState['table']);
             // setTableLoaded(false);
             setCommingFromLink(true);
+            setShownModalUponChangingTable(false);
 
         }else{
             //linkstate is undefined, show default first table and show the search modal.
             console.log("linkstate is undefined..., default is to set table to DATA_DOMAIN!!!");
             setTable('DATA_DOMAIN');
             
-
+            setShownModalUponChangingTable(true);
             // the first time user clicks on the tab, still needs to enforce false to NOT show the result table
             // setTableLoaded(false);
             setCommingFromLink(false);
@@ -132,13 +135,13 @@ const DatCat_ControlPanel = ({ linkState }) => {
         // console.log(dropdownFields);
     }, []);
 
-    useEffect(() => {
-        if(DATA_CATALOG_TABLE.indexOf(table) >= 0){
-            // console.log("Table: " + table);
-            // console.log("only show Search Modal if table is in Data Catalog???")
-            setShownModalUponChangingTable(true);
-        }
-    }, [table])
+    // useEffect(() => {
+    //     if(DATA_CATALOG_TABLE.indexOf(table) >= 0){
+    //         // console.log("Table: " + table);
+    //         // console.log("only show Search Modal if table is in Data Catalog???")
+    //         setShownModalUponChangingTable(true);
+    //     }
+    // }, [table])
 
     useEffect(()=>{
         // if(linkState !== undefined){
@@ -146,6 +149,12 @@ const DatCat_ControlPanel = ({ linkState }) => {
             console.log("Config loaded in Data Control Panels....");           
         }
     }, [loadedConfig]);
+
+    useEffect(() => {
+        if(rows.length > 0){
+            setCounts(rows.length);
+        }
+    }, [rows]);
 
     useEffect(()=>{
         // if(linkState !== undefined){
@@ -580,7 +589,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         {/* <span style={{ 'marginLeft': '5px' }}>loading columns...</span> */}
                     </div>
                 }
-                
+
                 {DATA_CATALOG_TABLE.indexOf(table) >= 0  && columnsLoaded &&
                     <div style={{ paddingTop: '10px', float: 'right' }}>
                         <SearchModal
@@ -619,6 +628,9 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     }}>
                         Table: {table}
                     </div>
+
+                    <SearchResultInfo />
+                    
 
                     {comingFromLink && Object.keys(currentSearchCriteria).length === 0 &&
                         <div style={{ 

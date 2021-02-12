@@ -137,7 +137,8 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (privilegeLogic, currentSea
     const TARGET_DATABASE = 'TARGET_DATABASE' in currentSearchObj ? currentSearchObj['TARGET_DATABASE'] : '';
     const TARGET_SCHEMA = 'TARGET_SCHEMA' in currentSearchObj ? currentSearchObj['TARGET_SCHEMA'] : '';
     const TARGET_TABLE = 'TARGET_TABLE' in currentSearchObj ? currentSearchObj['TARGET_TABLE'] : '';
-    const COMMENTS = 'COMMENTS' in currentSearchObj ? currentSearchObj['COMMENTS'] : '';
+    const COMMENTS = 'COMMENTS' in currentSearchObj ? `AND UPPER(TRIM(E.COMMENTS)) LIKE UPPER(TRIM('%` + currentSearchObj['COMMENTS'] + `%'))` : '';
+    
 
     // let sql_statement = `SELECT C.DOMAIN, C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, 'READ/WRITE' AS PRIVILEGE
     // FROM
@@ -169,9 +170,11 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (privilegeLogic, currentSea
         WHERE UPPER(TRIM(E.TARGET_DATABASE)) LIKE UPPER(TRIM('%` + TARGET_DATABASE + `%'))
         AND UPPER(TRIM(E.TARGET_SCHEMA)) LIKE UPPER(TRIM('%` + TARGET_SCHEMA + `%'))
         AND UPPER(TRIM(E.TARGET_TABLE)) LIKE UPPER(TRIM('%` + TARGET_TABLE + `%'))
-        AND UPPER(TRIM(E.COMMENTS)) LIKE UPPER(TRIM('%` + COMMENTS + `%'))
+        ` + COMMENTS + `
         AND UPPER(TRIM(DOMAINS)) LIKE UPPER(TRIM('%` + DOMAIN + `%'))
     ) J;`
+
+    console.log(sql_statement);
 
     return sql_statement;
 }
