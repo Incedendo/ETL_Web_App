@@ -16,7 +16,7 @@ import SearchResultInfo from '../CommonFeatures/SearchResultInfo';
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
 
-const WorkTab = ({ shownModalUponChangingTable }) => {
+const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
     const {
         debug,
         table, 
@@ -151,6 +151,17 @@ const WorkTab = ({ shownModalUponChangingTable }) => {
 
             <InsertStatus />
             <UpdateStatus />
+
+            {linkState !== undefined && Object.keys(currentSearchCriteria).length === 0 &&
+                <div style={{ 
+                    'display': 'flex', 
+                    'float': 'left',
+                    "marginBottom": "10px"
+                }}>
+                    <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Linked from: </span>
+                    { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
+                </div>
+            }
 
             {tableLoaded && 
                 <>

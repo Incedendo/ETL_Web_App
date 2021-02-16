@@ -28,7 +28,8 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
         table, setTable, 
         setTableLoaded, tableLoading,
         columnsLoaded,
-        axiosCallToGetTableRows
+        axiosCallToGetTableRows,
+        axiosCallToGetCountsAndTableRows
     } = useContext(WorkspaceContext);
 
     const {
@@ -95,11 +96,15 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
 
     useEffect(() => {
         if(columnsLoaded && props['location']['state'] !== undefined){
-            const linkedState = props['location']['state'];
+            const linkState = props['location']['state'];
             // console.log(linkedState);
-            let searchStmt = linkedState['searchStmt'];
-            console.log(searchStmt);
-            axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
+            // let searchStmt = linkedState['searchStmt'];
+            // console.log(searchStmt);
+            // axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
+
+            const countStmt = linkState['countStmt'];
+            const searchStmt = linkState['searchStmt'];
+            axiosCallToGetCountsAndTableRows(countStmt, searchStmt,  ["EXTRACT_CONFIG_ID"]);
         }
         
     }, [columnsLoaded]);
@@ -135,11 +140,13 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                 >
                     < Tab eventKey = "Configuration" title = "Configuration" disabled = {tableLoading}>
                         <WorkTab
+                            linkState={props['location']['state']}
                             shownModalUponChangingTable={shownModalUponChangingTable}
                         />
                     </Tab>
                     <Tab eventKey="Schedule Jobs" title="Schedule Jobs" disabled = {tableLoading}>
                         <WorkTab
+                            linkState={props['location']['state']}
                             shownModalUponChangingTable={shownModalUponChangingTable}
                         />
                     </Tab>

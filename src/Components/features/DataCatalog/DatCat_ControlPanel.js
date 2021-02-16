@@ -77,7 +77,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
         columnsLoaded, setColumnsLoaded,
         tableLoading,
         tableLoaded,setTableLoaded,
-        axiosCallToGetTableRows
+        axiosCallToGetTableRows,
+        axiosCallToGetCountsAndTableRows
     } = useContext(WorkspaceContext);
 
     const {
@@ -90,6 +91,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
     const [datCatSchema, setSchema] = useState([]);
     const [fields, setFields] = useState([]);
+
     const [codeFields, setCodeFields] = useState(fieldTypesConfigs[table]["codeFields"]);
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]["dropdownFields"]);
     const [dropdownObject, setDropdownObject] = useState({});
@@ -161,11 +163,17 @@ const DatCat_ControlPanel = ({ linkState }) => {
         if(loadedConfig && comingFromLink && columnsLoaded){
             console.log("Immediately get linked result based on Link state's params");
 
+            const countStmt = linkState['countStmt'];
             const searchStmt = linkState['searchStmt'];
             const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
-            console.log(searchStmt);
-            console.log(primaryKey);
-            axiosCallToGetTableRows(searchStmt, primaryKey);            
+
+            // console.log(countStmt);
+            // console.log(searchStmt);
+            // console.log(primaryKey);
+            
+            // axiosCallToGetTableRows(searchStmt, primaryKey);      
+            
+            axiosCallToGetCountsAndTableRows(countStmt, searchStmt, primaryKey);
         }
     }, [loadedConfig, comingFromLink, columnsLoaded]);
 
@@ -630,7 +638,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     </div>
 
                     <SearchResultInfo />
-                    
 
                     {comingFromLink && Object.keys(currentSearchCriteria).length === 0 &&
                         <div style={{ 

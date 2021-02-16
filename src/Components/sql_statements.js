@@ -37,68 +37,55 @@ export const get_custom_table = (db, schema, table, username, start, end) => {
 
 export const search_multi_field = (username, db, schema, table, groupIDColumn, currentSearchObj, start, end) => {
     
-    // console.log(currentSearchObj);
-    // if(table === 'ETLFCALL' && 'GROUP_ID' in currentSearchObj){
-    //     currentSearchObj['WORK_GROUP_ID'] = currentSearchObj['GROUP_ID'];
-    //     delete currentSearchObj['WORK_GROUP_ID'];
-    // }
-    
     let sql_statement = 
-    // `SELECT * FROM(
-    `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
-    row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn,
-    COUNT(*) OVER() total_num_rows
+    `
     FROM "`+  db + `"."` + schema + `"."` +  table + `" ec
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
     ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = UPPER(TRIM('`
             + username + `'))
-    WHERE ` + getSearchFieldValue(currentSearchObj) + ';';
-// WHERE rn BETWEEN `+ start + ` AND ` + end;
+    WHERE ` + getSearchFieldValue(currentSearchObj);
 
     return sql_statement;
 }
 
 export const search_multi_field_catalog = (username, db, schema, table, currentSearchObj, start, end) => {
-    let sql_statement = `SELECT * FROM(
-    SELECT ec.*, 'READ/WRITE' AS PRIVILEGE
-    FROM "`+
-        db + `"."` +
-        schema + `"."` +
-        table + `" ec 
-    WHERE ` + getSearchFieldValue(currentSearchObj) + `
+    let sql_statement = `
+    FROM (
+        SELECT ec.*, 'READ/WRITE' AS PRIVILEGE
+        FROM "`+
+            db + `"."` +
+            schema + `"."` +
+            table + `" ec 
+        WHERE ` + getSearchFieldValue(currentSearchObj) + `
     );`;
     
     return sql_statement;
 }
 
-export const search_multi_field_catalog_DataSteward = (privilegeLogic, db, schema, table, currentSearchObj, start, end) => {
-    let sql_statement = `SELECT * FROM(
-    SELECT ec.*, ` + privilegeLogic + `
-    FROM "`+
-        db + `"."` +
-        schema + `"."` +
-        table + `" ec 
-    WHERE ` + getSearchFieldValue(currentSearchObj) + `
-    );`;
+export const search_multi_field_catalog_DataSteward = (privilegeLogic, currentSearchObj) => {
+    let body = `
+    FROM (
+        SELECT ec.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY EC.DATA_STEWARD_ID ASC) RN
+        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD EC 
+        WHERE ` + getSearchFieldValue(currentSearchObj) + `
+    )`;
     
-    return sql_statement;
+    return body;
 }
 
-export const search_multi_field_catalog_DataDomain = (privilegeLogic, db, schema, table, currentSearchObj, start, end) => {
-    let sql_statement = `SELECT * FROM(
-    SELECT ec.*, ` + privilegeLogic + `
-    FROM "`+
-        db + `"."` +
-        schema + `"."` +
-        table + `" ec 
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-    ON (DSD.DATA_DOMAIN_ID = ec.DATA_DOMAIN_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-    WHERE ` + getSearchFieldValue(currentSearchObj) + `
-    );`;
+export const search_multi_field_catalog_DataDomain = (privilegeLogic, currentSearchObj) => {
+    let body = `
+    FROM (
+        SELECT EC.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY EC.DATA_DOMAIN_ID ASC) RN
+        FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN EC
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = EC.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
+        WHERE ` + getSearchFieldValue(currentSearchObj) + `
+    )`;
     
-    return sql_statement;
+    return body;
 }
 
 export const search_ItemsLineage_joined_Entity_Domain = (privilegeLogic, table, currentSearchObj) => {
@@ -107,7 +94,28 @@ export const search_ItemsLineage_joined_Entity_Domain = (privilegeLogic, table, 
 
     let sql_statement = `SELECT J.DOMAINS AS DOMAIN, J.*
     FROM (
-        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN` + ` 
+        FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
+        INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID
+            AND ` + getMultiCompositeValues(currentSearchObj, 'E', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE']) + `)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+        ON (AA.DOMAIN = C.DOMAIN)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
+        WHERE ` + `UPPER(TRIM(DOMAINS)) LIKE UPPER(TRIM('%` + DOMAIN + `%'))
+        ` + getSearchFieldValueExcludingColumns(currentSearchObj, ['DOMAIN', 'TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE'], 'I') + `
+    ) J`
+
+    let body = `
+    FROM (
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN` + ` 
         FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
         INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
         ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID
@@ -127,7 +135,7 @@ export const search_ItemsLineage_joined_Entity_Domain = (privilegeLogic, table, 
     ) J`
     
     
-    return sql_statement;
+    return body;
 }
 
 export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (privilegeLogic, currentSearchObj) =>{
@@ -153,7 +161,7 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (privilegeLogic, currentSea
     // WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + ';';
 
     let sql_statement = 
-    `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE, J.PRIVILEGE
+    `SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.COMMENTS, J.CATALOG_ENTITIES_ID, J.CREATEDDATE, J.LASTMODIFIEDDATE, J.PRIVILEGE, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN
     FROM (
         SELECT NVL(C.DOMAIN, '') DOMAINS, E.*,  ` + privilegeLogic + `
         FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
@@ -174,15 +182,36 @@ export const search_CATALOG_ENTITIES_JOINED_DOMAIN = (privilegeLogic, currentSea
         AND UPPER(TRIM(DOMAINS)) LIKE UPPER(TRIM('%` + DOMAIN + `%'))
     ) J;`
 
-    console.log(sql_statement);
+    let body = `
+    FROM (
+        SELECT NVL(C.DOMAIN, '') DOMAINS, E.*,  ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN
+        FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+        ON (AA.DOMAIN = C.DOMAIN)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
+        WHERE UPPER(TRIM(E.TARGET_DATABASE)) LIKE UPPER(TRIM('%` + TARGET_DATABASE + `%'))
+        AND UPPER(TRIM(E.TARGET_SCHEMA)) LIKE UPPER(TRIM('%` + TARGET_SCHEMA + `%'))
+        AND UPPER(TRIM(E.TARGET_TABLE)) LIKE UPPER(TRIM('%` + TARGET_TABLE + `%'))
+        ` + COMMENTS + `
+        AND UPPER(TRIM(DOMAINS)) LIKE UPPER(TRIM('%` + DOMAIN + `%'))
+    ) J`
 
-    return sql_statement;
+    // console.log(body);
+
+    return body;
 }
 
 export const search_composite_DATA_STEWARD_DOMAIN = ( currentSearchObj) =>{
     console.log(currentSearchObj);
 
-    let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE
+    let sql_statement = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, , row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN
     FROM
     (SELECT A.FNAME, A.LNAME, A.EMAIL, B.DATA_STEWARD_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
       FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD A
@@ -192,7 +221,18 @@ export const search_composite_DATA_STEWARD_DOMAIN = ( currentSearchObj) =>{
     INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
     WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + ';';
-    return sql_statement;
+
+    let body = `
+    FROM
+    (SELECT A.FNAME, A.LNAME, A.EMAIL, B.DATA_STEWARD_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
+      FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD A
+      INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN B 
+      ON A.DATA_STEWARD_ID = B.DATA_STEWARD_ID
+      WHERE ` + getCompositeValue(currentSearchObj, 'A', 'EMAIL') + `) C1
+    INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+    ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
+    WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN');
+    return body;
 }
 
 export const search_composite_CATALOG_ENTITY_DOMAIN = (currentSearchObj) =>{
@@ -208,7 +248,18 @@ export const search_composite_CATALOG_ENTITY_DOMAIN = (currentSearchObj) =>{
     INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
     WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN') + ';';
-    return sql_statement;
+
+    let body = `
+    FROM
+    (SELECT A.TARGET_DATABASE, A.TARGET_SCHEMA, A.TARGET_TABLE, B.CATALOG_ENTITIES_ID, B.DATA_DOMAIN_ID, B.CREATEDDATE, B.LASTMODIFIEDDATE
+      FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES A
+      INNER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+      ON A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID
+      WHERE ` + getMultiCompositeValues(currentSearchObj, 'A', ['TARGET_DATABASE', 'TARGET_SCHEMA', 'TARGET_TABLE']) + `) C1
+    INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+    ON C1.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID
+    WHERE ` + getCompositeValue(currentSearchObj, 'C', 'DOMAIN');
+    return body;
 }
 
 export const getSearchFieldValueExact = (currentSearchObj) => {

@@ -9,7 +9,7 @@ export const select_all_etl_tables = (username, db, schema, table, groupIDColumn
     return sql_statement;
 }
 
-export const selectAllEveryX_etl = (username, db, schema, table, groupIDColumn) => {
+export const selectAllFrom = (username, db, schema, table, groupIDColumn) => {
     let sql_statement = `SELECT * FROM(
         SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
         row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN`

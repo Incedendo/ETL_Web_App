@@ -869,6 +869,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
     //for Search All
     const axiosCallToGetCountsAndTableRows = (getCountsSQL, getRowsSQL, primaryKey) => {
+        console.log(getCountsSQL);
+        console.log(getRowsSQL);
+        
         console.log("calling axiosCallToGetTableRows on table: ", table);
         
         setCodeFields(fieldTypesConfigs[table]['codeFields']);

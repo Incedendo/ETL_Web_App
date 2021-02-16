@@ -19,7 +19,7 @@ import {
     search_CATALOG_ENTITIES_JOINED_DOMAIN
 } from '../../sql_statements';
 import { 
-    select_all_etl_tables, select_all_etl_tables_body, selectAllEveryX_etl,
+    select_all_etl_tables, select_all_etl_tables_body, selectAllFrom,
     select_all_DATA_STEWARD_DOMAIN,
     select_all_CATALOG_ENTITY_DOMAIN,
     select_all_multi_field_catalog,
@@ -152,20 +152,26 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         setCurrentSearchCriteria(currentSearchObj);
 
         console.log(currentSearchObj);
-        // return;
 
         let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
+        let getRowsCount = '';
         let multiSearchSqlStatement = '';
+        let multiSearchSqlStatementFirstX = '';
+        let bodySQL = ``;
+        let selectCriteria = ``;
+        
         if(ETLF_tables.indexOf(table) >= 0){
             // console.log("table is in ETLF Framework");
             if(table === 'ETLF_CUSTOM_CODE'){
-                multiSearchSqlStatement = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+                bodySQL = `
                 FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE" EC
                 INNER JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EEC
                 ON (EC.EXTRACT_CONFIG_ID = EEC.EXTRACT_CONFIG_ID)
                 LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" EAA
                 ON (EEC.GROUP_ID = EAA.APP_ID)
                 WHERE ` + getSearchFieldValue(currentSearchObj);
+
+                selectCriteria = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY EC.CUSTOM_CODE_ID ASC) rn`;
             }
             else if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
 
@@ -176,9 +182,13 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     : newSearchObj['WORK_GROUP_ID'] = currentSearchObj[col]
                 )
 
-                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, newSearchObj, start, end);
+                bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, newSearchObj, start, end);
+                selectCriteria = `SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+                row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
             }else{
-                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end);
+                bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end);
+                selectCriteria = `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+                row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
             }
         }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
             if(isAdmin){
@@ -188,11 +198,17 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             }else{
                 privilegeLogic = caseOperator;
             }
-            multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj); 
+
+            bodySQL = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj)
+            selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*`;            
+
+            // multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj); 
         }else if(table === 'DATA_STEWARD_DOMAIN'){
-            multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+            bodySQL = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+            selectCriteria = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.DATA_STEWARD_ID ASC) RN`;
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-            multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+            bodySQL = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+            selectCriteria = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.CATALOG_ENTITIES_ID ASC) RN`;
         }else if(table === 'CATALOG_ENTITIES'){
             if(isAdmin){
                 privilegeLogic = caseAdmin;
@@ -201,7 +217,10 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             }else{
                 privilegeLogic = caseOperator;
             }
-            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(privilegeLogic, currentSearchObj);
+
+            bodySQL = search_CATALOG_ENTITIES_JOINED_DOMAIN(privilegeLogic, currentSearchObj);
+            selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*`
+            
         }else if(table === 'DATA_STEWARD'){
             if(isAdmin){
                 privilegeLogic = caseAdmin;
@@ -212,26 +231,49 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     ELSE 'READ ONLY'
                 END AS PRIVILEGE`;
             }
-            multiSearchSqlStatement = search_multi_field_catalog_DataSteward(privilegeLogic, database, schema, table, currentSearchObj, start, end);
+            bodySQL = search_multi_field_catalog_DataSteward(privilegeLogic, currentSearchObj);
+            selectCriteria = `SELECT *`;
         }else if(table === 'DATA_DOMAIN'){
             if(isAdmin){
                 privilegeLogic = caseAdmin;
             }else{
                 privilegeLogic = caseSteward;
             }
-            multiSearchSqlStatement = search_multi_field_catalog_DataDomain(privilegeLogic, database, schema, table, currentSearchObj, start, end);
+            bodySQL = search_multi_field_catalog_DataDomain(privilegeLogic, currentSearchObj);
+            selectCriteria = `SELECT *`;
         }
         // else{
         //     multiSearchSqlStatement = search_multi_field_catalog(privilegeLogic, database, schema, table, currentSearchObj, start, end);
         // }
             
-        debug && console.log(multiSearchSqlStatement);
+        // debug && console.log(multiSearchSqlStatement);
 
-        // console.log(primaryKey);
-        axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
+        //------------------------new logic with X rows---------------------------------------------
+        //
+        getRowsCount = selectCount + bodySQL;
+        multiSearchSqlStatement = `SELECT * FROM (
+            ` + selectCriteria + `
+            ` + bodySQL + `    
+        )
+        `;
+        setSelectAllStmtEveryX(multiSearchSqlStatement);
+        multiSearchSqlStatementFirstX = multiSearchSqlStatement +`
+        WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+
+        console.log(getRowsCount);
+        console.log(multiSearchSqlStatementFirstX);
+
+        axiosCallToGetCountsAndTableRows(getRowsCount, multiSearchSqlStatementFirstX, uniqueKeysToSeparateRows);
         setShow(false);
+
+        //------------------------OLD LOGIC---------------------------------------------
+        // console.log(primaryKey);
+        // axiosCallToGetTableRows( multiSearchSqlStatement , uniqueKeysToSeparateRows );
+        // setShow(false);
         // }
     }
+
+
 
     const selectAll = () => {
         setCurrentSearchCriteria({});
@@ -243,7 +285,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         if (verifySearchObj()) {
             let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
             let selectAllStmtFirstX = '';
-            let selectAllEveryX = ``;
+            let selectAllFrom = ``;
             let selectCountAllStmt = ``;
             let bodySQL = ``;
             
@@ -253,9 +295,9 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                 
                 selectCountAllStmt = selectCount + bodySQL;
 
-                selectAllEveryX = selectAllEveryX_etl(username, database, schema, table, groupIDColumn, currentSearchObj);
-                setSelectAllStmtEveryX(selectAllEveryX);
-                console.log(selectAllEveryX);
+                selectAllFrom = selectAllFrom(username, database, schema, table, groupIDColumn, currentSearchObj);
+                setSelectAllStmtEveryX(selectAllFrom);
+                console.log(selectAllFrom);
 
                 selectAllStmtFirstX = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj);
 
@@ -293,7 +335,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
                     ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
                     
-                    selectAllEveryX = `SELECT * FROM (
+                    selectAllFrom = `SELECT * FROM (
                         SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN` 
                         + bodySQL +`
                     )`;
@@ -322,7 +364,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
                     ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
 
-                    selectAllEveryX = `SELECT * FROM (
+                    selectAllFrom = `SELECT * FROM (
                         SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY I.`+ tableKey +` ASC) RN`
                         + bodySQL +`
                     )`;
@@ -336,10 +378,11 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                         privilegeLogic = caseSteward;
                     }
                     
-                    bodySQL = `FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS`;
+                    bodySQL = `
+                    FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS`;
                     
-                    selectAllEveryX = `SELECT * FROM (
-                        SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN`
+                    selectAllFrom = `SELECT * FROM (
+                        SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN` 
                         + bodySQL + `
                     )`;
                 }
@@ -359,7 +402,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
                     ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
     
-                    selectAllEveryX = `SELECT * FROM (
+                    selectAllFrom = `SELECT * FROM (
                         SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`
                         + bodySQL + `
                     )`;
@@ -373,7 +416,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                     ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
                     
-                    selectAllEveryX = `SELECT * FROM (
+                    selectAllFrom = `SELECT * FROM (
                         SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, row_number() OVER(ORDER BY E.DATA_STEWARD_ID ASC) RN`
                         + bodySQL + `
                     )`;
@@ -387,16 +430,16 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
                     ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
 
-                    selectAllEveryX = `SELECT * FROM (
+                    selectAllFrom = `SELECT * FROM (
                         SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
                         + bodySQL + `
                     )`;
                 }
 
                 selectCountAllStmt = selectCount + bodySQL;
-                setSelectAllStmtEveryX(selectAllEveryX);
+                setSelectAllStmtEveryX(selectAllFrom);
 
-                selectAllStmtFirstX = selectAllEveryX +`
+                selectAllStmtFirstX = selectAllFrom +`
                 WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
 
                 console.log(selectAllStmtFirstX);
