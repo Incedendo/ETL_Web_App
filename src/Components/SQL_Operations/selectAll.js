@@ -1,20 +1,25 @@
 import { getCompositeValue, getMultiCompositeValues } from '../sql_statements';
-import { steps } from '../context/privilege';
 
-export const select_all_etl_tables = (username, db, schema, table, groupIDColumn) => {
-    let sql_statement = selectAllEveryX_etl(username, db, schema, table, groupIDColumn) 
-    + `
-    WHERE RN > 0 AND RN <= ` + steps;
+export const selectAllFromSQL = (username, db, schema, table, groupIDColumn) => {
+    let sql_statement = '';
+    if(table === 'ETLFCALL'){
+        sql_statement =
+        `SELECT * FROM(
+            SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN`
+            + select_all_etl_tables_body(username, db, schema, table, groupIDColumn) + `
+        )`
 
-    return sql_statement;
-}
-
-export const selectAllFrom = (username, db, schema, table, groupIDColumn) => {
-    let sql_statement = `SELECT * FROM(
-        SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
-        row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN`
-        + select_all_etl_tables_body(username, db, schema, table, groupIDColumn) + `
-    )`
+        console.log(sql_statement);
+    }else{
+        sql_statement = 
+        `SELECT * FROM(
+            SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN`
+            + select_all_etl_tables_body(username, db, schema, table, groupIDColumn) + `
+        )`
+    }
+    
 
     return sql_statement;
 }
@@ -24,7 +29,7 @@ export const select_all_etl_tables_body = (username, db, schema, table, groupIDC
     // `SELECT * FROM(
     `
     FROM "`+  db + `"."` + schema + `"."` +  table + `" ec
-    JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
+    LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
     ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
             + username.toUpperCase() + `'`;
 

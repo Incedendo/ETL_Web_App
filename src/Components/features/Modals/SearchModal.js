@@ -19,7 +19,7 @@ import {
     search_CATALOG_ENTITIES_JOINED_DOMAIN
 } from '../../sql_statements';
 import { 
-    select_all_etl_tables, select_all_etl_tables_body, selectAllFrom,
+    select_all_etl_tables_body, selectAllFromSQL,
     select_all_DATA_STEWARD_DOMAIN,
     select_all_CATALOG_ENTITY_DOMAIN,
     select_all_multi_field_catalog,
@@ -291,19 +291,19 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
             
             if(ETLF_tables.indexOf(table) >= 0){
                 // console.log("table is in ETLF Framework");
-                const bodySQL = select_all_etl_tables_body(username, database, schema, table, groupIDColumn, currentSearchObj);
+                bodySQL = select_all_etl_tables_body(username, database, schema, table, groupIDColumn, currentSearchObj);
+                selectAllFrom = selectAllFromSQL(username, database, schema, table, groupIDColumn, currentSearchObj);
+                // setSelectAllStmtEveryX(selectAllFrom);
+                // // console.log(selectAllFrom);
+
+                // // selectAllStmtFirstX = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj);
+                // selectCountAllStmt = selectCount + bodySQL;
+                // selectAllStmtFirstX = selectAllFrom +`
+                // WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
                 
-                selectCountAllStmt = selectCount + bodySQL;
-
-                selectAllFrom = selectAllFrom(username, database, schema, table, groupIDColumn, currentSearchObj);
-                setSelectAllStmtEveryX(selectAllFrom);
-                console.log(selectAllFrom);
-
-                selectAllStmtFirstX = select_all_etl_tables(username, database, schema, table, groupIDColumn, currentSearchObj);
-
-                console.log(selectCountAllStmt);
-                console.log(selectAllStmtFirstX);
-                axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
+                // console.log(selectCountAllStmt);
+                // console.log(selectAllStmtFirstX);
+                // axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
                 // axiosCallToGetTableRows( selectAllStmtFirstX , uniqueKeysToSeparateRows );
             }
             else{
@@ -435,17 +435,16 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                         + bodySQL + `
                     )`;
                 }
-
-                selectCountAllStmt = selectCount + bodySQL;
-                setSelectAllStmtEveryX(selectAllFrom);
-
-                selectAllStmtFirstX = selectAllFrom +`
-                WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
-
-                console.log(selectAllStmtFirstX);
-                axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
-            
             } 
+            selectCountAllStmt = selectCount + bodySQL;
+            setSelectAllStmtEveryX(selectAllFrom);
+
+            selectAllStmtFirstX = selectAllFrom +`
+            WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+
+            console.log(selectAllStmtFirstX);
+            axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
+            
             setShow(false);
             // debug && console.log(selectAllStmtFirstX);
 
