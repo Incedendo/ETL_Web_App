@@ -549,7 +549,7 @@ const RowExpansion = React.memo(({ row }) => {
         // Object.entries(dropdownGroups).map((key, index) => console.log(key));
 
         return(
-            <>
+            <div>
                 {Object.entries(primaryGroups).map((key, index) =>     
                     <div>
                         <PrimaryKeyField 
@@ -592,7 +592,7 @@ const RowExpansion = React.memo(({ row }) => {
                         disabled={row.PRIVILEGE === 'READ ONLY'}
                     />  
                 )}
-            </>
+            </div>
         )
     }
 
@@ -723,9 +723,11 @@ const RowExpansion = React.memo(({ row }) => {
 
                 {table === 'ETLF_EXTRACT_CONFIG' &&
                     <>
-                        <span style={{ 'fontWeight': "bold" }}>Route: {route}</span>
-                        <span> | </span>
-                        <span style={{ 'fontWeight': "bold" }}>Action: {action}</span>
+                        <span style={{ 'fontWeight': "bold", 'marginLeft': '0px'}}>Route: </span>
+                        <span style={{ 'fontWeight': "bold", 'marginLeft': '0px', 'color': 'green'}}>{route}</span>
+                        <span>|</span>
+                        <span style={{ 'fontWeight': "bold", 'marginLeft': '0px'}}>Action: </span>
+                        <span style={{ 'fontWeight': "bold", 'marginLeft': '0px', 'color': 'green'}}>{action}</span>
                     </>
                 }
 

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
 import { fieldTypesConfigs, ETLF_tables } from '../../context/FieldTypesConfig';
-import { caseAdmin, caseOperator} from '../../context/privilege'
+import { caseAdmin, caseOperator} from '../../context/privilege';
+import '../../../css/searchNextXRows.scss';
 
 const SearchNextXrows = ({ steps }) => {
 
@@ -79,23 +80,13 @@ const SearchNextXrows = ({ steps }) => {
     }
 
     return(
-        <>
-            {lo > 1 
-                && 
-                <div>
-                    <button onClick={getPrevLoHi}>Prev {steps}</button>
-                </div>
-            }
-            <div>
-                    ({lo} - {hi})
-            </div>
-            {hi <= selectAllCounts 
-                && 
-                <div>
-                    <button onClick={getNextLoHi}>Next {steps}</button>
-                </div>
-            }
-        </>
+        <div>
+            {lo > 1 && <a className="button-link" onClick={getPrevLoHi}>(Prev {steps})</a>}
+            <span>
+                Showing: {lo} - {hi <= selectAllCounts ? hi : selectAllCounts}
+            </span>
+            {hi < selectAllCounts && <a className="button-link" onClick={getNextLoHi}>(Next {steps})</a>}
+        </div>
     );
 }
 

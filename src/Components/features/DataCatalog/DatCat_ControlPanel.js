@@ -645,7 +645,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                             'float': 'left',
                             "marginBottom": "10px"
                         }}>
-                            <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Linked from: </span>
+                            <span style={{ 'fontWeight': 'bold', marginLeft: '0px', marginRight: '5px' }}>Linked from: </span>
                             { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
                         </div>
                     }

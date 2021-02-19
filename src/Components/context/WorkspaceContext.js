@@ -1,10 +1,8 @@
-import React, { useState, useEffect, createContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import axios from 'axios';
-import { get_custom_table } from '../sql_statements';
-import { NumberEditor } from '../features/GridComponents/Grids/GridHelperClass';
-import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS } from './FieldTypesConfig';
-import { steps } from '../context/privilege';
+import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, ETLF_tables } from './FieldTypesConfig';
+import { steps, startingLo, startingHi, caseAdmin, caseOperator, selectCount } from '../context/privilege';
 import { generateAuditStmt } from '../SQL_Operations/Insert';
 export const WorkspaceContext = createContext();
 import { SELECT_URL,
@@ -12,12 +10,17 @@ import { SELECT_URL,
     UPDATE_URL,
     INSERT_URL,
     ARN_APIGW_GET_SELECT,
-    ARN_APIGW_GET_TABLE_SNOWFLAKE } from './URLs';
+    ARN_APIGW_GET_TABLE_SNOWFLAKE 
+} from './URLs';
 
-
+import { getMultiSearchObj } from '../sql_statements';
 
 export const WorkspaceProvider = (props) => {
     const { authState, authService } = useOktaAuth();
+
+    // const {
+    //     isAdmin, isSteward
+    // } = useContext(AdminContext);
 
     const [debug, setDebug] = useState(false);
     
@@ -655,66 +658,6 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             .catch(err => debug && console.log("error from loading ETLF_EXTRACT_CONFIG_REQUIREMENTS:", err.message))
     }
 
-    //*********************************************************************************************************************************************/
-    //
-    //  Prepare the Route Config Object from the GR_DEV.USER_SPACE.KIET_ETL_ROUTE_METADATA table
-    //
-    // function generateRouteConfigs(data) {
-    //     debug && console.log(data);
-    //     let routes_config = {}
-
-    //     //track array routes
-    //     let routes = [];
-    //     data.map(row => {
-    //         // console.log(row.ROUTE);
-            
-    //         // only add unique Route 
-    //         if (routes.indexOf(row.ROUTE) < 0) {
-    //             routes.push(row.ROUTE);
-    //             routes_config[row.ROUTE] = {
-    //                 'source': row.SOURCE,
-    //                 'target': row.TARGET,
-    //                 // 'code': row.RT_CODE,
-    //                 'id': row.ROUTE_ID,
-    //                 // 'actions': ['Select Action'],
-    //                 'actions': {
-    //                     [row.ACTION]: {
-    //                         'ACTION_ID': row.ACTION_ID,
-    //                         'code': row.RT_CODE,
-    //                     }
-    //                 }
-    //             }
-    //         }else{
-    //             // console.log(row.ROUTE + " : "+ row.ACTION);
-    //             routes_config[row.ROUTE]['actions'][row.ACTION] = {
-    //                 'ACTION_ID': row.ACTION_ID,
-    //                 'code': row.RT_CODE,
-    //             }
-    //         }
-    //     })
-
-    //     // debug && console.log(routes_config);
-    //     setRouteConfigs(routes_config);
-    // }
-
-    //
-    //  Prepare the ACTION Config Object from the GR_DEV.USER_SPACE.KIET_ETL_ROUTE_METADATA table
-    //
-    // function generateActionConfigs(data) {
-    //     let action_configs = {
-    //         'Select Action': 'NA',
-    //     };
-    //     let actions = []
-    //     data.map(row => {
-    //         if (actions.indexOf(row.ACTION) < 0) {
-    //             actions.push(row.ACTION)
-    //             action_configs[row.ACTION] = row.ACTION_ID;
-    //         }
-    //     })
-
-    //     setActionConfigs(action_configs);
-    // }
-
     // const regex_float = /^[0-9]*\.?[0-9]*$/;
     const regex_num = /^[0-9\b]+$/;
 
@@ -768,98 +711,6 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 debug && console.log(error);
             })
     }
-
-    // const disableColumnsContainingPK = () => {
-    //     let columnDisabledArr = [
-    //         { columnName: 'PRIVILEGE', editingEnabled: false },
-    //     ]
-
-    //     for (let key in nonEditableColumns) {
-    //         debug && console.log("nonEditableColumns: ", nonEditableColumns[key])
-    //         columnDisabledArr.push({
-    //             columnName: nonEditableColumns[key], editingEnabled: false
-    //         })
-    //     }
-
-    //     debug && console.log('>>>>>>>>Disabled Columns>>>>>>>>>>>', columnDisabledArr);
-    //     setEditingStateColumnExtensions(columnDisabledArr)
-    // }
-
-    // useEffect(() => disableColumnsContainingPK(), [nonEditableColumns]);
-
-    // const getCustomColumns = (columns, field, condition) => {
-    //     let result = []
-    //     columns.map(row => {
-    //         if (row[field] === condition) {
-    //             result.push(row.COLUMN_NAME)
-    //         }
-    //     })
-
-    //     return result;
-    // }
-
- 
-
-    // const axiosCallToReloadTable = (isMounted, proposed_get_statenent) => {
-
-    //     const getURL = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
-
-    //     debug && console.log("%c SQL for /table-snowflake method AxiosCallToGetTable", "color: red; font-weight:bold");
-    //     debug && console.log(proposed_get_statenent);
-    //     setTableLoaded(false);
-    //     setTableLoading(true);
-
-    //     setTableSeaching(false);
-    //     setColumnID('');
-    //     setSearchValue('');
-
-    //     setEditMode(false);
-    //     setInsertMode(false);
-
-    //     setEditError('');
-    //     setInsertError('');
-
-    //     debug && console.log('Propose GET sql statement: ', proposed_get_statenent);
-    //     debug && console.log('Table name:', table);
-
-    //     debug && console.log('%c Counting time axios call:', 'color: orange; font-weight: bold');
-    //     debug && console.time("calling API to REload table");
-    //     axios.get(getURL, {
-    //             headers: {
-    //                 'type': 'TOKEN',
-    //                 'methodArn': ARN_APIGW_GET_TABLE_SNOWFLAKE,
-    //                 'authorizorToken': accessToken
-    //             },
-    //             params: { //params maps to event.queryStringParameters
-    //                 sql_statement: proposed_get_statenent,
-    //                 database: database,
-    //                 schema: schema,
-    //                 tableName: table,
-    //             }
-    //         })
-    //         //have to setState in .then() due to asynchronous opetaions
-    //         .then(response => {
-    //             // returning the data here allows the caller to get it through another .then(...)
-    //             // console.log('---------GET RESPONSE-----------');
-    //             debug && console.log(response.data);
-    //             setDBTableRows(response.data.rows);
-                
-    //             debug && console.log(`%c Loading talbe with : ${response.data.columns.length} columns and ${response.data.rows.length} rows`, 'color: orange; font-weight: bold');
-    //         })
-    //         .catch(error => {
-    //             debug && console.log(error);
-    //             setColumns([]);
-    //             setRows([]);
-    //             setSearchCriteria([]);
-    //             setTable('');
-    //         })
-    //         .finally(() => {
-    //             setTableLoaded(true);
-    //             setTableLoading(false);
-
-    //             debug && console.timeEnd("calling API to REload table");
-    //         });
-    // }
 
     const clearLoHi = () =>{
         setLo(1);
@@ -1117,6 +968,42 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             });
     }
 
+    const multiSearch = (isAdmin, isSteward, groupIDColumn, currentSearchObj, setCurrentSearchCriteria) => {
+        
+        clearLoHi();
+        setCurrentSearchCriteria(currentSearchObj);
+        let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
+        let getRowsCount = '';
+        let multiSearchSqlStatement = '';
+        let multiSearchSqlStatementFirstX = '';
+
+        const multiSearchSQLObj = getMultiSearchObj(isAdmin, isSteward, username, database, schema, table, groupIDColumn, currentSearchObj);
+        const bodySQL = multiSearchSQLObj.bodySQL;
+        const selectCriteria = multiSearchSQLObj.selectCriteria;
+
+        //------------------------new logic with X rows---------------------------------------------
+        //
+        getRowsCount = selectCount + bodySQL;
+        multiSearchSqlStatement = `SELECT * FROM (
+            ` + selectCriteria + `
+            ` + bodySQL + `    
+        )
+        `;
+        setSelectAllStmtEveryX(multiSearchSqlStatement);
+        multiSearchSqlStatementFirstX = multiSearchSqlStatement +`
+        WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+        
+        if(debug){
+            console.log(table);
+            console.log(currentSearchObj);
+            console.log(getRowsCount);
+            console.log(multiSearchSqlStatementFirstX);
+        }
+
+        axiosCallToGetCountsAndTableRows(getRowsCount, multiSearchSqlStatementFirstX, uniqueKeysToSeparateRows);
+        
+    }
+
     const insertNewAuditRecord = sqlInsertAuditStmt => {
        
         const data = {
@@ -1356,7 +1243,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         clearLoHi,
         selectAllStmtEveryX, setSelectAllStmtEveryX,
         //functions
-        
+        multiSearch,
 
         //API calls
         axiosCallToGetTable,
@@ -1377,15 +1264,6 @@ ORDER BY ROUTE_ID, ACTION_ID `;
 
         codeFields, setCodeFields,
         // dropdownFields, setDropdownFields,
-
-        //ARN resources
-        // ARN_APIGW_GET_SELECT,
-        // ARN_APIGW_GET_TABLE_SNOWFLAKE,
-        // SELECT_URL,
-        // TABLESNOWFLAKE_URL,
-        // INSERT_URL,
-        // UPDATE_URL,
-        
     };
 
     return (

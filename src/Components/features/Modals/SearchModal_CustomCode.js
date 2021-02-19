@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
+import { startingLo, startingHi, steps, caseAdmin, caseOperator, selectCount } from '../../context/privilege'
+
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Editor from 'react-simple-code-editor';
@@ -15,7 +17,10 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     const {
         debug,
         setTable,
-        axiosCallToGetTableRows
+        clearLoHi,
+        axiosCallToGetTableRows,
+        setSelectAllStmtEveryX,
+        axiosCallToGetCountsAndTableRows
     } = useContext(WorkspaceContext);
 
     const [show, setShow] = useState(false);
@@ -44,6 +49,8 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     // }
 
     const multiSearch_CUSTOM_CODE = () => {
+        // setTable('ETLF_CUSTOM_CODE');
+        clearLoHi();
 
         setCurrentSearchCriteria({
             'CUSTOM_CODE': searchValue
@@ -60,19 +67,32 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
         // ) B
         // ON A.EXTRACT_CONFIG_ID = B.EXTRACT_CONFIG_ID`
 
-        let searchStmt = `
-        SELECT EEC.SOURCE_TABLE, ECC.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+        const selectCriteria = `SELECT EEC.SOURCE_TABLE, ECC.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, ROW_NUMBER() OVER(ORDER BY EEC.EXTRACT_CONFIG_ID ASC) RN `;
+        const bodySQL = `
         FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EEC
         LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
         ON EEC.GROUP_ID = auth.APP_ID 
         INNER JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE" ECC
         ON EEC.EXTRACT_CONFIG_ID = ECC.EXTRACT_CONFIG_ID
-        WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%');`
+        WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')`
+
+        const getRowsCount = selectCount + bodySQL;
+        let SearchSqlStatement = `SELECT * FROM (
+            ` + selectCriteria + `
+            ` + bodySQL + `    
+        )
+        `;
+        setSelectAllStmtEveryX(SearchSqlStatement);
+        let SearchSqlStatementFirstX = SearchSqlStatement +`
+        WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
         
-        debug && console.log(searchStmt);
+        // debug && console.log(searchStmt);
         
         //wait till table === 'ETLF_CUSTOM_CODE'
-        axiosCallToGetTableRows( searchStmt, ['CUSTOM_CODE_ID'] );
+        // axiosCallToGetTableRows( searchStmt, ['CUSTOM_CODE_ID'] );
+
+        axiosCallToGetCountsAndTableRows(getRowsCount, SearchSqlStatementFirstX, ['CUSTOM_CODE_ID']);
+        
     }
 
     return (

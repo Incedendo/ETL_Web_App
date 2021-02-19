@@ -1,7 +1,8 @@
 // SHARED_TOOLS_DEV.ETL.ETLF_EXTRACT_CONFIG will have GROUP_ID
 // SHARED_TOOLS_DEV.ETL.etlfcall will have WORK_GROUP_ID
 
-import { surroundWithQuotesIfString } from './SQL_Operations/Edit';
+import { ETLF_tables } from './context/FieldTypesConfig';
+import { startingLo, startingHi, caseAdmin, caseOperator, selectCount } from './context/privilege';
 
 export const get_custom_table = (db, schema, table, username, start, end) => {
     let group_ID_col = "";
@@ -388,4 +389,251 @@ export const getCompositeValue = (currentSearchObj, table, item) => {
     return  `UPPER(TRIM(` + table + `.` + item + `)) LIKE UPPER(TRIM('%` + value + `%'))`;
 }
 
+export const getSelectAllObjDatCat = (isAdmin, isSteward, username, table) => {
+    const caseSteward = `CASE
+        WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
+        THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE`;
 
+    let selectAllFrom = ``;
+    let bodySQL = ``;
+    let privilegeLogic = ``;
+        
+    if(table === 'CATALOG_ENTITIES'){
+
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else if(isSteward){
+            privilegeLogic = caseSteward;
+        }else{
+            privilegeLogic = caseOperator;
+        }
+
+        bodySQL = `
+        FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+        ON (AA.DOMAIN = C.DOMAIN)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
+        
+        selectAllFrom = `SELECT * FROM (
+            SELECT C.DOMAIN, C.DATA_DOMAIN_ID, E.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN` 
+            + bodySQL +`
+        )`;
+    }else if( table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE' ){
+
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else if(isSteward){
+            privilegeLogic = caseSteward;
+        }else{
+            privilegeLogic = caseOperator;
+        }
+        const tableKey = table === 'CATALOG_ITEMS' ? 'CATALOG_ITEMS_ID' : 'CATALOG_ENTITY_LINEAGE_ID'
+        bodySQL = `
+        FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
+        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
+        ON (AA.DOMAIN = C.DOMAIN)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
+
+        selectAllFrom = `SELECT * FROM (
+            SELECT C.DOMAIN, E.TARGET_DATABASE, E.TARGET_SCHEMA, E.TARGET_TABLE, I.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY I.`+ tableKey +` ASC) RN`
+            + bodySQL +`
+        )`;
+    }
+    //---------------------------------ONLY ADMIN---------------------------------------
+    else if(table === 'DATA_STEWARD'){
+        // console.log("table NOTTTTTT in ETLF Framework");
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else{
+            privilegeLogic = caseSteward;
+        }
+        
+        bodySQL = `
+        FROM "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS`;
+        
+        selectAllFrom = `SELECT * FROM (
+            SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN` 
+            + bodySQL + `
+        )`;
+    }
+    //---------------------------------STEWARD---------------------------------------
+    else if(table === 'DATA_DOMAIN'){
+
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else{
+            privilegeLogic = caseSteward;
+        }
+
+        bodySQL = `
+        FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" DD
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
+        ON (DSD.DATA_DOMAIN_ID = DD.DATA_DOMAIN_ID)
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
+        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)`;
+
+        selectAllFrom = `SELECT * FROM (
+            SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`
+            + bodySQL + `
+        )`;
+
+    }else if(table === 'DATA_STEWARD_DOMAIN'){
+
+        bodySQL = `
+        FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN E
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD B 
+        ON (E.DATA_STEWARD_ID = B.DATA_STEWARD_ID)  
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
+        
+        selectAllFrom = `SELECT * FROM (
+            SELECT C.DOMAIN, B.FNAME, B.LNAME, B.EMAIL, E.*, row_number() OVER(ORDER BY E.DATA_STEWARD_ID ASC) RN`
+            + bodySQL + `
+        )`;
+
+    }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+
+        bodySQL = `
+        FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN E
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES B 
+        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)  
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
+        ON (E.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)`;
+
+        selectAllFrom = `SELECT * FROM (
+            SELECT C.DOMAIN, B.TARGET_DATABASE, B.TARGET_SCHEMA, B.TARGET_TABLE, E.*, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
+            + bodySQL + `
+        )`;
+    }
+    
+
+    return {
+        bodySQL: bodySQL,
+        selectAllFrom: selectAllFrom
+    }
+}
+
+export const getMultiSearchObj = (isAdmin, isSteward, username, database, schema, table, groupIDColumn, currentSearchObj) => {
+
+    const caseSteward = `CASE
+        WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
+        THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE`;
+
+    let privilegeLogic = '';
+    let bodySQL = ``;
+    let selectCriteria = ``;
+
+    if(ETLF_tables.indexOf(table) >= 0){
+        // console.log("table is in ETLF Framework");
+        if(table === 'ETLF_CUSTOM_CODE'){
+            bodySQL = `
+            FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE" EC
+            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EEC
+            ON (EC.EXTRACT_CONFIG_ID = EEC.EXTRACT_CONFIG_ID)
+            LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" EAA
+            ON (EEC.GROUP_ID = EAA.APP_ID)
+            WHERE ` + getSearchFieldValue(currentSearchObj);
+
+            selectCriteria = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY EC.CUSTOM_CODE_ID ASC) rn`;
+        }
+        else if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
+
+            //update 'GROUP_ID'  to 'WORK_GROUP_ID' in searchObject
+            let newSearchObj = {}
+            Object.keys(currentSearchObj).map(col => col !== 'GROUP_ID' 
+                ? newSearchObj[col] = currentSearchObj[col]
+                : newSearchObj['WORK_GROUP_ID'] = currentSearchObj[col]
+            )
+
+            bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, newSearchObj);
+            selectCriteria = `SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
+        }else{
+            bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj);
+            selectCriteria = `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
+        }
+    }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else if(isSteward){
+            privilegeLogic = caseSteward;
+        }else{
+            privilegeLogic = caseOperator;
+        }
+
+        bodySQL = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj)
+        selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*`;            
+
+        // multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj); 
+    }else if(table === 'DATA_STEWARD_DOMAIN'){
+        
+        bodySQL = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
+        selectCriteria = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.DATA_STEWARD_ID ASC) RN`;
+    
+    }else if(table === 'CATALOG_ENTITY_DOMAIN'){
+        
+        bodySQL = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
+        selectCriteria = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.CATALOG_ENTITIES_ID ASC) RN`;
+    
+    }else if(table === 'CATALOG_ENTITIES'){
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else if(isSteward){
+            privilegeLogic = caseSteward;
+        }else{
+            privilegeLogic = caseOperator;
+        }
+
+        bodySQL = search_CATALOG_ENTITIES_JOINED_DOMAIN(privilegeLogic, currentSearchObj);
+        selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*`;
+        
+    }else if(table === 'DATA_STEWARD'){
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else{
+            privilegeLogic = `CASE
+                WHEN ec.EMAIL = UPPER(TRIM('` + username + `'))
+                THEN 'READ/WRITE'
+                ELSE 'READ ONLY'
+            END AS PRIVILEGE`;
+        }
+        bodySQL = search_multi_field_catalog_DataSteward(privilegeLogic, currentSearchObj);
+        selectCriteria = `SELECT *`;
+    
+    }else if(table === 'DATA_DOMAIN'){
+        if(isAdmin){
+            privilegeLogic = caseAdmin;
+        }else{
+            privilegeLogic = caseSteward;
+        }
+
+        bodySQL = search_multi_field_catalog_DataDomain(privilegeLogic, currentSearchObj);
+        selectCriteria = `SELECT *`;
+    }
+
+    return {
+        bodySQL: bodySQL,
+        selectCriteria: selectCriteria
+    }
+}

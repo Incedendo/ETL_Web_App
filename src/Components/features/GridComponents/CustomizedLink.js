@@ -362,67 +362,6 @@ const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = (isAdmin, isStew
     return body;
 }
 
-const getLinkSearchStmt = (isAdmin, isSteward, username, table, destinationTable, value) => {
-    let searchStmt = '';
-    // console.log("table: " + table);
-
-    if(table === 'ETLF_EXTRACT_CONFIG'){
-        searchStmt = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(isAdmin, isSteward, username, value);
-    }if(table === 'ETLF_CUSTOM_CODE'){
-        searchStmt = sql_linking_Lineage_To_ETLF_Extract_Config(value);
-    }else if(table === 'DATA_STEWARD'){
-        
-        searchStmt = sql_linking_dataSteward_To_dataDomain(isAdmin, username, value);
-    }else if(table === 'DATA_STEWARD_DOMAIN'){
-        if(destinationTable === 'DATA_STEWARD')
-        
-            searchStmt = sql_linking_dataDomain_To_dataSteward(isAdmin, username, value);
-        else if(destinationTable === 'DATA_DOMAIN' )
-        
-            searchStmt = sql_linking_dataSteward_To_dataDomain(isAdmin, username, value);
-    }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-        if(destinationTable === 'DATA_DOMAIN')
-        
-            searchStmt = sql_linking_catalogEntities_To_dataDomain(isAdmin, username, value);
-        else if(destinationTable === 'CATALOG_ENTITIES' )
-        
-            searchStmt = sql_linking_dataDomain_To_catalogEntities(isAdmin, isSteward, username, value); //!!!!!!!!!!!!!!!!!!! add DOMAIN
-    }else if(table === 'DATA_DOMAIN'){
-        if(destinationTable === 'DATA_STEWARD')
-        
-            searchStmt = sql_linking_dataDomain_To_dataSteward(isAdmin, username, value);
-        else if(destinationTable === 'CATALOG_ENTITIES' )
-        
-            searchStmt = sql_linking_dataDomain_To_catalogEntities(isAdmin, isSteward, username, value);
-    }else if(table === 'CATALOG_ENTITIES'){
-        if(destinationTable === 'CATALOG_ITEMS') 
-        
-            searchStmt =  sql_linking_catalogEntities_To_Item_Lineage(isAdmin, isSteward, username, value, 'CATALOG_ITEMS'); //!!!!!!!!!!!!!!!!!!!
-        else if(destinationTable === 'CATALOG_ENTITY_LINEAGE')
-        
-            searchStmt = sql_linking_catalogEntities_To_Item_Lineage(isAdmin, isSteward, username, value, 'CATALOG_ENTITY_LINEAGE') //!!!!!!!!!!!!!!!!!!!
-        else if(destinationTable === 'DATA_DOMAIN')
-        
-            searchStmt = sql_linking_catalogEntities_To_dataDomain(isAdmin, username, value);
-    }else if(table === 'CATALOG_ITEMS'){
-        
-        searchStmt = sql_linking_ItemsLineage_To_CatalogEntities(isAdmin, isSteward, username, value);
-    }else if(table === 'CATALOG_ENTITY_LINEAGE'){
-        if(destinationTable === 'CATALOG_ENTITIES') 
-            searchStmt = sql_linking_ItemsLineage_To_CatalogEntities(isAdmin, isSteward, username, value);
-        else if(destinationTable === 'ETLF_EXTRACT_CONFIG')
-            searchStmt = sql_linking_Lineage_To_ETLF_Extract_Config(value);
-    }
-
-    console.log(searchStmt);
-    // setSelectAllStmtEveryX();
-    // multiSearchSqlStatementFirstX = multiSearchSqlStatement +`
-    // WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
-
-    return searchStmt;
-}
-
-
 const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinationTable, value) => {
     let privilegeLogic = '';
     let selectCriteria = '';
@@ -435,7 +374,7 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
         selectCriteria = 'SELECT D.DOMAIN, D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*, D.PRIVILEGE, row_number() OVER(ORDER BY A.CATALOG_ENTITY_LINEAGE_ID ASC) RN'
         body = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(isAdmin, isSteward, username, value);
     }if(table === 'ETLF_CUSTOM_CODE'){
-        selectCriteria = '';
+        selectCriteria = 'SELECT *, row_number() OVER(ORDER BY EXTRACT_CONFIG_ID ASC) RN';
         body = sql_linking_Lineage_To_ETLF_Extract_Config(value);
     }else if(table === 'DATA_STEWARD'){
         privilegeLogic = getPrivilege2cases(isAdmin, username);
@@ -535,13 +474,16 @@ const CustomizedLink = ({ row }) => {
         console.log(row);
         switch(table){
             case 'ETLF_EXTRACT_CONFIG':
-                value = row['EXTRACT_CONFIG_ID'];
+                value = 'EXTRACT_CONFIG_ID - ' + row['EXTRACT_CONFIG_ID'];
+                break;
+            case 'ETLF_CUSTOM_CODE':
+                value = 'CUSTOM_CODE_ID - ' + row['CUSTOM_CODE_ID'];
                 break;
             case 'DATA_DOMAIN':
-                value = row['DOMAIN'];
+                value = 'DOMAIN - ' + row['DOMAIN'];
                 break;
             case 'DATA_STEWARD':
-                value = row['FNAME'] + ' ' + row['LNAME'] + ': ' + row['EMAIL'];
+                value = 'STEWARD - ' + row['FNAME'] + ' ' + row['LNAME'] + ': ' + row['EMAIL'];
                 break;
             case 'DATA_STEWARD_DOMAIN':
                 break;
@@ -549,10 +491,10 @@ const CustomizedLink = ({ row }) => {
                 value = row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'];
                 break;
             case 'CATALOG_ENTITIES':
-                value = row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'];
+                value = 'ENTITY - ' + row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'];
                 break;
             case 'CATALOG_ITEMS':
-                value = row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'] + ' - ' + row['COLUMN_NAME'];
+                value = 'ITEM - ' + row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'] + ' - ' + row['COLUMN_NAME'];
                 break;
             case 'CATALOG_ENTITY_LINEAGE':
                 value = 'EXTRACT_CONFIG_ID - ' + row['EXTRACT_CONFIG_ID'];
@@ -574,10 +516,7 @@ const CustomizedLink = ({ row }) => {
 
                 let searchObj = {};
                 searchObj[criteria] = row[criteria];
-                console.log(searchObj);
-
-                
-                // let searchStmt = getLinkSearchStmt(isAdmin, isSteward, username, table, destinationTable, row[criteria]);
+                // console.log(searchObj);
                 
                 //new CODE
                 const bodyAndSelectCriteria = getBodyAndSelectCriteria(isAdmin, isSteward, username, table, destinationTable, row[criteria]);

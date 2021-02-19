@@ -6,23 +6,12 @@ import { steps } from '../../context/privilege';
 const SearchResultInfo = () => {
 
     const {
-        debug, 
-        table, rows,
         selectAllCounts,
-        axiosCallToGetTableRows,
     } = useContext(WorkspaceContext);
-
-    const [counts, setCounts] = useState(0);
-
-    useEffect(() => {
-        if(rows.length > 0){
-            setCounts(rows.length);
-        }
-    }, [rows]);
 
     return(
         <div style={{display: 'flex'}}>
-            <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Found: {selectAllCounts} results</span> 
+            <span style={{fontWeight: 'bold', marginLeft: '0px', marginRight: '5px' }}>Found {selectAllCounts} results:</span> 
             <SearchNextXrows 
                 steps={steps}
             />
