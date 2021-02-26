@@ -98,20 +98,23 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     }, [appIDs]);
 
     useEffect(() => {
+        console.log("routeOptions: ", routeOptions);
         setRequiredFields({});
         setOptionalFields({});
         setFields([]);
         if(route !== 'Select Route' && route !== ''){
-            console.log("current route: ", route);
-
-            const currentRoute = (route.split(':'))[1].trim();
+            
+            const currentRoute = ((route.split(':'))[1].trim()).split('-')[0].trim();
 
             let routeID = routeOptions[route].ROUTE_ID;
             let actionID = routeOptions[route].ACTION_ID;
 
             setRouteID(routeID);
             setActionID(actionID);
-            console.log("Rout ID: ", routeID, ", Action ID: " + actionID);
+            console.log("Route ID: ", routeID, ", Action ID: " + actionID);
+
+            console.log("current route: ", currentRoute);
+            console.log(routeConfigs)
             console.log("required fields for this route-action: ", routeConfigs[currentRoute][actionID]);
             
             if(extractConfigID !== null){
@@ -401,92 +404,39 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
     function getSystemIDs(systemName, system_type, setTargetID) {
         const target = system_type === 'source' ? 'SOURCE_SYSTEM_ID' : 'TARGET_SYSTEM_ID';
-        if(systemName !== 'FILE'){            
+
+        let updatedSystemName = systemName;
+
+        //manual handling:
+        if(systemName === 'FSYSTEM'){
+            updatedSystemName = 'SFTP';
+        }
+        
+        if(updatedSystemName !== 'FILE' && updatedSystemName.toLowerCase() in system_configs){            
             let system_id_desc = [];
-            console.log("system name: " + systemName);
-            // if ( !== null && routeConfigs[route][system_type] !== 'DELIMITED_FILE') {
-                //system_type is either 'source' or 'target'
 
-                //set Target_SYSTEM_ID
-                // const system = routeConfigs[route][system_type].toLowerCase(); //'Oracle' or 'Snowflake' or 'Salesforce'
-                const system_data = system_configs[systemName.toLowerCase()];
+            console.log("system name: " + updatedSystemName);
+    
+            const system_data = system_configs[updatedSystemName.toLowerCase()];
 
-                system_id_desc = Object.values(system_data).map(value =>
-                    value.ETLF_SYSTEM_CONFIG_ID + ' - ' + value.SYSTEM_CONFIG_DESCRIPTION
-                );
+            system_id_desc = Object.values(system_data).map(value =>
+                value.ETLF_SYSTEM_CONFIG_ID + ' - ' + value.SYSTEM_CONFIG_DESCRIPTION
+            );
 
-                setTargetID((system_id_desc[0].split('-')[0]) * 1);
-
+            setTargetID((system_id_desc[0].split('-')[0]) * 1);
             updateDropdownFields(target, system_id_desc);
         }else{
+
+            // catch for new routes not found in system_configs
             setTargetID(0);
             updateDropdownFields(target, []);
         }
-        
     }
 
     function updateDropdownFields(target, values) {
-        // let updatedDropdownFields = fieldTypesConfigs[table]['dropdownFields'];
-        // updatedDropdownFields[target] = values;
-        // debug && console.log("Updated Dropdown Fields:", updatedDropdownFields);
-        // setDropdownFields(updatedDropdownFields);
-
         fieldTypesConfigs[table]['dropdownFields'][target] = values;
         setDropdownFields(fieldTypesConfigs[table]['dropdownFields']);
     }
-
-    // function getInitialValuesForRouteCode(){
-    //     // debug && console.log("State's Action_ID:", routeConfigs[helper_route]['actions'][action]['ACTION_ID']);
-
-    //     let initialStateForRouteCode = {
-    //         ROUTE_ID: routeConfigs[helper_route]['id'],
-    //         ACTION_ID: routeConfigs[helper_route]['actions'][action]['ACTION_ID'],
-    //         ACTIVE: 'Y',
-    //         DIEONMISMATCH: 'N',
-    //         NOTIFICATIONEMAILS: username,
-    //         GROUP_ID: appIDs[0],
-    //         ROUTE_ID: routeConfigs[helper_route]['id'],
-    //         ACTION_ID: routeConfigs[helper_route]['actions'][action]['ACTION_ID'],
-    //         SOURCE_SYSTEM_ID: sourceID,
-    //         TARGET_SYSTEM_ID: targetID,
-    //         EXTRACT_CONFIG_ID: extractConfigID,
-    //     }
-
-    //     switch(routeCode){
-    //         case "R1A1":
-    //             initialStateForRouteCode['CURSOR_SIZE'] = 1000;
-    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-    //             break;
-    //         case "R1A2":
-    //             initialStateForRouteCode['CURSOR_SIZE'] = 1000;
-    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-    //             break;
-    //         case "R1A3":
-    //             initialStateForRouteCode['CURSOR_SIZE'] = 1000;
-    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-    //             initialStateForRouteCode['PX_PARALLELEXECNUM'] = fieldTypesConfigs[table]['dropdownFields']['PX_PARALLELEXECNUM'][0];
-    //             initialStateForRouteCode['PX_SPLITNUM'] = fieldTypesConfigs[table]['dropdownFields']['PX_SPLITNUM'][0];
-    //             break;
-    //         case "R2A2":
-    //             break;
-    //         case "R4A1":
-    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-    //             initialStateForRouteCode['SOURCE_FILE_TYPE'] = fieldTypesConfigs[table]['dropdownFields']['SOURCE_FILE_TYPE'][0];
-    //             break;
-    //         case "R5A2":
-    //             break;
-    //         case "R6A2":
-    //             initialStateForRouteCode['TGT_TABLE_ACTION'] = 'RECREATE';
-    //             break;
-    //         case "R12A1":
-    //             break;
-    //         default:
-    //             break;
-    //     }
-
-    //     // debug && console.log("Update the Initial State Object in RouteDataLoader....")
-    //     setInitialStates(initialStateForRouteCode);
-    // }
 
     const updateFormRequiredColumns = value => {
         console.log(routeConfigs);

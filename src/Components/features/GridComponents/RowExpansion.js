@@ -305,16 +305,15 @@ const RowExpansion = React.memo(({ row }) => {
             // console.log(primaryKeys);
             // console.log("EXTRACT_CONFIG_ID: "+ row['EXTRACT_CONFIG_ID']);
         }
-
-        debug && console.log(sqlMergeStatement);
-
-        debug && console.log(row);
-        debug && console.log(state);
-
         
-
-        debug && console.log(diffCols);
-        debug && console.log(diff);
+        if(debug){
+            debug && console.log(sqlMergeStatement);
+            debug && console.log(row);
+            debug && console.log(state);
+            debug && console.log(diffCols);
+            debug && console.log(diff);
+        }
+        
 
         let update_status = "FAILURE";
         // Can't use performEditOperation in Context
@@ -488,11 +487,6 @@ const RowExpansion = React.memo(({ row }) => {
         
         debug && console.log(row);
         debug && console.log(nonEditableColumns);
-        // console.log(codeFields);
-        // console.log(dropdownFields);
-
-        // //extract the list of required fields of a specific route and action
-       
 
         let modifiedRowBasedOnRouteAndAction = {}
 
@@ -511,9 +505,6 @@ const RowExpansion = React.memo(({ row }) => {
         }else{
             modifiedRowBasedOnRouteAndAction = {...row};
         }
-        
-
-        // console.log(Object.keys(modifiedRowBasedOnRouteAndAction).length);
 
         let primaryGroups = {};
         let dropdownGroups = {};
@@ -532,10 +523,10 @@ const RowExpansion = React.memo(({ row }) => {
                 }else{
                     if(fieldType === "dropdown" ){
                         // dropdownGroups[field] = key[1];
-                        dropdownGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+                        dropdownGroups[field] = ((key[1] !== null) && (key[1] !== undefined) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
                     }else{
                         // codeGroups[field] = key[1];
-                        codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
+                        codeGroups[field] = ((key[1] !== null) && (key[1] !== undefined) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
                     }
                 } 
             }
@@ -559,7 +550,7 @@ const RowExpansion = React.memo(({ row }) => {
                         {key[0] === 'INGESTION_STATUS' &&
                             <button 
                                 onClick={submitJob}
-                                disabled={showPending || row.PRIVILEGE === 'READ ONLY'}
+                                disabled={ key[1]=== 'PENDING' || showPending || row.PRIVILEGE === 'READ ONLY'}
                             >
                                 Schedule Job
                             </button>
@@ -596,101 +587,6 @@ const RowExpansion = React.memo(({ row }) => {
         )
     }
 
-    // const renderFieldByType = () => {
-
-    //     debug && console.log("renderFieldByType for NON ETLF EXTRACT CONFIG")
-    //     let primaryGroups = {};
-    //     let dropdownGroups = {};
-    //     let codeGroups = {};
-    //     let allDisplayedKeys = [];
-
-    //     debug && console.log(nonEditableColumns);
-    //     // console.log(codeFields);
-    //     // console.log(dropdownFields);
-        
-    //     debug && console.log(row);
-    //     Object.entries(row).map((key, index) =>{
-    //         debug && console.log(key);
-    //         const field = key[0];
-    //         if (excludedFields.indexOf(field) < 0) {
-                
-    //             const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(dropdownFields));
-    //             debug && console.log(field + ": " + fieldType);
-
-    //             if(nonEditableColumns.indexOf(field) >= 0){
-    //                 primaryGroups[field] = key[1];
-    //             }else{
-    //                 if(fieldType === "dropdown" ){
-    //                     // dropdownGroups[field] = key[1];
-    //                     dropdownGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
-    //                 }else{
-    //                     // codeGroups[field] = key[1];
-    //                     codeGroups[field] = ((key[1] !== null) && (typeof key[1] !== 'string')) ? key[1].toString() : key[1];
-    //                 }
-    //             } 
-
-    //             allDisplayedKeys.push(field);
-    //         }
-            
-    //     });
-
-    //     Object.fromEntries(Object.entries(primaryGroups).sort());
-    //     Object.fromEntries(Object.entries(dropdownGroups).sort());
-    //     Object.fromEntries(Object.entries(codeGroups).sort());
-
-    //     debug && console.log(primaryGroups);
-    //     // console.log(dropdownGroups);
-    //     // console.log(codeGroups);
-
-    //     return(
-    //         <>
-    //             {Object.entries(primaryGroups).sort().map((key, index) =>      
-    //                 <div>
-    //                     <PrimaryKeyField 
-    //                         fieldArray={key}
-    //                         pending={showPending}
-    //                     />
-                        // {key[0] === 'INGESTION_STATUS' &&
-                        //     <button 
-                        //         onClick={submitJob}
-                        //         disabled={showPending}
-                        //     >
-                        //         Schedule Job
-                        //     </button>
-                        // }
-    //                 </div>
-                    
-    //             )}
-
-    //             {Object.entries(codeGroups).sort().map((key, index) => 
-    //                 <CodeField 
-    //                     key={key[0]}
-    //                     setState={setState}
-    //                     setChanged={setChanged}
-    //                     fieldArray={key}
-    //                     columnDataTypes={columnDataTypes}
-    //                     disabled={row.PRIVILEGE === 'READ ONLY'}
-    //                     setEditMessage={setEditError}
-    //                 />
-                        
-    //             )}
-
-    //             {Object.entries(dropdownGroups).map((key, index) => 
-    //                 <DropdownField
-    //                     key={key[0]}
-    //                     field={key[0]}
-    //                     value={key[1]}
-    //                     setState={setState}
-    //                     setChanged={setChanged}
-    //                     dropdownFields={dropdownFields}
-    //                     route={route}
-    //                     disabled={row.PRIVILEGE === 'READ ONLY'}
-    //                 />  
-    //             )}
-    //         </>
-    //     )
-    // }
-
     return (
         <>
             <div className="row-expansion-button-div">
@@ -725,7 +621,7 @@ const RowExpansion = React.memo(({ row }) => {
                     <>
                         <span style={{ 'fontWeight': "bold", 'marginLeft': '0px'}}>Route: </span>
                         <span style={{ 'fontWeight': "bold", 'marginLeft': '0px', 'color': 'green'}}>{route}</span>
-                        <span>|</span>
+                        <span style={{marginLeft: '5px', marginRight: '5px'}}>|</span>
                         <span style={{ 'fontWeight': "bold", 'marginLeft': '0px'}}>Action: </span>
                         <span style={{ 'fontWeight': "bold", 'marginLeft': '0px', 'color': 'green'}}>{action}</span>
                     </>

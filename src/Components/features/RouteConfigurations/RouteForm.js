@@ -175,7 +175,7 @@ const RouteForm = ({
                             noValidate
                             onSubmit={handleSubmit}>
 
-                            {Object.keys(errors).length > 0 && <span className="error-span">* Forms inputs have errors.</span>}
+                            {Object.keys(errors).length > 0 && <span className="error-span">* Please fill in ALL required fields.</span>}
 
                             {orderedRequiredFields.map(field =>
                                 <FormField
@@ -222,7 +222,7 @@ const RouteForm = ({
                                         />
                                     )}
 
-                                    {Object.keys(errors).length > 0 && <span className="error-span">* Forms inputs have errors.</span>}
+                                    {Object.keys(errors).length > 0 && <span className="error-span">* Please fill in ALL required fields.</span>}
 
                                     <SubmitButton 
                                         validating={validating}

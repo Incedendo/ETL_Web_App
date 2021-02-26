@@ -110,6 +110,8 @@ export const getRecordTypesUsingRegexNumericTest = (addedRow) => {
 
 */
 export const generateMergeStatement = (database, schema, table, primaryKeys, columns, rowOjb) => {
+    console.log(columns);
+    
     const selectClause = getSelectClause(rowOjb, columns);
     const updateClause = getUpdateClause(columns);
 

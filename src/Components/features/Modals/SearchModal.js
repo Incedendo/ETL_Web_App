@@ -2,10 +2,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Select from 'react-select';
+
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
 import { fieldTypesConfigs, ETLF_tables } from '../../context/FieldTypesConfig';
-import { startingLo, startingHi, selectCount } from '../../context/privilege';
+import { startingLo, selectCount } from '../../context/privilege';
 import { getSelectAllObjDatCat } from '../../sql_statements';
 import { select_all_etl_tables_body, selectAllFromSQL } from '../../SQL_Operations/selectAll';
 
@@ -30,6 +31,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         database, schema, table, 
         columns,
         axiosCallToGetCountsAndTableRows, 
+        steps, setSteps,
         clearLoHi, setSelectAllStmtEveryX, 
         multiSearch,
     } = useContext(WorkspaceContext);
@@ -41,6 +43,9 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     const [remainingColumns, setRemainingColumns] = useState([]);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [options, setOptions] = useState({});
+
+    
+    const [error, setError] = useState('');
 
     useEffect(()=>{
         if(debug){
@@ -76,6 +81,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         setShow(shown);
     }, [table, columns]);
 
+
     const handleAddSearchField = value => {
 
         setRemainingColumns(remainingColumns.filter(item => item !== value));
@@ -84,7 +90,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     }
 
     const assignValueToSearchField = (field, event) => {
-        setCurrentSearchObj({...currentSearchObj, [field]: event.target.value.toUpperCase().trim()});
+        setCurrentSearchObj({...currentSearchObj, [field]: event.target.value.toUpperCase()});
     }
 
     const handleRemoveSearchField = field => {
@@ -128,7 +134,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         setSelectAllStmtEveryX(selectAllFrom);
 
         selectAllStmtFirstX = selectAllFrom +`
-        WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+        WHERE RN >= ` + startingLo +` AND RN <= ` + steps;
 
         console.log(selectAllStmtFirstX);
         axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
@@ -239,6 +245,49 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         )
     }
 
+    const SearchSizeComp = () => { 
+
+        return(
+            <div>
+                <li key={'searchIncrement'} className="field-div">
+                    <span className="mr-10 field-width">
+                        Search in increments of: 
+                    </span>
+                    <input
+                        className="searchInput"
+                        placeholder={'enter a number here'} 
+                        value={localSteps} 
+                        onChange={e => setLocalSteps(e.target.value)} 
+                    />
+                    <div className="closeButtonDiv">
+                        <Button 
+                            style={{
+                                position: 'relative',
+                                height: '1.85rem',
+                                width: '1.85rem',
+                                borderRadius: '0px 4px 4px 0px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '25px',
+                                marginLeft: '-1px',
+                                borderColor: '#cccccc',
+                                fontSize: '15px',
+                            }}
+                            variant="outline-danger" 
+                            disabled={error!==''}
+                            onClick={() => setSteps(parseInt(localSteps))}
+                        >
+                            {/* <img src={xIcon} /> */}
+                            <span className="closeSpan">Set</span>
+                        </Button>
+                    </div>
+                </li>
+                {error !== '' && <span style={{color: 'red', fontWeight: 'bold'}}>Please enter only numeric value</span>}
+            </div>
+        )
+    }
+
     return (
         <div style={{float: "left", marginRight: "20px"}}>
             <Button className=""
@@ -280,10 +329,10 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                             <CriteriaDropdownSelect />
 
                             <ShowAllButton />
+
                         </div>
 
                         <div className="searchModal-div">
-                            
                             <div className="searchFieldsDiv">
                                 {Object.keys(currentSearchObj).map(field =>
                                     <li key={field} className="field-div">

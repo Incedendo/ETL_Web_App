@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import { AdminContext } from '../../context/AdminContext';
-import { fieldTypesConfigs, ETLF_tables } from '../../context/FieldTypesConfig';
+import { fieldTypesConfigs } from '../../context/FieldTypesConfig';
 import { caseAdmin, caseOperator} from '../../context/privilege';
 import '../../../css/searchNextXRows.scss';
 
-const SearchNextXrows = ({ steps }) => {
+const SearchNextXrows = () => {
 
     const {
         debug, username,
@@ -13,10 +13,13 @@ const SearchNextXrows = ({ steps }) => {
 
         lo, setLo,
         hi, setHi,
+        steps,
         selectAllStmtEveryX,
 
         axiosCallToGetTableRows,
     } = useContext(WorkspaceContext);
+
+    const mounted = useRef(true);
 
     const { isAdmin, isSteward } = useContext(AdminContext);    
     const [fetching, setFetching] = useState(false);
@@ -34,10 +37,14 @@ const SearchNextXrows = ({ steps }) => {
     })
 
     useEffect(()=>{
+        mounted.current = true;
+
         if(fetching){
             // debug && console.log(`Calling getNext20Rows with lo = ${lo}, hi = ${hi}`);
             getNext20();
         }
+
+        return () => mounted.current = false;
     }, [fetching]);
 
     const getPrevLoHi = () => {
@@ -48,10 +55,9 @@ const SearchNextXrows = ({ steps }) => {
         setFetching(true);
     }
 
-
     const getNextLoHi = () => {
         console.log(`steps up = ${steps}`);
-        const temp = hi;
+        const temp = hi
         setLo(temp+1);
         setHi(temp+steps);
         setFetching(true);
@@ -76,15 +82,20 @@ const SearchNextXrows = ({ steps }) => {
 
         //DO NOT reset COUNTALLS
         axiosCallToGetTableRows( getNextXRowsSQL , uniqueKeysToSeparateRows );
-        setFetching(false);
+        
+        if(mounted.current){
+            setFetching(false);
+        }
     }
 
     return(
         <div>
             {lo > 1 && <a className="button-link" onClick={getPrevLoHi}>(Prev {steps})</a>}
-            <span>
+
+            <span style={{marginLeft: '5px', marginRight: '5px'}}>
                 Showing: {lo} - {hi <= selectAllCounts ? hi : selectAllCounts}
             </span>
+
             {hi < selectAllCounts && <a className="button-link" onClick={getNextLoHi}>(Next {steps})</a>}
         </div>
     );

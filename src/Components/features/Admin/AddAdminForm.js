@@ -29,15 +29,21 @@ const AddAdminForm = () => {
     const [insertMessageClassname, setInsertMessageClassname] = useState('');
 
     useEffect(()=>{
+        let mounted = true;
         if(insertMessage !== ''){
-            setTimeout(()=>{
-                setInsertMessage('');
-            }, 2000);
+            if(mounted){
+                setTimeout(()=>{
+                    setInsertMessage('');
+                }, 2000);
+            }
         }
+
+        return () => mounted = false;
     }, [insertMessage]);
 
     useEffect(()=>{
-        debug && console.log(validating)
+        
+        debug && console.log(validating);
     }, [validating])
 
     const addAdminSQL = (email) =>{

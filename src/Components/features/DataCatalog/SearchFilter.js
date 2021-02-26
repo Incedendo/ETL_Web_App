@@ -11,13 +11,13 @@ import {
     search_composite_CATALOG_ENTITY_DOMAIN ,
     search_CATALOG_ENTITIES_JOINED_DOMAIN
 } from '../../sql_statements';
-import { startingLo, startingHi, selectCount, caseAdmin, caseOperator } from '../../context/privilege';
-
+import { startingLo, selectCount, caseAdmin, caseOperator } from '../../context/privilege';
 
 const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
     const {
         debug, username ,
-        database, schema, table,
+        database, schema, table, 
+        steps,
         axiosCallToGetCountsAndTableRows,
         setSelectAllStmtEveryX
     } = useContext(WorkspaceContext);
@@ -260,7 +260,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                 + bodySQL + `\n)`;
             setSelectAllStmtEveryX(singleSearchSqlStatement);
             const singleSearchSqlStatementFirstX = singleSearchSqlStatement +
-            `\nWHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+            `\nWHERE RN >= ` + startingLo +` AND RN <= ` + steps;
             
             
             const criteria_length = (Object.keys(currentSearchCriteria)).length;

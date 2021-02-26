@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
+import Slider from 'react-input-slider';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ConfigurationGrid from '../GridComponents/Grids/ConfigurationGrid';
 import GenericConfigurationGrid from '../GenericTable/GenericConfigurationGrid';
@@ -23,11 +24,28 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
         columnDataTypes, 
         tableLoaded, tableLoading, tableSearching, setReloadTable,
         primaryKeys, setPrimaryKeys, rows, columnsLoaded,
-        insertError, editError,
+        insertError, editError, setSteps,
         system_configs
     } = useContext(WorkspaceContext);
 
+    const [localSteps, setLocalSteps] = useState({ x: 10 });
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
+
+    const SearchSizeSlider = () => {
+        return (
+            <>
+              <div>{'Maximum Search Results: ' + localSteps.x}</div>
+              <Slider
+                axis="x"
+                xstep={1}
+                xmin={10}
+                xmax={100}
+                x={localSteps.x}
+                onChange={({ x }) => setSteps({ x: parseInt(x) })}
+              />
+            </>
+          );
+    }
 
 
     const TableConfigPanel = () => (
@@ -68,7 +86,7 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
                             dataTypes={columnDataTypes}
                         />
                     }
-
+                    
                     <SearchModal 
                         groupIDColumn={table === "ETLF_EXTRACT_CONFIG" ? 'GROUP_ID' : 'WORK_GROUP_ID'}
                         shown={shownModalUponChangingTable}
@@ -76,7 +94,10 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
                     />
 
                     {table === 'ETLF_EXTRACT_CONFIG' &&  <SearchModal_CustomCode  setCurrentSearchCriteria={setCurrentSearchCriteria} />}
+                
                 </div>
+
+                {/* <SearchSizeSlider/> */}
             </div>
     )
 

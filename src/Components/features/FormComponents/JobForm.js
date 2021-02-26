@@ -23,9 +23,9 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
     const {
         debug,
-        appIDs, table, tableLoaded, columnsLoaded,
+        appIDs, table, columnsLoaded,
         gridConfigs,
-        columnDataTypes, sourceTableList,
+        columnDataTypes,
         setInsertError,
         insertUsingMergeStatement,
         codeFields,
@@ -213,15 +213,21 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
     //have to Account for field that were intentionally leave out of the form
     function getMergeStatement(values) {
-        // debug && console.log(values);
+        debug && console.log(values);
         values['CREATED_DATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         values['LAST_UPDATE_DATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         
         // const primaryKeys = ['ETLFCALL_ID'].concat(uniqueCols);
         const primaryKeys = uniqueCols;
-        const columns = Object.keys(values).map(col => col !== 'GROUP_ID' ? col : 'WORK_GROUP_ID');
+
+        // delete(values['GROUP ID']);
+        const columns = Object.keys(values).map(col => col === 'GROUP_ID' ? 'WORK_GROUP_ID' : col);
+        
         values['WORK_GROUP_ID'] = values['GROUP_ID'];
         delete(values['GROUP_ID']);
+
+        debug && console.log(columns);
+        debug && console.log(values);
 
         const sqlInsertStatement = generateMergeStatement(
             'SHARED_TOOLS_DEV',
@@ -287,8 +293,6 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                 setInsertError("Insert Error: WORK_GROUP_ID and SOURCE_TABLE already exist");
             }
         }
-
-        setShow(false);
     };
 
     let GroupIDOptions = [<option key='base' value='' >Select an item</option>];
@@ -328,6 +332,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                             
                             //all fields in values obj will be inserted to DB
                             test_UniqueKeys_For_Insert_JobForm(values);
+
                         }}
                         initialValues={initialStates}
                     // validate={validate_R1A1}
@@ -352,7 +357,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                         </Form.Label>
                                         <Form.Control
                                             as="select"
-                                            name='GROUP ID'
+                                            name='GROUP_ID'
                                             value={groupID}
                                             onChange={(e) => {
                                                 handleChange(e);
@@ -421,6 +426,9 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                             dropdownFields={dropdownFields}
                                         />
                                     )}
+
+                                    {Object.keys(errors).length > 0 && <span className="error-span">* Please fill in ALL required fields.</span>}
+
 
                                     <SubmitButton 
                                         validating={validating}

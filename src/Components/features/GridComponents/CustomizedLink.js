@@ -400,7 +400,7 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
             //
         }else if(destinationTable === 'CATALOG_ENTITIES' ){
             privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C.DOMAIN, E.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
+            selectCriteria = `SELECT C.DOMAIN, E.*, ` + privilegeLogic + `, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
             body = sql_linking_dataDomain_To_catalogEntities(isAdmin, isSteward, username, value); 
             //
         }
@@ -413,19 +413,19 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
         }
         else if(destinationTable === 'CATALOG_ENTITIES' ){
             privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C.DOMAIN, E.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
+            selectCriteria = `SELECT C.DOMAIN, E.*, ` + privilegeLogic + `, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
             body = sql_linking_dataDomain_To_catalogEntities(isAdmin, isSteward, username, value);
             //
         }
     }else if(table === 'CATALOG_ENTITIES'){
         if(destinationTable === 'CATALOG_ITEMS'){
             // privilegeLogic = getPrivilegeItemsLineage(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C2.*, D.*, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
+            selectCriteria = `SELECT C2.*, D.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
             body =  sql_linking_catalogEntities_To_Item_Lineage(isAdmin, isSteward, username, value, 'CATALOG_ITEMS'); 
             //
         }else if(destinationTable === 'CATALOG_ENTITY_LINEAGE'){
             // privilegeLogic = getPrivilegeItemsLineage(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C2.*, D.*, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
+            selectCriteria = `SELECT C2.*, D.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
             body = sql_linking_catalogEntities_To_Item_Lineage(isAdmin, isSteward, username, value, 'CATALOG_ENTITY_LINEAGE') //!!!!!!!!!!!!!!!!!!!
             //
         }else if(destinationTable === 'DATA_DOMAIN'){
@@ -436,13 +436,13 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
         }
     }else if(table === 'CATALOG_ITEMS'){
         // privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-        selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*, row_number() OVER(ORDER BY J.CATALOG_ENTITIES_ID ASC) RN`;
+        selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR,  row_number() OVER(ORDER BY J.CATALOG_ENTITIES_ID ASC) RN`;
         body = sql_linking_ItemsLineage_To_CatalogEntities(isAdmin, isSteward, username, value);
         //
     }else if(table === 'CATALOG_ENTITY_LINEAGE'){
         if(destinationTable === 'CATALOG_ENTITIES'){
             // privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-            selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*, row_number() OVER(ORDER BY J.CATALOG_ENTITIES_ID ASC) RN`;
+            selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR,  row_number() OVER(ORDER BY J.CATALOG_ENTITIES_ID ASC) RN`;
             body = sql_linking_ItemsLineage_To_CatalogEntities(isAdmin, isSteward, username, value);
             //
         }else if(destinationTable === 'ETLF_EXTRACT_CONFIG'){

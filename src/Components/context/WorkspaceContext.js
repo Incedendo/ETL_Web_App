@@ -1,8 +1,8 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import axios from 'axios';
-import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, ETLF_tables } from './FieldTypesConfig';
-import { steps, startingLo, startingHi, caseAdmin, caseOperator, selectCount } from '../context/privilege';
+import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, DATA_CATALOG_TABLE } from './FieldTypesConfig';
+import { startingLo, startingHi, selectCount } from '../context/privilege';
 import { generateAuditStmt } from '../SQL_Operations/Insert';
 export const WorkspaceContext = createContext();
 import { SELECT_URL,
@@ -92,6 +92,7 @@ export const WorkspaceProvider = (props) => {
     const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);    
     
     // Search Info States
+    const [steps, setSteps] = useState(10);
     const [selectAllCounts, setAllCounts] = useState(0);
     const [lo, setLo] = useState(1);
     const [hi, setHi] = useState(steps);
@@ -191,15 +192,37 @@ export const WorkspaceProvider = (props) => {
             // debug && console.log("ACcess token ETLF_ACCESS_AUTHORIZATION: ", accessToken);
             // debug && console.log("Access token from authState: ", accessToken);
             
+//             const SELECT_ROUTE = `SELECT DISTINCT
+// CONCAT('Route ',ROUTE_ID,' - ', 'Action ',ACTION_ID, ': ', ROUTE_NAME) CHOICE_OPTION,
+//         ROUTE_NAME,
+//         ROUTE_ID,
+//         ACTION_ID,
+//         SRC_TECH,
+//         TGT_TECH
+// FROM ETLF_ROUTE_COLUMNS
+// ORDER BY ROUTE_ID, ACTION_ID `;
+
+
             const SELECT_ROUTE = `SELECT DISTINCT
-CONCAT('Route ',ROUTE_ID,' - ', 'Action ',ACTION_ID, ': ', ROUTE_NAME) CHOICE_OPTION,
-        ROUTE_NAME,
-        ROUTE_ID,
-        ACTION_ID,
-        SRC_TECH,
-        TGT_TECH
-FROM ETLF_ROUTE_COLUMNS
-ORDER BY ROUTE_ID, ACTION_ID `;
+            CONCAT('Route ',ROUTE_ID, ' : ', ROUTE_NAME,' - ', 'Action ', ACTION_ID, ' : ',CASE WHEN route_id = 1 THEN
+                    CASE WHEN action_id = 1 THEN 'Dynamic'
+                        WHEN action_id = 2 THEN 'Adhoc'
+                        WHEN action_id = 3 THEN 'PX Processing'
+                        ELSE 'Adhoc'
+                    END
+                WHEN route_id = 14 THEN
+                    CASE WHEN action_id = 1 THEN 'Put'
+                        WHEN action_id = 2 THEN 'Get'
+                    END
+                ELSE 'Adhoc'
+            END) CHOICE_OPTION,
+                    ROUTE_NAME,
+                    ROUTE_ID,
+                    ACTION_ID,
+                    SRC_TECH,
+                    TGT_TECH
+            FROM ETLF_ROUTE_COLUMNS
+            ORDER BY ROUTE_ID, ACTION_ID;`
             
             // debug && console.log(SELECT_ROUTE);
             
@@ -284,9 +307,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             }
         } 
 
-        return () => {
-            isMounted = false;
-        };
+        return () => isMounted = false;
 
     }, [authState, username, table]);
 
@@ -351,6 +372,10 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             // headers.push("PRIVILEGE");
             if(table !== 'CATALOG_ENTITY_DOMAIN' && table !== 'DATA_STEWARD_DOMAIN'){
                 headers.push("EDITABLE");
+            }
+            if(["CATALOG_ENTITIES","CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0){
+                headers.push('DATA_STEWARD');
+                headers.push('DOMAIN_OPERATOR');
             }
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
                 // console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
@@ -523,9 +548,9 @@ ORDER BY ROUTE_ID, ACTION_ID `;
             .then(response => {
                 // debug && console.log(response.data.rows);
                 const systemConfigs = response.data.rows;
-
-                const system_types = systemConfigs.map(value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type);
-
+                console.log(systemConfigs);
+                const system_types = systemConfigs.map(value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type.toLowerCase());
+                console.log(systemConfigs);
                 let temp_system_configs = {};
 
                 // Create a MASTER system_types object:
@@ -533,7 +558,8 @@ ORDER BY ROUTE_ID, ACTION_ID `;
                 //      to that BD system aggregated into an array
                 system_types.map(type => {
                     temp_system_configs[type] = systemConfigs.filter(
-                        value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type === type);
+                        value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type.toLowerCase() === type 
+                    );
                     return;
                 })
 
@@ -977,13 +1003,23 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         let multiSearchSqlStatement = '';
         let multiSearchSqlStatementFirstX = '';
 
+        const selectCount = ['CATALOG_ENTITIES', "CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0
+            ? `SELECT COUNT(*) as COUNT
+            FROM (
+                SELECT DOMAINS AS DOMAIN, *`
+
+            : `SELECT COUNT(*) as COUNT
+            FROM (
+                SELECT *`;
+
         const multiSearchSQLObj = getMultiSearchObj(isAdmin, isSteward, username, database, schema, table, groupIDColumn, currentSearchObj);
         const bodySQL = multiSearchSQLObj.bodySQL;
         const selectCriteria = multiSearchSQLObj.selectCriteria;
 
         //------------------------new logic with X rows---------------------------------------------
         //
-        getRowsCount = selectCount + bodySQL;
+        getRowsCount = selectCount + bodySQL + `
+        )`;
         multiSearchSqlStatement = `SELECT * FROM (
             ` + selectCriteria + `
             ` + bodySQL + `    
@@ -991,7 +1027,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         `;
         setSelectAllStmtEveryX(multiSearchSqlStatement);
         multiSearchSqlStatementFirstX = multiSearchSqlStatement +`
-        WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
+        WHERE RN >= ` + startingLo +` AND RN <= ` + steps;
         
         if(debug){
             console.log(table);
@@ -1241,6 +1277,7 @@ ORDER BY ROUTE_ID, ACTION_ID `;
         lo, setLo,
         hi, setHi,
         clearLoHi,
+        steps, setSteps,
         selectAllStmtEveryX, setSelectAllStmtEveryX,
         //functions
         multiSearch,
