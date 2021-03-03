@@ -59,7 +59,7 @@ const RowExpansion = React.memo(({ row }) => {
         system_configs,
         codeFields,
 
-        authorizedDomains, privilegeTables, 
+        privilegeTables,
 
         performAuditOperation,
     } = useContext(WorkspaceContext);
@@ -90,38 +90,7 @@ const RowExpansion = React.memo(({ row }) => {
         setEditError('');
     }, []);
 
-    const checkIfTableIsPrivileged = (getTableNameSQL, mounted) => {
-        const { accessToken } = authState;
-        axios.get(SELECT_URL, {
-            headers: {
-                'type': 'TOKEN',
-                'methodArn': ARN_APIGW_GET_SELECT,
-                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                'authorizorToken': accessToken
-            },
-            //params maps to event.queryStringParameters in lambda
-            params: {
-                sqlStatement: getTableNameSQL,
-            }
-        })
-            //have to setState in .then() due to asynchronous opetaions
-            .then(response => {
-                if(response.data.length > 1){
-                    console.log("MORE THAN 1 TABLE for this RECORD!!!!!!")
-                    return;
-                }
-                console.log(response.data);
-                const table = response.data[0].TARGET_TABLE;
-                if(privilegeTables.indexOf(table) >= 0 && mounted){
-                    setEditable(true);
-                }
-            })
-            .catch(err => debug && console.log("error from loading", err.message))
-    }
-
     useEffect(() =>{
-    
-        let mounted = true;
         if(['ETLF_EXTRACT_CONFIG', 'ETLFCALL', 'ETLF_CUSTOM_CODE'].indexOf(table) >= 0){
             if(row.PRIVILEGE === 'READ/WRITE')
                 setEditable(true)
@@ -131,50 +100,82 @@ const RowExpansion = React.memo(({ row }) => {
                 return;
             }
 
-            console.log(privilegeTables);
+            const { accessToken } = authState;
 
             if(table === 'CATALOG_ENTITIES'){
                 const table = row.TARGET_TABLE;
                 if(privilegeTables.indexOf(table) >= 0){
-                    console.log("table: ", table);
                     setEditable(true);
                 }
             }
-            if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-                if('TARGET_TABLE' in row && privilegeTables.indexOf(row.TARGET_TABLE) >= 0){
-                    setEditable(true);
-                }else{
-                    const tableKey = table === 'CATALOG_ITEMS' ? 'CATALOG_ITEMS_ID': 'CATALOG_ENTITY_LINEAGE_ID';
-                    
-                    let getTableNameSQL = `SELECT B.TARGET_TABLE FROM
-                    "SHARED_TOOLS_DEV"."ETL"."` + table + `" A
-                    INNER JOIN "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITIES" B
-                    ON(A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
-                    WHERE A.`+ tableKey +` = '` + row.tableKey + `';`;
+            if(table === 'CATALOG_ITEMS'){
+                let getTableNameSQL = `SELECT B.TARGET_TABLE FROM
+                "SHARED_TOOLS_DEV"."ETL"."CATALOG_ITEMS" A
+                INNER JOIN "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITIES" B
+                ON(A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
+                WHERE A.CATALOG_ITEMS_ID = '` + row.CATALOG_ITEMS_ID + `';`;
 
-                    checkIfTableIsPrivileged(getTableNameSQL, mounted);
-                }
-                
-            }
-            if(table === 'DATA_STEWARD'){
-                if(row.PRIVILEGE === 'READ/WRITE')
-                    setEditable(true)
-            }
+                console.log(getTableNameSQL);
 
+                axios.get(SELECT_URL, {
+                    headers: {
+                        'type': 'TOKEN',
+                        'methodArn': ARN_APIGW_GET_SELECT,
+                        // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                        'authorizorToken': accessToken
+                    },
+                    //params maps to event.queryStringParameters in lambda
+                    params: {
+                        sqlStatement: getTableNameSQL,
+                    }
+                })
+                    //have to setState in .then() due to asynchronous opetaions
+                    .then(response => {
+                        if(response.data.length > 1){
+                            console.log("MORE THAN 1 TABLE for this RECORD!!!!!!")
+                            return;
+                        }
+                        console.log(response.data);
+                        const tables = response.data[0];
+                    })
+                    .catch(err => debug && console.log("error from loading", err.message))
+           
+            }
+            if(table === 'CATALOG_ENTITY_LINEAGE'){
+                let getTableNameSQL = `SELECT B.TARGET_TABLE FROM
+                "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITY_LINEAGE" A
+                INNER JOIN "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITIES" B
+                ON(A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
+                WHERE A.CATALOG_ENTITY_LINEAGE_ID = '` + row.CATALOG_ENTITY_LINEAGE_ID + `';`;
+
+                axios.get(SELECT_URL, {
+                    headers: {
+                        'type': 'TOKEN',
+                        'methodArn': ARN_APIGW_GET_SELECT,
+                        // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                        'authorizorToken': accessToken
+                    },
+                    //params maps to event.queryStringParameters in lambda
+                    params: {
+                        sqlStatement: getTableNameSQL,
+                    }
+                })
+                    //have to setState in .then() due to asynchronous opetaions
+                    .then(response => {
+
+                    })
+                    .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
+           
+            }
+    
+            // if(table === 'DATA_STEWARD'){
+            //     if(isSteward)
+            // }
             if(table === 'DATA_DOMAIN'){
-                const domain = row.DOMAIN;
-
-                console.log(authorizedDomains);
-                console.log(domain);
                 
-                if(authorizedDomains.indexOf(domain) >= 0){
-                    
-                    setEditable(true);
-                }
             }
         }
         
-        return () => mounted = false;
     }, [])
 
     // useEffect(()=>{
@@ -191,7 +192,7 @@ const RowExpansion = React.memo(({ row }) => {
         if(editError !== '') {
             setTimeout(() => {
                 setEditError('');
-            }, 2000);
+            }, 1000);
         }
     }, [editError])
 
@@ -309,6 +310,7 @@ const RowExpansion = React.memo(({ row }) => {
 
         if(table === 'DATA_STEWARD'){
             updateStatement = merge_update_data_steward(row, diff);
+            
         }
         if(table === 'DATA_DOMAIN'){
             updateStatement = merge_update_data_domain(row, diff);
@@ -607,7 +609,7 @@ const RowExpansion = React.memo(({ row }) => {
                         {key[0] === 'INGESTION_STATUS' &&
                             <button 
                                 onClick={submitJob}
-                                disabled={ key[1]=== 'PENDING' || showPending || !editable}
+                                disabled={ key[1]=== 'PENDING' || showPending || row.PRIVILEGE === 'READ ONLY'}
                             >
                                 Schedule Job
                             </button>
@@ -622,7 +624,7 @@ const RowExpansion = React.memo(({ row }) => {
                         setChanged={setChanged}
                         fieldArray={key}
                         columnDataTypes={columnDataTypes}
-                        disabled={!editable}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
                         setEditMessage={setEditError}
                     />
                         
@@ -637,7 +639,7 @@ const RowExpansion = React.memo(({ row }) => {
                         setChanged={setChanged}
                         dropdownFields={dropdownFields}
                         route={route}
-                        disabled={!editable}
+                        disabled={row.PRIVILEGE === 'READ ONLY'}
                     />  
                 )}
             </div>

@@ -29,7 +29,7 @@ import {
 const DataStewardEditor = ({ 
     table, fields, schema, loadedConfig, 
     codeFields, dropdownFields, dropdownObject, 
-    setShow, setInsertError }) => {
+    setShow}) => {
 
     // const { authState, authService } = useOktaAuth();
 
@@ -105,6 +105,7 @@ const DataStewardEditor = ({
         console.log('values: ', values);
         console.log(dropdownObject);
         let mergeStmt = "";
+        let submitedValues = values;
         console.log(table);
 
         if(table === 'DATA_STEWARD'){
@@ -112,27 +113,27 @@ const DataStewardEditor = ({
             mergeStmt = merge_data_steward(values, fields);
             console.log(values);
 
-            insertUsingMergeStatement(mergeStmt, values, setInserting, false);
+            // insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }else if(table === 'DATA_DOMAIN'){
             console.log("reaching data_Steward table");
             mergeStmt = merge_data_domain(values, fields);
             console.log(values);
 
-            insertUsingMergeStatement(mergeStmt, values, setInserting, false);
+            // insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }
         else if(table === 'DATA_STEWARD_DOMAIN'){
             console.log('reach DATA_STEWARD_DOMAIN');
 
             let selectedDomainIDs = values.DOMAIN.map(domain => dropdownObject['DOMAIN'][domain]);
 
-            let submitedValues = {
+            submitedValues = {
                 'DATA_DOMAIN_ID': selectedDomainIDs,
                 'DATA_STEWARD_ID': dropdownObject['EMAIL'][values['EMAIL']]
             }
             console.log(submitedValues);
 
             mergeStmt = merge_data_steward_domain(submitedValues);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
+            // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
             console.log(values);
 
@@ -143,23 +144,23 @@ const DataStewardEditor = ({
 
             let entitiesID = values['CATALOG_ENTITIES'].map(entity => dropdownObject['CATALOG_ENTITIES'][entity])
             // const entitiesString = entitiesID
-            let submitedValues = {
+            submitedValues = {
                 'DATA_DOMAIN_ID': dropdownObject['DOMAIN'][values['DOMAIN']],
                 'CATALOG_ENTITIES_ID': entitiesID
             }
             console.log(submitedValues);
 
             mergeStmt = merge_catalog_entity_domain(submitedValues);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
+            // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ENTITIES'){
             
-            let submitedValues = {...values};
+            submitedValues = {...values};
             mergeStmt = merge_catalog_entities(submitedValues);
-            insertUsingMergeStatement(mergeStmt, values, setInserting, false);
+            // insertUsingMergeStatement(mergeStmt, values, setInserting, false);
 
         }else if(table === 'CATALOG_ENTITY_LINEAGE'){
 
-            let submitedValues = {...values};
+            submitedValues = {...values};
             
             submitedValues['CATALOG_ENTITIES_ID'] = dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']]
             delete submitedValues['CATALOG_ENTITIES'];
@@ -167,22 +168,25 @@ const DataStewardEditor = ({
             mergeStmt = merge_catalog_entity_lineage(submitedValues, fields);
 
             console.log(submitedValues);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
+            // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ITEMS'){
-            let submitedValues = {...values};
+            submitedValues = {...values};
             submitedValues['CATALOG_ENTITIES_ID'] = dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']];
             // console.log(submitedValues);
 
             mergeStmt = merge_catalog_items(submitedValues, fields);
-            insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
-        }else{
-            mergeStmt = getMergeStatement(values);
+            // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }
-
-        setValidating(false);
+        // else{
+        //     mergeStmt = getMergeStatement(values);
+        // }
 
         debug && console.log(mergeStmt);
-        // setShow(false);
+
+        insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
+        setValidating(false);
+        
+        setShow(false);
     }
 
     return (

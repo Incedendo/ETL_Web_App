@@ -133,10 +133,6 @@ const GenericRowExpansion = ({ row, ...rest }) => {
 
     debug && console.log(state);
 
-    const testLocalUpdate = () => {
-
-    }
-
     const performUpdate = (isSubscribed) =>{
         let update_status = "FAILURE";
         const primaryKey = 'CUSTOM_CODE_ID';
@@ -160,7 +156,6 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                 state
             );
         }
-        
 
         // Can't use performEditOperation in Context
         // bc need to ASYNCHRONOUSLY setLoading to false
@@ -231,7 +226,7 @@ const GenericRowExpansion = ({ row, ...rest }) => {
     }
 
     const LoadableUpdateButton = () => (
-        <button className="loadable-button"
+        <button className="generic-loadable-button"
             disabled={isLoading}
             onClick={!isLoading ? () => setLoading(true) : null} >
             {isLoading ? 'Updating...' : 'Update'}

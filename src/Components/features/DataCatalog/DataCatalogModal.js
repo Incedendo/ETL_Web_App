@@ -19,7 +19,7 @@ const tableItems = {
 
 const DataCatalogModal = ({ 
     table, fields, schema, loadedConfig, 
-    codeFields, dropdownFields, dropdownObject, setInsertError 
+    codeFields, dropdownFields, dropdownObject
 }) => {
     const [show, setShow] = useState(false);
     const [item, setItem] = useState("");
@@ -79,7 +79,6 @@ const DataCatalogModal = ({
                         dropdownFields={dropdownFields}
                         dropdownObject={dropdownObject}
                         setShow={setShow}
-                        setInsertError={setInsertError}
                     />
                 </Modal.Body>
             </Modal>

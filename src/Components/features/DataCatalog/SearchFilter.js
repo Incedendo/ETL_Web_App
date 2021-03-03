@@ -6,7 +6,8 @@ import {
     getSearchFieldValue, search_multi_field, 
     search_multi_field_catalog_DataSteward,
     search_multi_field_catalog_DataDomain,
-    search_ItemsLineage_joined_Entity_Domain, 
+    search_ItemsLineage,
+    // search_ItemsLineage_joined_Entity_Domain, 
     search_composite_DATA_STEWARD_DOMAIN, 
     search_composite_CATALOG_ENTITY_DOMAIN ,
     search_CATALOG_ENTITIES_JOINED_DOMAIN
@@ -74,45 +75,17 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                 multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end);
             }
         }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else if(isSteward){
-                privilegeLogic = caseSteward;
-            }else{
-                privilegeLogic = caseOperator;
-            }
-            multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj); 
+            multiSearchSqlStatement = search_ItemsLineage(table, currentSearchObj); 
         }else if(table === 'DATA_STEWARD_DOMAIN'){
             multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
             multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
         }else if(table === 'CATALOG_ENTITIES'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else if(isSteward){
-                privilegeLogic = caseSteward;
-            }else{
-                privilegeLogic = caseOperator;
-            }
-            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(privilegeLogic, currentSearchObj);
+            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
         }else if(table === 'DATA_STEWARD'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else{
-                privilegeLogic = `CASE
-                    WHEN ec.EMAIL = UPPER(TRIM('` + username + `'))
-                    THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE`;
-            }
-            multiSearchSqlStatement = search_multi_field_catalog_DataSteward(privilegeLogic, database, schema, table, currentSearchObj, start, end);
+            multiSearchSqlStatement = search_multi_field_catalog_DataSteward(currentSearchObj);
         }else if(table === 'DATA_DOMAIN'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else{
-                privilegeLogic = caseSteward;
-            }
-            multiSearchSqlStatement = search_multi_field_catalog_DataDomain(privilegeLogic, database, schema, table, currentSearchObj, start, end);
+            multiSearchSqlStatement = search_multi_field_catalog_DataDomain(isAdmin, caseSteward, currentSearchObj);
         }
             
         debug && console.log(multiSearchSqlStatement);
@@ -161,15 +134,15 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                 bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj);
             }
         }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else if(isSteward){
-                privilegeLogic = caseSteward;
-            }else{
-                privilegeLogic = caseOperator;
-            }
-            selectCriteria =`SELECT J.DOMAINS AS DOMAIN, J.*`
-            bodySQL = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj); 
+            // if(isAdmin){
+            //     privilegeLogic = caseAdmin;
+            // }else if(isSteward){
+            //     privilegeLogic = caseSteward;
+            // }else{
+            //     privilegeLogic = caseOperator;
+            // }
+            selectCriteria =`SELECT *`
+            bodySQL = search_ItemsLineage(table, currentSearchObj); 
         }else if(table === 'DATA_STEWARD_DOMAIN'){
             selectCriteria = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.DATA_STEWARD_ID ASC) RN`;
             multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
@@ -177,35 +150,35 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
             selectCriteria = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.CATALOG_ENTITIES_ID ASC) RN`;
             multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
         }else if(table === 'CATALOG_ENTITIES'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else if(isSteward){
-                privilegeLogic = caseSteward;
-            }else{
-                privilegeLogic = caseOperator;
-            }
-            selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*`;
-            bodySQL = search_CATALOG_ENTITIES_JOINED_DOMAIN(privilegeLogic, currentSearchObj);
+            // if(isAdmin){
+            //     privilegeLogic = caseAdmin;
+            // }else if(isSteward){
+            //     privilegeLogic = caseSteward;
+            // }else{
+            //     privilegeLogic = caseOperator;
+            // }
+            selectCriteria = `SELECT *`;
+            bodySQL = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
         }else if(table === 'DATA_STEWARD'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else{
-                privilegeLogic = `CASE
-                    WHEN ec.EMAIL = UPPER(TRIM('` + username + `'))
-                    THEN 'READ/WRITE'
-                    ELSE 'READ ONLY'
-                END AS PRIVILEGE`;
-            }
+            // if(isAdmin){
+            //     privilegeLogic = caseAdmin;
+            // }else{
+            //     privilegeLogic = `CASE
+            //         WHEN ec.EMAIL = UPPER(TRIM('` + username + `'))
+            //         THEN 'READ/WRITE'
+            //         ELSE 'READ ONLY'
+            //     END AS PRIVILEGE`;
+            // }
             selectCriteria = `SELECT *`;
-            bodySQL = search_multi_field_catalog_DataSteward(privilegeLogic, database, schema, table, currentSearchObj);
+            bodySQL = search_multi_field_catalog_DataSteward(currentSearchObj);
         }else if(table === 'DATA_DOMAIN'){
-            if(isAdmin){
-                privilegeLogic = caseAdmin;
-            }else{
-                privilegeLogic = caseSteward;
-            }
+            // if(isAdmin){
+            //     privilegeLogic = caseAdmin;
+            // }else{
+            //     privilegeLogic = caseSteward;
+            // }
             selectCriteria = `SELECT *`;
-            bodySQL = search_multi_field_catalog_DataDomain(privilegeLogic, database, schema, table, currentSearchObj);
+            bodySQL = search_multi_field_catalog_DataDomain(isAdmin, caseSteward, currentSearchObj);
         }
             
         debug && console.log(multiSearchSqlStatement);

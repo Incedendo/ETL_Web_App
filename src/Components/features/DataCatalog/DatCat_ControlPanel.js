@@ -29,6 +29,7 @@ import SearchFilter from './SearchFilter';
 import DomainOperatorModal from './DataSteward/DomainOperatorModal';
 import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
 import SearchResultInfo from '../CommonFeatures/SearchResultInfo';
+import SearchSizeSlider from '../CommonFeatures/SearchSizeSlider';
 
 //---------------CSS---------------------------
 import '../../../css/workspace.scss';
@@ -77,6 +78,9 @@ const DatCat_ControlPanel = ({ linkState }) => {
         columnsLoaded, setColumnsLoaded,
         tableLoading,
         tableLoaded,setTableLoaded,
+
+        insertSuccess, insertError, setInsertError,
+
         axiosCallToGetTableRows,
         axiosCallToGetCountsAndTableRows
     } = useContext(WorkspaceContext);
@@ -99,7 +103,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
     const [comingFromLink, setCommingFromLink] = useState(false);
     const [counts, setCounts] = useState(0);
 
-    const [insertError, setInsertError] = useState('');
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
     const taleOptions = [ 
@@ -144,6 +147,14 @@ const DatCat_ControlPanel = ({ linkState }) => {
     //         setShownModalUponChangingTable(true);
     //     }
     // }, [table])
+
+    useEffect(()=>{
+        if(insertError !== ''){
+            setTimeout(()=>{
+                setInsertError('');
+            }, 2000);
+        }
+    }, [insertError])
 
     useEffect(()=>{
         // if(linkState !== undefined){
@@ -542,7 +553,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         className="basic-single"
                         classNamePrefix="select"
                         // components={animatedComponents}
-                        defaultValue={taleOptions[0]}
+                        defaultValue={table}
                         name="color"
                         // isMulti
                         options={taleOptions}
@@ -570,7 +581,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         codeFields={codeFields}
                         dropdownFields={dropdownFields}
                         dropdownObject={dropdownObject}
-                        setInsertError={setInsertError}
                     />
                 }
 
@@ -579,6 +589,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 }
 
                 <DataCatalogRefresher />
+
+                {}
 
                 {!columnsLoaded &&
                     <div style={{
@@ -626,6 +638,8 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 </div>
             }
 
+            {insertError !== '' && insertError}
+
             { tableLoaded && 
                 <>
                     <div style={{
@@ -637,29 +651,37 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         Table: {table}
                     </div>
 
-                    <SearchResultInfo />
-
-                    {comingFromLink && Object.keys(currentSearchCriteria).length === 0 &&
-                        <div style={{ 
+                    <div 
+                        style={{ 
                             'display': 'flex', 
-                            'float': 'left',
                             "marginBottom": "10px"
-                        }}>
-                            <span style={{ 'fontWeight': 'bold', marginLeft: '0px', marginRight: '5px' }}>Linked from: </span>
-                            { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
-                        </div>
-                    }
+                        }}
+                    >
 
-                    <SearchFilter 
-                        currentSearchCriteria={currentSearchCriteria}
-                        setCurrentSearchCriteria={setCurrentSearchCriteria}
-                    />
+                        <SearchResultInfo />
+
+                        {comingFromLink && Object.keys(currentSearchCriteria).length === 0 &&
+                            <div style={{ 
+                                'display': 'flex', 
+                                'float': 'left',
+                                "marginBottom": "10px"
+                            }}>
+                                <span style={{ 'fontWeight': 'bold', marginLeft: '0px', marginRight: '5px' }}>Linked from: </span>
+                                { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
+                            </div>
+                        }
+
+                        <SearchFilter 
+                            currentSearchCriteria={currentSearchCriteria}
+                            setCurrentSearchCriteria={setCurrentSearchCriteria}
+                        />
+
+                        <SearchSizeSlider/>
+                    </div>
 
                     <ConfigurationGrid/> 
                 </>
             }
-
-            {insertError !== '' && insertError}
         </>
 
 

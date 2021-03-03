@@ -98,19 +98,9 @@ const sql_linking_Lineage_To_ETLF_Extract_Config = (value) => {
     return body
 }
 
-const sql_linking_dataSteward_To_dataDomain = (isAdmin, username, value) => {
+const sql_linking_dataSteward_To_dataDomain = value => {
     console.log('sql_linking_dataSteward_To_dataDomain...');
     console.log(value);
-
-    let privilegeLogic = getPrivilege2cases(isAdmin, username);
-
-    const sql = `SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN
-    FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
-    INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD 
-    ON DD.DATA_DOMAIN_ID = DSD.DATA_DOMAIN_ID
-    INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-    ON DSD.DATA_STEWARD_ID = DS.DATA_STEWARD_ID
-    WHERE UPPER(TRIM(DS.DATA_STEWARD_ID)) = UPPER(TRIM('` + value + `'));`
 
     const body = `
     FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
@@ -125,20 +115,9 @@ const sql_linking_dataSteward_To_dataDomain = (isAdmin, username, value) => {
     return body;
 }
 
-const sql_linking_dataDomain_To_dataSteward = (isAdmin, username, value) => {
+const sql_linking_dataDomain_To_dataSteward = value => {
     console.log('sql_linking_dataDomain_To_dataSteward...');
     console.log(value);
-
-    let privilegeLogic = getPrivilege2cases(isAdmin, username);
-
-    const sql = `SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN
-    FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-    INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD 
-    ON DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID
-    INNER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
-    ON DD.DATA_DOMAIN_ID = DSD.DATA_DOMAIN_ID
-    WHERE UPPER(TRIM(DD.DATA_DOMAIN_ID)) = UPPER(TRIM('` + value + `'))
-    ;`
 
     const body = `
     FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
@@ -154,24 +133,9 @@ const sql_linking_dataDomain_To_dataSteward = (isAdmin, username, value) => {
     return body;
 }
 
-const sql_linking_dataDomain_To_catalogEntities = (isAdmin, isSteward, username, value) => {
+const sql_linking_dataDomain_To_catalogEntities = value => {
     console.log('sql_linking_dataDomain_To_catalogEntities...');
     console.log(value);
-    
-    let privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-
-    const sql = `FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-    ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-    ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-    ON (AA.DOMAIN = C.DOMAIN)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-    ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-    WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) = UPPER(TRIM('` + value + `'));`
 
     const body = `
     FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
@@ -179,12 +143,6 @@ const sql_linking_dataDomain_To_catalogEntities = (isAdmin, isSteward, username,
     ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-    ON (AA.DOMAIN = C.DOMAIN)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-    ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
     WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) = UPPER(TRIM('` + value + `'))`
 
     // console.log(sql);
@@ -192,119 +150,47 @@ const sql_linking_dataDomain_To_catalogEntities = (isAdmin, isSteward, username,
     return body;
 }
 
-const sql_linking_catalogEntities_To_dataDomain = (isAdmin, username, value) => {
+const sql_linking_catalogEntities_To_dataDomain = value => {
     console.log('sql_linking_catalogEntities_To_dataDomain...');
     console.log(value);
 
-    let privilegeLogic = getPrivilege2cases(isAdmin, username);
-
-    const sql = `SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN
+    const body = `
     FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
     ON (DD.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES C
-    ON (B.CATALOG_ENTITIES_ID = C.CATALOG_ENTITIES_ID )
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-    ON (DSD.DATA_DOMAIN_ID = DD.DATA_DOMAIN_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-    WHERE UPPER(TRIM(C.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'));`
-
-    const body = `
-    FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DDsql_linking_catalogEntities_To_dataDomain
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-    ON (DD.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES C
-    ON (B.CATALOG_ENTITIES_ID = C.CATALOG_ENTITIES_ID )
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-    ON (DSD.DATA_DOMAIN_ID = DD.DATA_DOMAIN_ID)
-    LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-    ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-    WHERE UPPER(TRIM(C.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'))`;
-
-    console.log(body);
+    WHERE UPPER(TRIM(B.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'))`;
 
     return body;
 }
 
 //missing domain
-const sql_linking_catalogEntities_To_Item_Lineage = (isAdmin, isSteward, username, value, destination) => {
+const sql_linking_catalogEntities_To_Item_Lineage = (value, destination) => {
     console.log('sql_linking_catalogEntities_To_catalogItems...');
     console.log(value);
-
-    let privilegeLogic = getPrivilegeItemsLineage(isAdmin, isSteward, username);
-
-    const sql = `SELECT C2.*, D.*, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN 
-    FROM SHARED_TOOLS_DEV.ETL.` + destination + ` D
-    INNER JOIN (
-        SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.CATALOG_ENTITIES_ID, ` + privilegeLogic + ` 
-        FROM (
-            SELECT NVL(C.DOMAIN, '') DOMAINS, E.*, DS.EMAIL, AA.USERNAME 
-            FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-            ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-            ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-            ON (AA.DOMAIN = C.DOMAIN)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-            ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-            ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-            WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'))
-        ) J
-    )C2
-    ON C2.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
-    WHERE C2.CATALOG_ENTITIES_ID = '` + value + `';`
 
     const body = ` 
     FROM SHARED_TOOLS_DEV.ETL.` + destination + ` D
     INNER JOIN (
-        SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.CATALOG_ENTITIES_ID, ` + privilegeLogic + ` 
-        FROM (
-            SELECT NVL(C.DOMAIN, '') DOMAINS, E.*, DS.EMAIL, AA.USERNAME 
-            FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-            ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-            ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-            ON (AA.DOMAIN = C.DOMAIN)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-            ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-            ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-            WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'))
-        ) J
+        SELECT TARGET_DATABASE, TARGET_SCHEMA, TARGET_TABLE, CATALOG_ENTITIES_ID
+        FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
+        WHERE UPPER(TRIM(CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'))
     )C2
     ON C2.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
-    WHERE C2.CATALOG_ENTITIES_ID = '` + value + `'`
+    WHERE C2.CATALOG_ENTITIES_ID = '` + value + `'`;
 
     return body;
 }
 
-const sql_linking_ItemsLineage_To_CatalogEntities = (isAdmin, isSteward, username, value) => {
+const sql_linking_ItemsLineage_To_CatalogEntities = value => {
     console.log('sql_linking_catalogItems_To_catalogEntities...');
     console.log(value);
 
-    let privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-
     const sql = `
     FROM (
-        SELECT NVL(C.DOMAIN, '') DOMAINS, E.*, ` + privilegeLogic + `  
-        FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-        ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
-        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-        ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-        ON (AA.DOMAIN = C.DOMAIN)
-        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-        ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-        ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-        WHERE UPPER(TRIM(E.CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'))
-    ) J`;
+        SELECT * 
+        FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
+        WHERE UPPER(TRIM(CATALOG_ENTITIES_ID)) = UPPER(TRIM('` + value + `'))
+    )`;
     
     return sql;
 }
@@ -313,50 +199,16 @@ const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = (isAdmin, isStew
     console.log('sql_linking_ETLF_Extract_Config_To_catalogEntityLineage...');
     console.log(value);
 
-    let privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-
-    const sql = `SELECT D.DOMAIN, D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*, D.PRIVILEGE, , row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN
-    FROM "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITY_LINEAGE" A
-    INNER JOIN (
-        SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.CATALOG_ENTITIES_ID, J.PRIVILEGE  
-        FROM (
-            SELECT NVL(C.DOMAIN, '') DOMAINS, E.*, ` + privilegeLogic + `
-            FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-            ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-            ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-            ON (AA.DOMAIN = C.DOMAIN)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-            ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-            ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-        ) J
-    ) D
-    ON A.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
-    WHERE UPPER(TRIM(A.EXTRACT_CONFIG_ID)) = UPPER(TRIM('` + value + `'));`
-
     const body = `
     FROM "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITY_LINEAGE" A
-    INNER JOIN (
-        SELECT J.DOMAINS AS DOMAIN, J.TARGET_DATABASE, J.TARGET_SCHEMA, J.TARGET_TABLE, J.CATALOG_ENTITIES_ID, J.PRIVILEGE  
-        FROM (
-            SELECT NVL(C.DOMAIN, '') DOMAINS, E.*, ` + privilegeLogic + `
-            FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
-            ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
-            ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION AA
-            ON (AA.DOMAIN = C.DOMAIN)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD_DOMAIN DSD
-            ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
-            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
-            ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-        ) J
-    ) D
-    ON A.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
+    // INNER JOIN (
+    //     SELECT TARGET_DATABASE, TARGET_SCHEMA, TARGET_TABLE, CATALOG_ENTITIES_ID
+    //     FROM (
+    //         SELECT *
+    //         FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
+    //     ) 
+    // ) D
+    // ON A.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
     WHERE UPPER(TRIM(A.EXTRACT_CONFIG_ID)) = UPPER(TRIM('` + value + `'))`
 
     return body;
@@ -369,81 +221,82 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
     let searchStmt='';
     // console.log("table: " + table);
 
+    const caseSteward = `CASE
+        WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
+        THEN 'READ/WRITE'
+        ELSE 'READ ONLY'
+    END AS PRIVILEGE`;
+
     if(table === 'ETLF_EXTRACT_CONFIG'){
-        // privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-        selectCriteria = 'SELECT D.DOMAIN, D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*, D.PRIVILEGE, row_number() OVER(ORDER BY A.CATALOG_ENTITY_LINEAGE_ID ASC) RN'
+        // selectCriteria = 'SELECT D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*, row_number() OVER(ORDER BY A.CATALOG_ENTITY_LINEAGE_ID ASC) RN'
+        selectCriteria = 'SELECT A.*, row_number() OVER(ORDER BY A.CATALOG_ENTITY_LINEAGE_ID ASC) RN'
+        
         body = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(isAdmin, isSteward, username, value);
     }if(table === 'ETLF_CUSTOM_CODE'){
         selectCriteria = 'SELECT *, row_number() OVER(ORDER BY EXTRACT_CONFIG_ID ASC) RN';
         body = sql_linking_Lineage_To_ETLF_Extract_Config(value);
     }else if(table === 'DATA_STEWARD'){
-        privilegeLogic = getPrivilege2cases(isAdmin, username);
-        selectCriteria = 'SELECT DD.*, ' + privilegeLogic + ', row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN ';
-        body = sql_linking_dataSteward_To_dataDomain(isAdmin, username, value);
+    
+        selectCriteria = 'SELECT DD.*, ' + caseSteward + ', row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN ';
+        body = sql_linking_dataSteward_To_dataDomain(value);
         //
     }else if(table === 'DATA_STEWARD_DOMAIN'){
+
         if(destinationTable === 'DATA_STEWARD'){
-            privilegeLogic = getPrivilege2cases(isAdmin, username);
-            selectCriteria = `SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN`;
-            body = sql_linking_dataDomain_To_dataSteward(isAdmin, username, value);
+            selectCriteria = `SELECT DS.*, ` + caseSteward + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN`;
+            body = sql_linking_dataDomain_To_dataSteward(value);
             //
         }else if(destinationTable === 'DATA_DOMAIN' ){
-            privilegeLogic = getPrivilege2cases(isAdmin, username);
-            selectCriteria = 'SELECT DD.*, ' + privilegeLogic + ', row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN ';
-            body = sql_linking_dataSteward_To_dataDomain(isAdmin, username, value);
+            selectCriteria = 'SELECT DD.*, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN ';
+            body = sql_linking_dataSteward_To_dataDomain(value);
         }   //
     }else if(table === 'CATALOG_ENTITY_DOMAIN'){
         if(destinationTable === 'DATA_DOMAIN'){
-            privilegeLogic = getPrivilege2cases(isAdmin, username);
             selectCriteria = `SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`
-            body = sql_linking_catalogEntities_To_dataDomain(isAdmin, username, value);
+            body = sql_linking_catalogEntities_To_dataDomain(value);
             //
         }else if(destinationTable === 'CATALOG_ENTITIES' ){
-            privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C.DOMAIN, E.*, ` + privilegeLogic + `, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
-            body = sql_linking_dataDomain_To_catalogEntities(isAdmin, isSteward, username, value); 
+            selectCriteria = `SELECT E.*, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
+            body = sql_linking_dataDomain_To_catalogEntities(value); 
             //
         }
     }else if(table === 'DATA_DOMAIN'){
         if(destinationTable === 'DATA_STEWARD'){
-            privilegeLogic = getPrivilege2cases(isAdmin, username);
-            selectCriteria = `SELECT DS.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN`;
-            body = sql_linking_dataDomain_To_dataSteward(isAdmin, username, value);
+            selectCriteria = `SELECT DS.*, ` + caseSteward + `, row_number() OVER(ORDER BY DS.DATA_STEWARD_ID ASC) RN`;
+            body = sql_linking_dataDomain_To_dataSteward(value);
             //
         }
         else if(destinationTable === 'CATALOG_ENTITIES' ){
-            privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C.DOMAIN, E.*, ` + privilegeLogic + `, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
-            body = sql_linking_dataDomain_To_catalogEntities(isAdmin, isSteward, username, value);
+            selectCriteria = `SELECT E.*, row_number() OVER(ORDER BY E.CATALOG_ENTITIES_ID ASC) RN`
+            body = sql_linking_dataDomain_To_catalogEntities(value);
             //
         }
     }else if(table === 'CATALOG_ENTITIES'){
         if(destinationTable === 'CATALOG_ITEMS'){
             // privilegeLogic = getPrivilegeItemsLineage(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C2.*, D.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
-            body =  sql_linking_catalogEntities_To_Item_Lineage(isAdmin, isSteward, username, value, 'CATALOG_ITEMS'); 
+            selectCriteria = `SELECT C2.*, D.*, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
+            body =  sql_linking_catalogEntities_To_Item_Lineage(value, 'CATALOG_ITEMS'); 
             //
         }else if(destinationTable === 'CATALOG_ENTITY_LINEAGE'){
             // privilegeLogic = getPrivilegeItemsLineage(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C2.*, D.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
-            body = sql_linking_catalogEntities_To_Item_Lineage(isAdmin, isSteward, username, value, 'CATALOG_ENTITY_LINEAGE') //!!!!!!!!!!!!!!!!!!!
+            selectCriteria = `SELECT C2.*, D.*, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
+            body = sql_linking_catalogEntities_To_Item_Lineage(value, 'CATALOG_ENTITY_LINEAGE') //!!!!!!!!!!!!!!!!!!!
             //
         }else if(destinationTable === 'DATA_DOMAIN'){
-            privilegeLogic = getPrivilege2cases(isAdmin, username);
-            selectCriteria = `SELECT DD.*, ` + privilegeLogic + `, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`
-            body = sql_linking_catalogEntities_To_dataDomain(isAdmin, username, value);
+            selectCriteria = `SELECT DD.*, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`
+            body = sql_linking_catalogEntities_To_dataDomain(value);
             //
         }
     }else if(table === 'CATALOG_ITEMS'){
         // privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-        selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR,  row_number() OVER(ORDER BY J.CATALOG_ENTITIES_ID ASC) RN`;
-        body = sql_linking_ItemsLineage_To_CatalogEntities(isAdmin, isSteward, username, value);
+        selectCriteria = `SELECT *, row_number() OVER(ORDER BY CATALOG_ENTITIES_ID ASC) RN`;
+        body = sql_linking_ItemsLineage_To_CatalogEntities(value);
         //
     }else if(table === 'CATALOG_ENTITY_LINEAGE'){
         if(destinationTable === 'CATALOG_ENTITIES'){
             // privilegeLogic = getPrivilege3cases(isAdmin, isSteward, username);
-            selectCriteria = `SELECT J.DOMAINS AS DOMAIN, J.*, DS.EMAIL AS DATA_STEWARD, AA.USERNAME AS DOMAIN_OPERATOR,  row_number() OVER(ORDER BY J.CATALOG_ENTITIES_ID ASC) RN`;
-            body = sql_linking_ItemsLineage_To_CatalogEntities(isAdmin, isSteward, username, value);
+            selectCriteria = `SELECT *, row_number() OVER(ORDER BY CATALOG_ENTITIES_ID ASC) RN`;
+            body = sql_linking_ItemsLineage_To_CatalogEntities(value);
             //
         }else if(destinationTable === 'ETLF_EXTRACT_CONFIG'){
             selectCriteria = `SELECT EC.*, COALESCE(A.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY EC.EXTRACT_CONFIG_ID ASC) RN`;
@@ -491,10 +344,10 @@ const CustomizedLink = ({ row }) => {
                 value = row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'];
                 break;
             case 'CATALOG_ENTITIES':
-                value = 'ENTITY - ' + row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'];
+                value = 'ENTITY - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'];
                 break;
             case 'CATALOG_ITEMS':
-                value = 'ITEM - ' + row['DOMAIN'] + ' - ' + row['TARGET_DATABASE'] + ' - ' + row['TARGET_SCHEMA'] + ' - ' + row['TARGET_TABLE'] + ' - ' + row['COLUMN_NAME'];
+                value = 'ITEM - ' + row['COLUMN_NAME'];
                 break;
             case 'CATALOG_ENTITY_LINEAGE':
                 value = 'EXTRACT_CONFIG_ID - ' + row['EXTRACT_CONFIG_ID'];

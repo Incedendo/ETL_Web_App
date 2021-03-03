@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import RouteDataLoader from '../RouteConfigurations/RouteDataLoader';
-import '../../../css/mymodal.scss';
-import '../../../css/forms.scss';
+import routeImg from '../../../media/ETLF_ROUTER.PNG';
 
-const Route_Action_Modal = (props) => {
+const PhotoModal = (props) => {
     const [show, setShow] = useState(false);
 
     return (
-        <div style={{float: 'left', marginRight: '20px'}}>
+        <>
             <Button 
                 // className="button-margin"
                 variant="outline-primary"
                 onClick={() => setShow(true)}>
-                Configure New Job
+                ETL Diagram
             </Button>
 
             <Modal
@@ -27,17 +25,23 @@ const Route_Action_Modal = (props) => {
             >
                 <Modal.Header closeButton>
                     <Modal.Title id="example-custom-modal-styling-title">
-                        Route Configuration
+                        ETL Routes Diagram
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <RouteDataLoader
-                        setActionModalShow={setShow}
-                    />
+                    <div>
+                        <img style={{
+                                position: 'relative',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, 0%)'
+                            }} 
+                        src={routeImg} />
+                    </div>
                 </Modal.Body>
             </Modal>
-        </div>
+        </>
     )
 }
 
-export default Route_Action_Modal;
+export default PhotoModal;

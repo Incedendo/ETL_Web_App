@@ -49,17 +49,22 @@ const SearchNextXrows = () => {
 
     const getPrevLoHi = () => {
         console.log(`steps back= ${steps}`);
-        const temp = lo;
-        setLo(temp-steps);
-        setHi(temp-1);
+        const newHi = lo - 1 > 0 ? lo - 1 : 1
+        setHi(newHi);
+
+        const newLo = lo - steps >= 1 ? newLo : 1
+        setLo(newLo);
+        
         setFetching(true);
     }
 
     const getNextLoHi = () => {
         console.log(`steps up = ${steps}`);
-        const temp = hi
-        setLo(temp+1);
-        setHi(temp+steps);
+        const newLo = hi + 1 < selectAllCounts ? hi + 1 : selectAllCounts
+        setLo(newLo);
+
+        const newHi = hi+steps < selectAllCounts ? hi+steps : selectAllCounts
+        setHi(newHi);
         setFetching(true);
     }
 

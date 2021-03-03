@@ -2,17 +2,18 @@ import React, { useState, useEffect, useContext } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
-import Slider from 'react-input-slider';
+
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ConfigurationGrid from '../GridComponents/Grids/ConfigurationGrid';
-import GenericConfigurationGrid from '../GenericTable/GenericConfigurationGrid';
-import PkEditModal from '../Modals/PkEditModal';
+
+import SearchSizeSlider from '../CommonFeatures/SearchSizeSlider';
 import SearchModal from '../Modals/SearchModal';
 import SearchModal_CustomCode from '../Modals/SearchModal_CustomCode';
 import JobModal from '../Modals/JobModal';
 import Route_Action_Modal from '../Modals/Route_Action_Modal';
 import SearchFilter from '../DataCatalog/SearchFilter';
 import SearchResultInfo from '../CommonFeatures/SearchResultInfo';
+import PhotoModal from '../Modals/PhotoModal';
 
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
@@ -24,29 +25,14 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
         columnDataTypes, 
         tableLoaded, tableLoading, tableSearching, setReloadTable,
         primaryKeys, setPrimaryKeys, rows, columnsLoaded,
-        insertError, editError, setSteps,
+        insertError, editSuccess, editError, setSteps,
         system_configs
     } = useContext(WorkspaceContext);
 
-    const [localSteps, setLocalSteps] = useState({ x: 10 });
+    
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
 
-    const SearchSizeSlider = () => {
-        return (
-            <>
-              <div>{'Maximum Search Results: ' + localSteps.x}</div>
-              <Slider
-                axis="x"
-                xstep={1}
-                xmin={10}
-                xmax={100}
-                x={localSteps.x}
-                onChange={({ x }) => setSteps({ x: parseInt(x) })}
-              />
-            </>
-          );
-    }
-
+    
 
     const TableConfigPanel = () => (
         // <div className={"card expanded-height"}>
@@ -75,6 +61,7 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
                         // (Object.keys(routeConfigs).length !== 0 && routeConfigs.constructor === Object) && 
                         <div style={{float: "left", marginRight: "20px"}}>
                             <Route_Action_Modal />
+                            <PhotoModal />
                         </div>
                     }
 
@@ -97,7 +84,7 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
                 
                 </div>
 
-                {/* <SearchSizeSlider/> */}
+                
             </div>
     )
 
@@ -143,17 +130,6 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
         </div>
     )
 
-    const UpdateStatus = () => (
-        <div>
-            {tableLoaded && editError !== '' &&
-                <div className='errorSignal'>
-                    <h4 >Update Status</h4>
-                    {editError}
-                </div>
-            }
-        </div>
-    )
-
     return (
         <div style={{
             "display": "flex",
@@ -171,7 +147,6 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
             <TableConfigPanel />
 
             <InsertStatus />
-            <UpdateStatus />
 
             {linkState !== undefined && Object.keys(currentSearchCriteria).length === 0 &&
                 <div style={{ 
@@ -186,12 +161,15 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
 
             {tableLoaded && 
                 <>
-                    <SearchResultInfo />
-                    <SearchFilter 
-                        currentSearchCriteria={currentSearchCriteria}
-                        setCurrentSearchCriteria={setCurrentSearchCriteria}
-                    />
-
+                    <div style={{display: 'flex'}}>
+                        <SearchResultInfo />
+                        <SearchFilter 
+                            currentSearchCriteria={currentSearchCriteria}
+                            setCurrentSearchCriteria={setCurrentSearchCriteria}
+                        />
+                        <SearchSizeSlider/>
+                    </div>
+                    
                     <ConfigurationGrid/>
                 </>
             }
@@ -215,7 +193,6 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
                 </div>
             }
 
-            {/* { tableLoaded && <ConfigurationGrid/> } */}
         </div>
     )
 }

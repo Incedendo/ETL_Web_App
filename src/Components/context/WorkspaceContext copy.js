@@ -18,6 +18,10 @@ import { getMultiSearchObj } from '../sql_statements';
 export const WorkspaceProvider = (props) => {
     const { authState, authService } = useOktaAuth();
 
+    // const {
+    //     isAdmin, isSteward
+    // } = useContext(AdminContext);
+
     const [debug, setDebug] = useState(false);
     
     const [accessToken, setAccessToken] = useState('');
@@ -25,9 +29,6 @@ export const WorkspaceProvider = (props) => {
     const [name, setName] = useState('');
     const [scopes, setScopes] = useState([]);
     const [appIDs, setAppIDs] = useState([]);
-
-    const [authorizedDomains, setDomains] = useState([]);
-    const [privilegeTables, setPrivilegeTables] = useState([]);
 
     const [database, setDatabase] = useState('SHARED_TOOLS_DEV');
     const [schema, setSchema] = useState('ETL');
@@ -84,7 +85,7 @@ export const WorkspaceProvider = (props) => {
     
     const [addedRows, setAddedRows] = useState([]);
     const [privilege, setPrivilege] = useState([]);
-
+    const [privilegeTables, setPrivilegeTables] = useState([]);
     const [editingStateColumnExtensions, setEditingStateColumnExtensions] = useState([]);
     const [columnDataTypes, setColumnDataTypes] = useState({});
     const [columnWidths, setColumnWidths] = useState([]);
@@ -200,14 +201,7 @@ export const WorkspaceProvider = (props) => {
             ON (DSD.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID)
             LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
             ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
-            WHERE DS.EMAIL = '` + username + `' OR AA.USERNAME = '` + username + `';`;
-
-            const getAuthorziedDomainSQL = `SELECT DOMAIN FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" A 
-            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD_DOMAIN" B
-            ON (A.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID)
-            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" C
-            ON (B.DATA_STEWARD_ID = C.DATA_STEWARD_ID)
-            WHERE C.EMAIL = '` + username + `';`;
+            WHERE DS.EMAIL = '` + username + `' OR AA.USERNAME = '` + username + `';`
 
             const getAppIDs = axios.get(SELECT_URL, {
                 headers,
@@ -230,27 +224,19 @@ export const WorkspaceProvider = (props) => {
                     sqlStatement: getTablePrivilegeSQL,
                 }
             });
-            const getAuthorziedDomain = axios.get(SELECT_URL, {
-                headers,
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: getAuthorziedDomainSQL,
-                }
-            });
-
             
             axios
-                .all([getAppIDs, getRoutes, getTablePrivilege, getAuthorziedDomain])
+                .all([getAppIDs, getRoutes, getTablePrivilege])
                 .then(axios.spread((...responses) => {
                     const responseOne = responses[0];
                     const responseTwo = responses[1];
                     const responesThree = responses[2];
-                    const responesFour = responses[3];
+                    // const responesFour = responses[3];
 
-                    // debug && console.log(responseOne.data);
-                    // debug && console.log(responseTwo.data);
-                    // debug && console.log(responesThree);
-                    debug && console.log(responesFour);
+                    debug && console.log(responseOne.data);
+                    debug && console.log(responseTwo.data);
+                    debug && console.log(responesThree);
+                    // debug && console.log(responesFour);
                     if(mounted){
                         //response 1
                         setAppIDs(responseOne.data.map(item => item.APP_ID))
@@ -271,9 +257,6 @@ export const WorkspaceProvider = (props) => {
 
                         //response 3
                         setPrivilegeTables(responesThree.data.map(item => item.TARGET_TABLE))
-
-                        //response 4
-                        setDomains(responesFour.data.map(item => item.DOMAIN))
                     }
                     
                 }))
@@ -397,10 +380,10 @@ export const WorkspaceProvider = (props) => {
             // if(table !== 'CATALOG_ENTITY_DOMAIN' && table !== 'DATA_STEWARD_DOMAIN'){
             //     headers.push("EDITABLE");
             // }
-            // if(["CATALOG_ENTITIES","CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0){
-            //     headers.push('DATA_STEWARD');
-            //     headers.push('DOMAIN_OPERATOR');
-            // }
+            if(["CATALOG_ENTITIES","CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0){
+                headers.push('DATA_STEWARD');
+                headers.push('DOMAIN_OPERATOR');
+            }
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
                 // console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
                 headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
@@ -420,11 +403,9 @@ export const WorkspaceProvider = (props) => {
                 headers.unshift('LNAME');
                 headers.unshift('DOMAIN');
                 headers.unshift('EMAIL');
-            }
-            // else if(table === 'CATALOG_ENTITIES'){
-            //     headers.unshift('DOMAIN');
-            // }
-            else if(['CATALOG_ENTITY_DOMAIN'].indexOf(table) >= 0 ){
+            }else if(table === 'CATALOG_ENTITIES'){
+                headers.unshift('DOMAIN');
+            }else if(['CATALOG_ENTITY_DOMAIN', 'CATALOG_ITEMS', 'CATALOG_ENTITY_LINEAGE'].indexOf(table) >= 0 ){
                 headers.unshift('TARGET_TABLE');
                 headers.unshift('TARGET_SCHEMA');
                 headers.unshift('TARGET_DATABASE');
@@ -1029,10 +1010,14 @@ export const WorkspaceProvider = (props) => {
         let multiSearchSqlStatement = '';
         let multiSearchSqlStatementFirstX = '';
 
-        const selectCount = 
-`SELECT COUNT(*) as COUNT
-FROM (
-    SELECT *`;
+        const selectCount = ['CATALOG_ENTITIES', "CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0
+            ? `SELECT COUNT(*) as COUNT
+            FROM (
+                SELECT DOMAINS AS DOMAIN, *`
+
+            : `SELECT COUNT(*) as COUNT
+            FROM (
+                SELECT *`;
 
         const multiSearchSQLObj = getMultiSearchObj(isAdmin, isSteward, username, database, schema, table, groupIDColumn, currentSearchObj);
         const bodySQL = multiSearchSQLObj.bodySQL;
@@ -1243,9 +1228,6 @@ FROM (
         scopes, setScopes,
         appIDs, setAppIDs,
 
-        authorizedDomains,
-        privilegeTables,
-
         database, setDatabase,
         schema, setSchema,
         tablelist, setTablelist,
@@ -1289,6 +1271,7 @@ FROM (
         rows, setRows,
         addedRows, setAddedRows,
         privilege, setPrivilege,
+        privilegeTables,
         editingStateColumnExtensions, setEditingStateColumnExtensions,
         gridConfigs,
 
