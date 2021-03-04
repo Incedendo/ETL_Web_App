@@ -22,14 +22,16 @@ import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
 //---------------Components--------------------
+import SearchResultInfo from '../CommonFeatures/SearchResultInfo';
+import SearchSizeSlider from '../CommonFeatures/SearchSizeSlider';
 import SearchModal from '../Modals/SearchModal';
 import DataCatalogRefresher from './DataCatalogRefresher';
 import DataCatalogModal from './DataCatalogModal';
+import ProductionPromotionModal from './ProductionPromotion/ProductionPromotionModal';
 import SearchFilter from './SearchFilter';
 import DomainOperatorModal from './DataSteward/DomainOperatorModal';
 import ConfigurationGrid from '../../features/GridComponents/Grids/ConfigurationGrid';
-import SearchResultInfo from '../CommonFeatures/SearchResultInfo';
-import SearchSizeSlider from '../CommonFeatures/SearchSizeSlider';
+
 
 //---------------CSS---------------------------
 import '../../../css/workspace.scss';
@@ -588,6 +590,10 @@ const DatCat_ControlPanel = ({ linkState }) => {
                     <DomainOperatorModal/>
                 }
 
+                {table === 'CATALOG_ENTITIES' && (isSteward || isAdmin || isDomainOperator) && 
+                    <ProductionPromotionModal/>
+                }
+
                 <DataCatalogRefresher />
 
                 {}
@@ -640,7 +646,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
             {insertError !== '' && insertError}
 
-            { tableLoaded && 
+            {tableLoaded && 
                 <>
                     <div style={{
                         'fontWeight': 'bold',
@@ -657,26 +663,24 @@ const DatCat_ControlPanel = ({ linkState }) => {
                             "marginBottom": "10px"
                         }}
                     >
-
-                        <SearchResultInfo />
-
-                        {comingFromLink && Object.keys(currentSearchCriteria).length === 0 &&
-                            <div style={{ 
-                                'display': 'flex', 
-                                'float': 'left',
-                                "marginBottom": "10px"
-                            }}>
-                                <span style={{ 'fontWeight': 'bold', marginLeft: '0px', marginRight: '5px' }}>Linked from: </span>
-                                { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
-                            </div>
-                        }
-
-                        <SearchFilter 
-                            currentSearchCriteria={currentSearchCriteria}
-                            setCurrentSearchCriteria={setCurrentSearchCriteria}
-                        />
-
-                        <SearchSizeSlider/>
+                        <div>
+                            <SearchResultInfo />
+                            <SearchSizeSlider/>
+                            <SearchFilter 
+                                currentSearchCriteria={currentSearchCriteria}
+                                setCurrentSearchCriteria={setCurrentSearchCriteria}
+                            />
+                            {comingFromLink && Object.keys(currentSearchCriteria).length === 0 &&
+                                <div style={{ 
+                                    'display': 'flex', 
+                                    'float': 'left',
+                                    "marginBottom": "10px"
+                                }}>
+                                    <span style={{ 'fontWeight': 'bold', marginLeft: '0px', marginRight: '5px' }}>Linked from: </span>
+                                    { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
+                                </div>
+                            }
+                        </div>
                     </div>
 
                     <ConfigurationGrid/> 

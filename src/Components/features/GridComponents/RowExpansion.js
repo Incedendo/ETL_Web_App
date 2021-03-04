@@ -19,7 +19,7 @@ import {
     merge_update_catalog_entities,
     merge_catalog_entity_lineage
 } from '../DataCatalog/datcatsql/datcat_merge_update';
-import { SELECT_URL, ARN_APIGW_GET_SELECT} from '../../context/URLs';
+import { SELECT_URL, ARN_APIGW_GET_SELECT, UPDATE_URL} from '../../context/URLs';
 
 import PrimaryKeyField from '../GenericTable/PrimaryKeyField';
 import CodeField from '../GenericTable/CodeField';
@@ -27,7 +27,7 @@ import DropdownField from '../GenericTable/DropdownField';
 
 import '../../../css/rowExpansion.scss';
 
-const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
+// const UPDATE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/update';
 
 
 const options = {

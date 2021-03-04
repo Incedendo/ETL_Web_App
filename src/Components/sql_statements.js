@@ -115,8 +115,10 @@ export const search_ItemsLineage = (table, currentSearchObj) => {
 
     let body = `
     FROM (
-        SELECT *
-        FROM SHARED_TOOLS_DEV.ETL.` + table + ` 
+        SELECT I.*, E.TARGET_TABLE
+        FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
     ) EC
     WHERE ` + getSearchFieldValue(currentSearchObj);
     
@@ -321,10 +323,12 @@ export const getSelectAllObjDatCat = (isAdmin, isSteward, username, table) => {
        
         const tableKey = table === 'CATALOG_ITEMS' ? 'CATALOG_ITEMS_ID' : 'CATALOG_ENTITY_LINEAGE_ID'
         bodySQL = `
-        FROM SHARED_TOOLS_DEV.ETL.` + table + ` I`;
+        FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
+        LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
+        ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)`;
 
         selectAllFrom = `SELECT * FROM (
-            SELECT *, row_number() OVER(ORDER BY `+ tableKey +` ASC) RN`
+            SELECT I.*, E.TARGET_TABLE, row_number() OVER(ORDER BY `+ tableKey +` ASC) RN`
             + bodySQL +`
         )`;
     }

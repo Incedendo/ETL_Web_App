@@ -31,67 +31,9 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
         ELSE 'READ ONLY'
     END AS PRIVILEGE`;
 
-    let privilegeLogic = ``;
-
     console.log(table);
     const uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
 
-    const singleSearch = (currentSearchObj) => {
-        let start = 0;
-        let end = 100;
-        // const searchTable = 'ETLF_SYSTEM_CONFIG';
-        console.log(table);
-        // if (verifySearchObj()) {
-        // setCurrentSearchCriteria(currentSearchObj);
-
-        console.log(currentSearchObj);
-        // return;
-
-        
-        let multiSearchSqlStatement = '';
-        if(ETLF_tables.indexOf(table) >= 0){
-            // console.log("table is in ETLF Framework");
-            const groupIDColumn = table === "ETLF_EXTRACT_CONFIG" ? 'GROUP_ID' : 'WORK_GROUP_ID'
-            if(table === 'ETLF_CUSTOM_CODE'){
-                multiSearchSqlStatement = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
-                FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE" EC
-                INNER JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EEC
-                ON (EC.EXTRACT_CONFIG_ID = EEC.EXTRACT_CONFIG_ID)
-                LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" EAA
-                ON (EEC.GROUP_ID = EAA.APP_ID)
-                WHERE ` + getSearchFieldValue(currentSearchObj);
-            }
-            else if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
-
-                //update 'GROUP_ID'  to 'WORK_GROUP_ID' in searchObject
-                let newSearchObj = {}
-                Object.keys(currentSearchObj).map(col => col !== 'GROUP_ID' 
-                    ? newSearchObj[col] = currentSearchObj[col]
-                    : newSearchObj['WORK_GROUP_ID'] = currentSearchObj[col]
-                )
-
-                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, newSearchObj, start, end);
-            }else{
-                multiSearchSqlStatement = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj, start, end);
-            }
-        }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-            multiSearchSqlStatement = search_ItemsLineage(table, currentSearchObj); 
-        }else if(table === 'DATA_STEWARD_DOMAIN'){
-            multiSearchSqlStatement = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
-        }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-            multiSearchSqlStatement = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
-        }else if(table === 'CATALOG_ENTITIES'){
-            multiSearchSqlStatement = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
-        }else if(table === 'DATA_STEWARD'){
-            multiSearchSqlStatement = search_multi_field_catalog_DataSteward(currentSearchObj);
-        }else if(table === 'DATA_DOMAIN'){
-            multiSearchSqlStatement = search_multi_field_catalog_DataDomain(isAdmin, caseSteward, currentSearchObj);
-        }
-            
-        debug && console.log(multiSearchSqlStatement);
-
-        return multiSearchSqlStatement;
-    }
 
     const getSingleSearchObj = (currentSearchObj) => {
         console.log(table);
@@ -259,7 +201,8 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
     }
 
     return (
-        Object.keys(currentSearchCriteria).length > 0 
+        <div>
+            {Object.keys(currentSearchCriteria).length > 0 
             ?
             <div style={{ 
                 'display': 'flex', 
@@ -270,7 +213,8 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
 
                 <Filters />
             </div>
-            : null
+            : null}
+        </div>
     )
 }
 

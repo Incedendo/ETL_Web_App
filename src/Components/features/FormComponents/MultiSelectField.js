@@ -3,7 +3,7 @@ import {  Field } from 'formik';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ReactMultiSelectCheckboxes from 'react-multiselect-checkboxes';
 
-const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, touched, errors, submitted }) => {
+const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, touched, errors }) => {
 
     useEffect(() => {
         let mounted = true;
@@ -37,7 +37,7 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, to
     const [options, setOptions] = useState([]);
 
     const printChange = (values, setFieldValue, field) =>{
-        // console.log(values);
+        console.log(errors);
         let selectedOptions = [];
         values.map(option => selectedOptions.push(option['label']));
 

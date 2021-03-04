@@ -22,7 +22,7 @@ const SearchSizeSlider = () => {
     }, [doneDragging])
 
     return (
-        <div style={{marginLeft: '20px', float: 'right'}}>
+        <div style={{float: 'left'}}>
           <span style={{marginRight: '15px'}}>{'Maximum Search Results: ' + localSteps.x}</span>
           <Slider
             axis="x"

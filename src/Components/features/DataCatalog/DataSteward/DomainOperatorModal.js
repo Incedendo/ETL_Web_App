@@ -16,7 +16,7 @@ const DomainOperatorModal = () => {
                 onClick={() => {
                     setShow(true);
                 }}>
-                Add Domain Operator
+                Set Domain Admin
             </Button>
 
             <Modal
@@ -29,7 +29,7 @@ const DomainOperatorModal = () => {
             >
                 <Modal.Header closeButton>
                     <Modal.Title id="example-custom-modal-styling-title">
-                    Domain Operator
+                    Domain Admin
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>

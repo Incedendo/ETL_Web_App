@@ -397,10 +397,9 @@ export const WorkspaceProvider = (props) => {
             // if(table !== 'CATALOG_ENTITY_DOMAIN' && table !== 'DATA_STEWARD_DOMAIN'){
             //     headers.push("EDITABLE");
             // }
-            // if(["CATALOG_ENTITIES","CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0){
-            //     headers.push('DATA_STEWARD');
-            //     headers.push('DOMAIN_OPERATOR');
-            // }
+            if(["CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0){
+                headers.unshift('TARGET_TABLE');
+            }
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
                 // console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
                 headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);

@@ -272,15 +272,9 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
             //
         }
     }else if(table === 'CATALOG_ENTITIES'){
-        if(destinationTable === 'CATALOG_ITEMS'){
-            // privilegeLogic = getPrivilegeItemsLineage(isAdmin, isSteward, username);
+        if(destinationTable === 'CATALOG_ITEMS' || destinationTable === 'CATALOG_ENTITY_LINEAGE'){
             selectCriteria = `SELECT C2.*, D.*, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
-            body =  sql_linking_catalogEntities_To_Item_Lineage(value, 'CATALOG_ITEMS'); 
-            //
-        }else if(destinationTable === 'CATALOG_ENTITY_LINEAGE'){
-            // privilegeLogic = getPrivilegeItemsLineage(isAdmin, isSteward, username);
-            selectCriteria = `SELECT C2.*, D.*, row_number() OVER(ORDER BY D.CATALOG_ENTITIES_ID ASC) RN`;
-            body = sql_linking_catalogEntities_To_Item_Lineage(value, 'CATALOG_ENTITY_LINEAGE') //!!!!!!!!!!!!!!!!!!!
+            body =  sql_linking_catalogEntities_To_Item_Lineage(value, destinationTable); 
             //
         }else if(destinationTable === 'DATA_DOMAIN'){
             selectCriteria = `SELECT DD.*, row_number() OVER(ORDER BY DD.DATA_DOMAIN_ID ASC) RN`

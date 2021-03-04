@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AdminContext } from '../../context/AdminContext';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import { WorkspaceContext } from '../../context/WorkspaceContext';
 import '../../../css/mymodal.scss';
 import '../../../css/rowExpansion.scss';
 import DataStewardEditor from './DataStewardEditor';

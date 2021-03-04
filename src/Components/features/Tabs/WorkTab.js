@@ -48,7 +48,7 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
                 <span style={{ 'marginLeft': '15px' }}>loading...</span>
             </div>
         : <div style={{
-                "marginBottom":"30px",
+                "marginBottom":"15px",
             }}>
                 <div style={{
                     "display": "inline-block",
@@ -152,7 +152,7 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
                 <div style={{ 
                     'display': 'flex', 
                     'float': 'left',
-                    "marginBottom": "10px"
+                    // "marginBottom": "10px"
                 }}>
                     <span style={{ 'fontWeight': 'bold', 'marginRight': '5px' }}>Linked from: </span>
                     { linkState['filterState']['table'] } ({ linkState['filterState']['value'] })
@@ -160,18 +160,20 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
             }
 
             {tableLoaded && 
-                <>
-                    <div style={{display: 'flex'}}>
-                        <SearchResultInfo />
-                        <SearchFilter 
-                            currentSearchCriteria={currentSearchCriteria}
-                            setCurrentSearchCriteria={setCurrentSearchCriteria}
-                        />
-                        <SearchSizeSlider/>
+                <div>
+                    <div style={{display: 'flex', marginBottom: '15px'}}> 
+                        <div>
+                            <SearchResultInfo />
+                            <SearchSizeSlider/>
+                            <SearchFilter 
+                                currentSearchCriteria={currentSearchCriteria}
+                                setCurrentSearchCriteria={setCurrentSearchCriteria}
+                            />
+                        </div>
                     </div>
                     
                     <ConfigurationGrid/>
-                </>
+                </div>
             }
 
             {tableSearching && <div>seaching...</div>}

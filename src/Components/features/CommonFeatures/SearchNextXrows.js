@@ -52,7 +52,7 @@ const SearchNextXrows = () => {
         const newHi = lo - 1 > 0 ? lo - 1 : 1
         setHi(newHi);
 
-        const newLo = lo - steps >= 1 ? newLo : 1
+        const newLo = lo - steps >= 1 ? lo - steps : 1
         setLo(newLo);
         
         setFetching(true);
