@@ -17,7 +17,8 @@ const DomainOperatorForm = ({ }) => {
     const { authState } = useOktaAuth();
 
     const {
-        debug, username
+        debug, username,
+        performAuditOperation
     } = useContext(WorkspaceContext);
 
     const {
@@ -57,6 +58,8 @@ const DomainOperatorForm = ({ }) => {
                 ON DSD.DATA_STEWARD_ID = DS.DATA_STEWARD_ID
                 WHERE DS.EMAIL = UPPER(TRIM('` + username + `'));`;
             }
+
+            debug && console.log(sql);
 
             axios.get(SELECT_URL, {
                 headers: {
@@ -124,7 +127,7 @@ const DomainOperatorForm = ({ }) => {
             st.DOMAIN_AUTHORIZATION_ID, st.USERNAME, st.DOMAIN
         );`
 
-        console.log(sql);
+        debug && console.log(sql);
     
         return sql;
     } 
@@ -137,20 +140,27 @@ const DomainOperatorForm = ({ }) => {
                 },
             }
 
+            let insert_status = 'FAILURE';
+            const sqlMergeStatement = assignOperatorToDomainsSQL(values.email, values.domains);
+
             axios.post(INSERT_URL, {
-                'sqlStatement': assignOperatorToDomainsSQL(values.email, values.domains)
+                'sqlStatement': sqlMergeStatement
             }, options)
             .then(response => {
-                console.log(response);
+                debug && console.log(response);
                 setInsertMessage("Insert Success");
                 setInsertMessageClassname('successSignal');
+                insert_status = 'SUCCESS';
             })
             .catch(err => {
-                console.log(err.message);
+                debug && console.log(err.message);
                 setInsertMessage("Insert Failed");
                 setInsertMessageClassname('errorSignal');
             })
-            .finally(() => setValidating(false));
+            .finally(() => {
+                setValidating(false);
+                performAuditOperation('INSERT', ['email', 'domains'], values, 'DOMAIN_AUTHORIZATION', sqlMergeStatement, insert_status);
+            });
         }
     }
 
@@ -168,7 +178,7 @@ const DomainOperatorForm = ({ }) => {
 
                 //destructure the action obj into {setSubmitting}
                 onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
-                    console.log('values: ', values);
+                    debug && console.log('values: ', values);
                     assignOperatorToDomains(values);
                     setValidating(true);
                     resetForm();
@@ -218,7 +228,7 @@ const DomainOperatorForm = ({ }) => {
                                 }
 
                                 {(!loading && domains.length===0)
-                                && <span style={{marginLeft: '10px', color: 'red'}}>Error: You own zero Domains</span>
+                                && <span style={{marginLeft: '10px', color: 'red'}}>You own zero Domains</span>
                                 }   
                                 {/* <Form.Control
                                     as="select"

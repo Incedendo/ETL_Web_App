@@ -298,7 +298,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     let GroupIDOptions = [<option key='base' value='' >Select an item</option>];
     appIDs.map(item => GroupIDOptions.push(<option key={item} value={item}>{item}</option>));
     
-    console.log(dropdownFields['GROUP_ID']);
+    debug && console.log(dropdownFields['GROUP_ID']);
 
     let updatedFields = [...fields];
     updatedFields.splice(updatedFields.indexOf('GROUP_ID'), 1);
@@ -306,7 +306,7 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
     const handleDropDownField = value => {
         if(value === 'Select an item'){
-            console.log("setting empty string");
+            debug && console.log("setting empty string");
             setSourceTable('');
         }else
             setSourceTable(value);
@@ -429,7 +429,6 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
 
                                     {Object.keys(errors).length > 0 && <span className="error-span">* Please fill in ALL required fields.</span>}
 
-
                                     <SubmitButton 
                                         validating={validating}
                                         errors={errors}
@@ -437,7 +436,6 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
                                         defaultName={'Create Job'}
                                         SpinningName={'Validating Job...'}
                                     />
-                                    
 
                                 </Form>
                             )}

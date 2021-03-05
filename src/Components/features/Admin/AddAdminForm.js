@@ -17,7 +17,8 @@ const AddAdminForm = () => {
     const { authState } = useOktaAuth();
 
     const {
-        debug, username
+        debug, username,
+        performAuditOperation
     } = useContext(WorkspaceContext);
 
     const schema = yup.object({
@@ -56,7 +57,7 @@ const AddAdminForm = () => {
         WHEN NOT matched THEN
         INSERT ( USERNAME ) VALUES ( UPPER(TRIM(st.USERNAME)) );`
 
-        console.log(sql);
+        debug && console.log(sql);
     
         return sql;
     } 
@@ -68,21 +69,28 @@ const AddAdminForm = () => {
                     'Content-Type': 'application/json'
                 },
             }
-    
+
+            let insert_status = 'FAILURE';
+            const sqlMergeStatement = addAdminSQL(values.email);
+            
             axios.post(INSERT_URL, {
-                'sqlStatement': addAdminSQL(values.email)
+                'sqlStatement': sqlMergeStatement
             }, options)
             .then(response => {
-                console.log(response);
+                debug && console.log(response);
                 setInsertMessage("Insert Success");
                 setInsertMessageClassname('successSignal');
+                insert_status = 'SUCCESS';
             })
             .catch(err => {
-                console.log(err.message);
+                debug && console.log(err.message);
                 setInsertMessage("Insert Failed");
                 setInsertMessageClassname('errorSignal');
             })
-            .finally(() => setValidating(false));
+            .finally(() => {
+                setValidating(false);
+                performAuditOperation('INSERT', ['email'], values, 'DOMAIN_AUTHORIZATION', sqlMergeStatement, insert_status);
+            });
         }
     }
 
@@ -100,7 +108,7 @@ const AddAdminForm = () => {
 
                 //destructure the action obj into {setSubmitting}
                 onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
-                    console.log('values: ', values);
+                    debug && console.log('values: ', values);
                     addAdmin(values);
                     resetForm();
                     setValidating(true);

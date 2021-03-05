@@ -87,7 +87,7 @@ const CommandButton = ({ privilege, onExecute, icon, text, hint, color }) =>{
 }
 
 const AddButton = ({ onExecute, privilege }) => {
-  console.log('add button: ', privilege);
+  // console.log('add button: ', privilege);
   return(
     <CommandButton icon="plus" hint="Create new row" onExecute={onExecute} privilege={privilege} />
   );

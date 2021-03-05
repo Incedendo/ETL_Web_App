@@ -4,7 +4,7 @@ const PrimaryKeyField = ({
     fieldArray, pending 
 }) => {
 
-    console.log('non-editable Comp: ', fieldArray)
+    // console.log('non-editable Comp: ', fieldArray)
     return (
         <div key={fieldArray} style={{ 
             'display': 'inline', 'marginRight': '10px',

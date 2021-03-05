@@ -122,7 +122,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
     useEffect(() =>{
         if(linkState !== undefined){
-            console.log(linkState);
+            debug && console.log(linkState);
             setTable(linkState['table']);
             // setTableLoaded(false);
             setCommingFromLink(true);
@@ -130,7 +130,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
         }else{
             //linkstate is undefined, show default first table and show the search modal.
-            console.log("linkstate is undefined..., default is to set table to DATA_DOMAIN!!!");
+            debug && console.log("linkstate is undefined..., default is to set table to DATA_DOMAIN!!!");
             setTable('DATA_DOMAIN');
             
             setShownModalUponChangingTable(true);
@@ -139,13 +139,13 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setCommingFromLink(false);
         }
         
-        // console.log(dropdownFields);
+        // debug && console.log(dropdownFields);
     }, []);
 
     // useEffect(() => {
     //     if(DATA_CATALOG_TABLE.indexOf(table) >= 0){
-    //         // console.log("Table: " + table);
-    //         // console.log("only show Search Modal if table is in Data Catalog???")
+    //         // debug && console.log("Table: " + table);
+    //         // debug && console.log("only show Search Modal if table is in Data Catalog???")
     //         setShownModalUponChangingTable(true);
     //     }
     // }, [table])
@@ -161,7 +161,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
     useEffect(()=>{
         // if(linkState !== undefined){
         if(loadedConfig ){
-            console.log("Config loaded in Data Control Panels....");           
+            debug && console.log("Config loaded in Data Control Panels....");           
         }
     }, [loadedConfig]);
 
@@ -174,15 +174,15 @@ const DatCat_ControlPanel = ({ linkState }) => {
     useEffect(()=>{
         // if(linkState !== undefined){
         if(loadedConfig && comingFromLink && columnsLoaded){
-            console.log("Immediately get linked result based on Link state's params");
+            debug && console.log("Immediately get linked result based on Link state's params");
 
             const countStmt = linkState['countStmt'];
             const searchStmt = linkState['searchStmt'];
             const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
 
-            // console.log(countStmt);
-            // console.log(searchStmt);
-            // console.log(primaryKey);
+            // debug && console.log(countStmt);
+            // debug && console.log(searchStmt);
+            // debug && console.log(primaryKey);
             
             // axiosCallToGetTableRows(searchStmt, primaryKey);      
             
@@ -191,12 +191,12 @@ const DatCat_ControlPanel = ({ linkState }) => {
     }, [loadedConfig, comingFromLink, columnsLoaded]);
 
     useEffect(() =>{
-        console.log(fields);
+        debug && console.log(fields);
     }, [fields]);
 
     useEffect(() =>{
-        console.log(dropdownFields);
-        console.log(dropdownObject);
+        debug && console.log(dropdownFields);
+        debug && console.log(dropdownObject);
     }, [dropdownFields,dropdownObject]);
 
     
@@ -211,7 +211,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
         mounted.current = true;
 
         setLoadedConfig(false);
-        console.log(table);
+        debug && console.log(table);
         if(table === 'DATA_STEWARD_DOMAIN'){
             prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
@@ -254,7 +254,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
             })//have to setState in .then() due to asynchronous opetaions
             .then(response => {
                 // returning the data here allows the caller to get it through another .then(...)
-                // console.log('---------GET RESPONSE-----------');
+                // debug && console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
 
                 let domainObj = {}
@@ -292,13 +292,13 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 .catch(error => {
                     debug && console.log(error);
                 }).finally(()=>{
-                    console.log(dropdownObj);
+                    debug && console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
                         'DOMAIN': Object.keys(dropdownObj['DOMAIN']), 
                         'EMAIL': Object.keys(dropdownObj['EMAIL']) 
                     }
-                    console.log(dropdownCompositeFields);
+                    debug && console.log(dropdownCompositeFields);
                     if(mounted.current){
                         setDropdownObject(dropdownObj);
                         setDropdownFields(dropdownCompositeFields);
@@ -382,7 +382,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 .catch(error => {
                     debug && console.log(error);
                 }).finally(()=>{
-                    console.log(dropdownObj);
+                    debug && console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
                         'DOMAIN': Object.keys(dropdownObj['DOMAIN']), 
@@ -454,7 +454,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
 
     const updateYupSchemaBasedOnTable = () => {
         
-        console.log(table);
+        debug && console.log(table);
 
         const requiredColumns = [
             'EMAIL', 'FNAME', 'LNAME',//DATA_STEWARD
@@ -483,7 +483,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
             let formValidationsInfo = [];
             
             let requiredFields = Object.keys(fieldTypesConfigs[table]["dataTypes"]);
-            console.log(requiredFields);
+            debug && console.log(requiredFields);
             requiredFields.map(col => {
                 let custom_config = {};
                 custom_config.id = col;
@@ -561,7 +561,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                         options={taleOptions}
                         isDisabled={!columnsLoaded}
                         onChange={(val)=>{
-                            // console.log(val);
+                            // debug && console.log(val);
                             let item = val.value;
                             if (item !== table) {
                                 setTable(item);
@@ -710,7 +710,7 @@ const DropDownSelect = ({
             // isMulti
             options={options}
             onChange={(val)=>{
-                console.log(val);
+                debug && console.log(val);
                 handleAddSearchField(val.value);
             }}
         />

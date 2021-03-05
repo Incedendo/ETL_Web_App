@@ -90,7 +90,7 @@ const ProductionPromotionForm = ({ setShow }) => {
             })//have to setState in .then() due to asynchronous opetaions
             .then(response => {
                 // returning the data here allows the caller to get it through another .then(...)
-                // console.log('---------GET RESPONSE-----------');
+                // debug && console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
 
                 if(mounted){
@@ -200,7 +200,7 @@ const ProductionPromotionForm = ({ setShow }) => {
         WHEN matched THEN
         UPDATE SET TT.IN_PRODUCTION = 'YES';`           
 
-        console.log(updateSQL);
+        debug && console.log(updateSQL);
 
         const data = {
             sqlUpdateStatement: updateSQL,
@@ -261,7 +261,7 @@ const ProductionPromotionForm = ({ setShow }) => {
 
                 //destructure the action obj into {setSubmitting}
                 onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
-                    console.log('values: ', values);
+                    debug && console.log('values: ', values);
                     promoteTablesToProd(values);
                     setValidating(true);
                     resetForm();

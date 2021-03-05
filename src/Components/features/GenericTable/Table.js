@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ConfigurationGrid from '../GridComponents/Grids/ConfigurationGrid';
-import DatCat_ControlPanel from '../DataCatalog/DatCat_ControlPanel';
+import DatCat_ControlPanel from '../DataCatalog/DatCat_ControlPanelLinked';
 
 const TABLESNOWFLAKE_URL = 'https://jda1ch7sk2.execute-api.us-east-1.amazonaws.com/dev/table-snowflake';
 const ARN_APIGW_GET_TABLE_SNOWFLAKE = 'arn:aws:execute-api:us-east-1:516131926383:9c4k4civ0g/*/GET/table-snowflake';
@@ -12,6 +12,7 @@ const Table = ({ privilege, tableName, route, isDataCatalog, linkState }) => {
     const { authState } = useOktaAuth();
 
     const {
+        debug,
         setTable,
         tableLoaded,setTableLoaded,
     } = useContext(WorkspaceContext);

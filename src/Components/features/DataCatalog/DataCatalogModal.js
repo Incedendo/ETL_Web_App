@@ -31,9 +31,9 @@ const DataCatalogModal = ({
         setItem(tableItems[table]);
     }, [table]);
 
-    // console.log("isSteward: " + isSteward);   
-    // console.log("isDomainOperator: " + isDomainOperator);  
-    // console.log("can operate 3 last table: " + (!isDomainOperator && !isSteward)) ;
+    // debug && console.log("isSteward: " + isSteward);   
+    // debug && console.log("isDomainOperator: " + isDomainOperator);  
+    // debug && console.log("can operate 3 last table: " + (!isDomainOperator && !isSteward)) ;
 
     return (
         <div style={{ 'float': 'left' }}>

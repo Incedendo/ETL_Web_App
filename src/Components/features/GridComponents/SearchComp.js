@@ -6,6 +6,7 @@ import '../../../css/workspace.scss';
 const SearchComp = () => {
 
     const {
+        debug,
         table,
         tableSearching, setTableSeaching,
         tableLoading,
@@ -18,7 +19,7 @@ const SearchComp = () => {
     function searchOneKey() {
         const url = 'https://9c4k4civ0g.execute-api.us-east-1.amazonaws.com/dev/search';
 
-        console.log(url)
+        debug && console.log(url)
         setTableSeaching(true);
 
         let value = searchValue.replace(/'/g, "\\'");
@@ -34,8 +35,8 @@ const SearchComp = () => {
         })
             .then(response => {
                 // returning the data here allows the caller to get it through another .then(...)
-                console.log('---------------------');
-                console.log(response.data);
+                debug && console.log('---------------------');
+                debug && console.log(response.data);
 
                 const data = response.data.rows ? response.data.rows : response.data;
                 data.map(row => row.PRIVILEGE === 'rw' ? row.PRIVILEGE = "READ/WRITE" : row.PRIVILEGE = "READ ONLY")
@@ -47,7 +48,7 @@ const SearchComp = () => {
                 setTableSeaching(false);
             })
             .catch(err => {
-                console.log(err);
+                debug && console.log(err);
             })
     }
 

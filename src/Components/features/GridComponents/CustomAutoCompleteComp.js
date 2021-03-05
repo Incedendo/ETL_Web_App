@@ -21,7 +21,7 @@ const getSuggestions = (list, value) => {
     const inputValue = value.trim().toLowerCase();
     const inputLength = inputValue.length;
 
-    console.log(list);
+    // console.log(list);
 
     const suggestions = inputLength === 0 ? [] : list.filter(table =>
         RegExp(inputValue).test(table.toLowerCase())
@@ -35,6 +35,7 @@ const getSuggestionValue = suggestion => suggestion;
 const CustomAutoCompleteComp = ({ list, setTarget, isLoading, autoSuggestModalClassName }) => {
 
     const {
+        debug,
         tableLoading, tableSearching,
     } = useContext(WorkspaceContext);
 
@@ -50,14 +51,14 @@ const CustomAutoCompleteComp = ({ list, setTarget, isLoading, autoSuggestModalCl
     }, [loading])
 
     const onChange = (event, { newValue }) => {
-        console.log(newValue)
+        debug && console.log(newValue)
         setValue(newValue)
     };
 
     // Autosuggest will call this function every time you need to update suggestions.
     // You already implemented this logic above, so just use it.
     const onSuggestionsFetchRequested = ({ value }) => {
-        console.log('fetching suggestions... for value:', value)
+        debug && console.log('fetching suggestions... for value:', value)
         const suggestions = getSuggestions(list, value)
         setSuggestions(suggestions)
     };

@@ -110,20 +110,20 @@ const IDAssignmentForm = ({ setShow }) => {
             }
 
             const sql = assignGroupsToUserSQL(values.email, values.groupIDs);
-            console.log(sql);
+            debug && console.log(sql);
 
             axios.post(INSERT_URL, {
                 'sqlStatement': sql
             }, options)
             .then(response => {
-                console.log(response);
+                debug && console.log(response);
                 if(mounted.current) {
                     setInsertMessage("Insert Success");
                     setInsertMessageClassname('successSignal');
                 }
             })
             .catch(err => {
-                console.log(err.message);
+                debug && console.log(err.message);
                 if(mounted.current) {
                     setInsertMessage("Insert Failed");
                     setInsertMessageClassname('errorSignal');
@@ -152,7 +152,7 @@ const IDAssignmentForm = ({ setShow }) => {
 
                 //destructure the action obj into {setSubmitting}
                 onSubmit={(values, { resetForm }) => {
-                    console.log('values: ', values);
+                    debug && console.log('values: ', values);
                     assignGroupIDs(values);
                     resetForm();
                 }}

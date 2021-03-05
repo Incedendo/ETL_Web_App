@@ -98,7 +98,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     }, [appIDs]);
 
     useEffect(() => {
-        console.log("routeOptions: ", routeOptions);
+        debug && console.log("routeOptions: ", routeOptions);
         setRequiredFields({});
         setOptionalFields({});
         setFields([]);
@@ -111,11 +111,11 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
             setRouteID(routeID);
             setActionID(actionID);
-            console.log("Route ID: ", routeID, ", Action ID: " + actionID);
+            debug && console.log("Route ID: ", routeID, ", Action ID: " + actionID);
 
-            console.log("current route: ", currentRoute);
-            console.log(routeConfigs)
-            console.log("required fields for this route-action: ", routeConfigs[currentRoute][actionID]);
+            debug && console.log("current route: ", currentRoute);
+            debug && console.log(routeConfigs)
+            debug && console.log("required fields for this route-action: ", routeConfigs[currentRoute][actionID]);
             
             if(extractConfigID !== null){
                 setInitialStates({
@@ -214,7 +214,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
                 }
             })
         }
-        console.log(routeID);
+        debug && console.log(routeID);
     }, [routeID]);
 
     useEffect(() => {
@@ -226,7 +226,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
                 }
             })
         }
-        console.log(actionID);
+        debug && console.log(actionID);
 
     }, [actionID]);
 
@@ -243,10 +243,10 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     //             }
     //         })
     //     }
-    //     console.log(routeID);
-    //     console.log(actionID);
-    //     console.log(sourceID);
-    //     console.log(targetID);
+    //     debug && console.log(routeID);
+    //     debug && console.log(actionID);
+    //     debug && console.log(sourceID);
+    //     debug && console.log(targetID);
 
     // }, [routeID,actionID,sourceID,targetID]);
 
@@ -415,7 +415,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         if(updatedSystemName !== 'FILE' && updatedSystemName.toLowerCase() in system_configs){            
             let system_id_desc = [];
 
-            console.log("system name: " + updatedSystemName);
+            debug && console.log("system name: " + updatedSystemName);
     
             const system_data = system_configs[updatedSystemName.toLowerCase()];
 
@@ -439,9 +439,9 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     }
 
     const updateFormRequiredColumns = value => {
-        console.log(routeConfigs);
-        console.log(routeOptions);
-        console.log(value);
+        debug && console.log(routeConfigs);
+        debug && console.log(routeOptions);
+        debug && console.log(value);
 
         setRequiredFields({});
         setOptionalFields({});
@@ -457,7 +457,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     
         const { accessToken } = authState;
 
-        console.log(value);
+        debug && console.log(value);
 
         const route = (value.split(':'))[1].trim();
 
@@ -474,7 +474,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         getSystemIDs(routeConfigs[route].TGT_TECH, 'target', setTargetID);
 
         prepareRequiredFields(routeConfigs[route][actionID]);
-        console.log(routeConfigs[route][actionID]);
+        debug && console.log(routeConfigs[route][actionID]);
 
         const SELECT_REQUIRED_FIELDS_SQL = `SELECT A.COLUMN_NAME, B.DATA_TYPE, A.REQUIRED, A.CHECK_STR 
         FROM SHARED_TOOLS_DEV.ETL.ETLF_ROUTE_COLUMNS A
@@ -502,7 +502,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
         })
         //have to setState in .then() due to asynchronous opetaions
         .then(response => {
-            console.log('Required fields for route: ', response.data);
+            debug && console.log('Required fields for route: ', response.data);
             prepareRequiredFields(response.data);
             setLoadingRouteConfig(false);
         })
@@ -511,8 +511,8 @@ const RouteDataLoader = ({ setActionModalShow }) => {
     }
 
     const prepareRequiredFields = data => {
-        console.log("Calling prepareRequiredFields when route changed....")
-        console.log(data);
+        debug && console.log("Calling prepareRequiredFields when route changed....")
+        debug && console.log(data);
         required_Fields_Obj = {};
         let temp_fields = [];
         // let required_fields = [];
@@ -521,7 +521,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
         let modifiedData = data.filter(item => item.COLUMN_NAME !== 'ROUTE_ID' && item.COLUMN_NAME !== 'ACTION_ID')
 
-        console.log(modifiedData);
+        debug && console.log(modifiedData);
 
         modifiedData.map(item => {
             let field_name = item.COLUMN_NAME;
@@ -602,7 +602,7 @@ const RouteDataLoader = ({ setActionModalShow }) => {
 
         yup_schema = yup.object().shape(temp_schema);
 
-        console.log("Yup Schema: ", yup_schema);
+        debug && console.log("Yup Schema: ", yup_schema);
 
         //have to use setState here to FORCE UPDATE the object in the form
         setValidationSchema(yup_schema);

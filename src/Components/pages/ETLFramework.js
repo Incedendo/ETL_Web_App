@@ -56,15 +56,15 @@ const ETLFramework = (props) => {
     //         const {
     //             accessToken
     //         } = authState;
-    //         console.log(accessToken);
+    //         debug && debug && console.log(accessToken);
     //     }
     // }, [authState]);
 
     const checkAuthentication = async () => {
-        debug && console.log('awaiting authentication....')
+        debug && debug && debug && console.log('awaiting authentication....')
         const isAuthenticated = await props.auth.isAuthenticated();
         if (isAuthenticated !== authenticated) {
-            debug && console.log('set authentication....', isAuthenticated)
+            debug && debug && console.log('set authentication....', isAuthenticated)
             setAuthenticated(isAuthenticated);
         }
     };
@@ -89,11 +89,11 @@ const ETLFramework = (props) => {
 
     useEffect(() => {
         setLoadingAppIDs(false);
-        debug && console.log('APP IDs', appIDs);
+        debug && debug && console.log('APP IDs', appIDs);
     }, [appIDs])
 
     useEffect(() => {
-        debug && console.log('Update Button Clicked, editMode: ', editMode);
+        debug && debug && console.log('Update Button Clicked, editMode: ', editMode);
     }, [editMode])
 
     //load once when componentDidMount
@@ -117,11 +117,11 @@ const ETLFramework = (props) => {
         // })
         //     .then(response => {
         //         // returning the data here allows the caller to get it through another .then(...)
-        //         debug && console.log(response.data);
+        //         debug && debug && console.log(response.data);
         //         setTokenVerified(true);
         //     })
         //     .catch(err => {
-        //         debug && console.log(err);
+        //         debug && debug && console.log(err);
         //         setTokenVerified(false);
         //     })
 
@@ -206,10 +206,10 @@ const ETLFramework = (props) => {
                     <Tabs defaultActiveKey="Configuration" transition={false} id="noanim-tab-example"
                         onSelect={(eventKey)=>{
                             if (eventKey ==="Configuration"){
-                                debug && console.log("Config Tab");
+                                debug && debug && console.log("Config Tab");
                                 setTable("ETLF_EXTRACT_CONFIG");
                             } else if (eventKey === "Jobs"){
-                                debug && console.log("Configuration Tab");
+                                debug && debug && console.log("Configuration Tab");
                                 setTable("ETLFCALL");
                             } 
                         }}

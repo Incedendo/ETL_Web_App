@@ -8,7 +8,7 @@ const SubmitDatCatButton = ({ table, isSubmitting, validating, inserting, errors
     const [variant, setVariant] = useState('outline-primary');
 
     useEffect(() => {
-        console.log(touched);
+        // console.log(touched);
         if(Object.keys(touched).length){
             Object.keys(errors).length ? setVariant('outline-danger') : setVariant('outline-success');
         }

@@ -13,81 +13,8 @@ const startingHi = steps;
 
 const selectCount = `SELECT COUNT(*) as COUNT`;
 const caseAdmin = `'READ/WRITE' as PRIVILEGE`;
-    
-const caseOperator = `CASE
-    WHEN AA.USERNAME IS NOT NULL
-    THEN 'READ/WRITE'
-    ELSE 'READ ONLY'
-END AS PRIVILEGE`;
 
-const getPrivilege3cases = (isAdmin, isSteward, username) => {
-    const caseSteward = `CASE
-        WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
-        THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE`;
-
-    let privilegeLogic = ``;
-    if(isAdmin){
-        privilegeLogic = caseAdmin;
-    }else if(isSteward){
-        privilegeLogic = caseSteward;
-    }else{
-        privilegeLogic = caseOperator;
-    }
-
-    return privilegeLogic;
-}
-
-const getPrivilege2cases = (isAdmin, username) => {
-    const caseSteward = `CASE
-        WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
-        THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE`;
-
-    let privilegeLogic = ``;
-    if(isAdmin){
-        privilegeLogic = caseAdmin;
-    }else{
-        privilegeLogic = caseSteward;
-    }
-
-    return privilegeLogic;
-}
-
-const getPrivilegeItemsLineage = (isAdmin, isSteward, username) => {
-    const caseSteward = `CASE
-        WHEN J.EMAIL = UPPER(TRIM('` + username + `'))
-        THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE`;
-
-    const caseOperator = `CASE
-        WHEN J.USERNAME IS NOT NULL
-        THEN 'READ/WRITE'
-        ELSE 'READ ONLY'
-    END AS PRIVILEGE`;
-
-    let privilegeLogic = ``;
-    if(isAdmin){
-        privilegeLogic = caseAdmin;
-    }else if(isSteward){
-        privilegeLogic = caseSteward;
-    }else{
-        privilegeLogic = caseOperator;
-    };
-
-    return privilegeLogic;
-}
-
-const sql_linking_Lineage_To_ETLF_Extract_Config = (value) => {
-    const sql = `SELECT EC.*, COALESCE(A.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY EC.ETLF_EXTRACT_CONFIG ASC) RN
-    FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EC
-    LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" A
-    ON EC.GROUP_ID = A.APP_ID
-    WHERE UPPER(TRIM(EC.EXTRACT_CONFIG_ID)) = UPPER(TRIM('`+ value + `'));`;
-    // ` + getSearchFieldValueExact(searchObj) + `;`
+const sql_linking_Lineage_To_ETLF_Extract_Config = value => {
 
     const body = `
     FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EC
@@ -99,8 +26,6 @@ const sql_linking_Lineage_To_ETLF_Extract_Config = (value) => {
 }
 
 const sql_linking_dataSteward_To_dataDomain = value => {
-    console.log('sql_linking_dataSteward_To_dataDomain...');
-    console.log(value);
 
     const body = `
     FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
@@ -110,14 +35,11 @@ const sql_linking_dataSteward_To_dataDomain = value => {
     ON DSD.DATA_STEWARD_ID = DS.DATA_STEWARD_ID
     WHERE UPPER(TRIM(DS.DATA_STEWARD_ID)) = UPPER(TRIM('` + value + `'))
     `
-    // console.log(sql);
 
     return body;
 }
 
 const sql_linking_dataDomain_To_dataSteward = value => {
-    console.log('sql_linking_dataDomain_To_dataSteward...');
-    console.log(value);
 
     const body = `
     FROM SHARED_TOOLS_DEV.ETL.DATA_STEWARD DS
@@ -128,31 +50,22 @@ const sql_linking_dataDomain_To_dataSteward = value => {
     WHERE UPPER(TRIM(DD.DATA_DOMAIN_ID)) = UPPER(TRIM('` + value + `'))
     `;
 
-    console.log(body);
-
     return body;
 }
 
 const sql_linking_dataDomain_To_catalogEntities = value => {
-    console.log('sql_linking_dataDomain_To_catalogEntities...');
-    console.log(value);
-
     const body = `
     FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN B 
     ON (E.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
     LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DATA_DOMAIN C
     ON (B.DATA_DOMAIN_ID = C.DATA_DOMAIN_ID )
-    WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) = UPPER(TRIM('` + value + `'))`
-
-    // console.log(sql);
+    WHERE UPPER(TRIM(C.DATA_DOMAIN_ID)) = UPPER(TRIM('` + value + `'))`;
 
     return body;
 }
 
 const sql_linking_catalogEntities_To_dataDomain = value => {
-    console.log('sql_linking_catalogEntities_To_dataDomain...');
-    console.log(value);
 
     const body = `
     FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
@@ -165,8 +78,6 @@ const sql_linking_catalogEntities_To_dataDomain = value => {
 
 //missing domain
 const sql_linking_catalogEntities_To_Item_Lineage = (value, destination) => {
-    console.log('sql_linking_catalogEntities_To_catalogItems...');
-    console.log(value);
 
     const body = ` 
     FROM SHARED_TOOLS_DEV.ETL.` + destination + ` D
@@ -182,8 +93,6 @@ const sql_linking_catalogEntities_To_Item_Lineage = (value, destination) => {
 }
 
 const sql_linking_ItemsLineage_To_CatalogEntities = value => {
-    console.log('sql_linking_catalogItems_To_catalogEntities...');
-    console.log(value);
 
     const sql = `
     FROM (
@@ -195,31 +104,27 @@ const sql_linking_ItemsLineage_To_CatalogEntities = value => {
     return sql;
 }
 
-const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = (isAdmin, isSteward, username, value) => {
-    console.log('sql_linking_ETLF_Extract_Config_To_catalogEntityLineage...');
-    console.log(value);
+const sql_linking_ETLF_Extract_Config_To_catalogEntityLineage = value => {
 
     const body = `
     FROM "SHARED_TOOLS_DEV"."ETL"."CATALOG_ENTITY_LINEAGE" A
-    // INNER JOIN (
-    //     SELECT TARGET_DATABASE, TARGET_SCHEMA, TARGET_TABLE, CATALOG_ENTITIES_ID
-    //     FROM (
-    //         SELECT *
-    //         FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
-    //     ) 
-    // ) D
-    // ON A.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
+    INNER JOIN (
+        SELECT TARGET_TABLE, CATALOG_ENTITIES_ID
+        FROM (
+            SELECT *
+            FROM SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES
+        ) 
+    ) D
+    ON A.CATALOG_ENTITIES_ID = D.CATALOG_ENTITIES_ID
     WHERE UPPER(TRIM(A.EXTRACT_CONFIG_ID)) = UPPER(TRIM('` + value + `'))`
 
     return body;
 }
 
-const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinationTable, value) => {
+const getBodyAndSelectCriteria = (username, table, destinationTable, value) => {
     let privilegeLogic = '';
     let selectCriteria = '';
     let body = '';
-    let searchStmt='';
-    // console.log("table: " + table);
 
     const caseSteward = `CASE
         WHEN DS.EMAIL = UPPER(TRIM('` + username + `'))
@@ -229,9 +134,9 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
 
     if(table === 'ETLF_EXTRACT_CONFIG'){
         // selectCriteria = 'SELECT D.TARGET_DATABASE, D.TARGET_SCHEMA, D.TARGET_TABLE, A.*, row_number() OVER(ORDER BY A.CATALOG_ENTITY_LINEAGE_ID ASC) RN'
-        selectCriteria = 'SELECT A.*, row_number() OVER(ORDER BY A.CATALOG_ENTITY_LINEAGE_ID ASC) RN'
+        selectCriteria = 'SELECT A.*, D.TARGET_TABLE, row_number() OVER(ORDER BY A.CATALOG_ENTITY_LINEAGE_ID ASC) RN'
         
-        body = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(isAdmin, isSteward, username, value);
+        body = sql_linking_ETLF_Extract_Config_To_catalogEntityLineage(value);
     }if(table === 'ETLF_CUSTOM_CODE'){
         selectCriteria = 'SELECT *, row_number() OVER(ORDER BY EXTRACT_CONFIG_ID ASC) RN';
         body = sql_linking_Lineage_To_ETLF_Extract_Config(value);
@@ -298,6 +203,8 @@ const getBodyAndSelectCriteria = (isAdmin, isSteward, username, table, destinati
         }
     }
 
+    
+
     const res = {
         selectCriteria: selectCriteria,
         bodySQL: body
@@ -318,7 +225,7 @@ const CustomizedLink = ({ row }) => {
 
     const getLinkedValue = () => {
         let value = ''
-        console.log(row);
+        debug && console.log(row);
         switch(table){
             case 'ETLF_EXTRACT_CONFIG':
                 value = 'EXTRACT_CONFIG_ID - ' + row['EXTRACT_CONFIG_ID'];
@@ -350,7 +257,7 @@ const CustomizedLink = ({ row }) => {
                 break;
         }
 
-        console.log(value);
+        debug && console.log(value);
         return value;
     }
 
@@ -366,9 +273,12 @@ const CustomizedLink = ({ row }) => {
                 // console.log(searchObj);
                 
                 //new CODE
-                const bodyAndSelectCriteria = getBodyAndSelectCriteria(isAdmin, isSteward, username, table, destinationTable, row[criteria]);
+                const bodyAndSelectCriteria = getBodyAndSelectCriteria(username, table, destinationTable, row[criteria]);
                 const selectCriteria = bodyAndSelectCriteria['selectCriteria'];
                 const bodySQL = bodyAndSelectCriteria['bodySQL'];  
+
+                debug && console.log(selectCriteria);
+                debug && console.log(bodySQL);
 
                 const getRowsCountStmt = selectCount + bodySQL;
                 const linkingSqlStatement = `SELECT * FROM (
@@ -381,9 +291,9 @@ const CustomizedLink = ({ row }) => {
                 WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
                 //also had to join 3 tables entities to domain
                 
-                console.log(getRowsCountStmt);
-                console.log(linkingSqlStatementFirstX);
-                console.log("\n***************************************************************\n")
+                debug && console.log(getRowsCountStmt);
+                debug && console.log(linkingSqlStatementFirstX);
+                debug && console.log("\n***************************************************************\n")
 
                 return(
                     <div style={{'marginBottom': '10px'}}>

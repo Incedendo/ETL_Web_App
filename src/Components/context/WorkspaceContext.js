@@ -209,38 +209,17 @@ export const WorkspaceProvider = (props) => {
             ON (B.DATA_STEWARD_ID = C.DATA_STEWARD_ID)
             WHERE C.EMAIL = '` + username + `';`;
 
-            const getAppIDs = axios.get(SELECT_URL, {
+            const SQLs = [getAppIDsSQL, getRoutesSQL, getTablePrivilegeSQL, getAuthorziedDomainSQL];
+            const requests = SQLs.map(sql => axios.get(SELECT_URL, {
                 headers,
                 //params maps to event.queryStringParameters in lambda
                 params: {
-                    sqlStatement: getAppIDsSQL,
+                    sqlStatement: sql,
                 }
-            });
-            const getRoutes = axios.get(SELECT_URL, {
-                headers,
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: getRoutesSQL,
-                }
-            });
-            const getTablePrivilege = axios.get(SELECT_URL, {
-                headers,
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: getTablePrivilegeSQL,
-                }
-            });
-            const getAuthorziedDomain = axios.get(SELECT_URL, {
-                headers,
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: getAuthorziedDomainSQL,
-                }
-            });
-
+            }));
             
             axios
-                .all([getAppIDs, getRoutes, getTablePrivilege, getAuthorziedDomain])
+                .all(requests)
                 .then(axios.spread((...responses) => {
                     const responseOne = responses[0];
                     const responseTwo = responses[1];
@@ -266,7 +245,7 @@ export const WorkspaceProvider = (props) => {
                                 'TGT_TECH': route.TGT_TECH
                             }
                         })
-                        console.log(routes);
+                        debug && console.log(routes);
                         setRouteOptions(routes);
 
                         //response 3
@@ -340,10 +319,10 @@ export const WorkspaceProvider = (props) => {
     }, [primaryKeys])
 
     useEffect(() => {
-        console.log("Current Gridconfigs: ", gridConfigs);
+        debug && console.log("Current Gridconfigs: ", gridConfigs);
         if(table in gridConfigs){
             clearCurrentConfig();
-            console.log("gridConfig for table " + table + ": " + gridConfigs[table]);
+            debug && console.log("gridConfig for table " + table + ": " + gridConfigs[table]);
 
             reloadGridConfig();
         }
@@ -358,7 +337,7 @@ export const WorkspaceProvider = (props) => {
 
     const clearCurrentConfig = () => {
         
-        console.log("CLEARING existing gridconfig for table: " + table);
+        debug && console.log("CLEARING existing gridconfig for table: " + table);
         setHeaders([]);
         setColumns([]);
         setColumnWidths([]);
@@ -370,8 +349,8 @@ export const WorkspaceProvider = (props) => {
 
     const reloadGridConfig = () => {
         
-        console.log("only reloading existing gridconfig for table: " + table);
-        console.log(gridConfigs);
+        debug && console.log("only reloading existing gridconfig for table: " + table);
+        debug && console.log(gridConfigs);
         setHeaders(gridConfigs[table]["headers"]);
         setColumns(gridConfigs[table]["columns"]);
         setColumnWidths(gridConfigs[table]["columnWidths"]);
@@ -385,10 +364,10 @@ export const WorkspaceProvider = (props) => {
 
     //saving configs 
     const prepareGridConfig = (data) => {
-        console.log(data);
+        debug && console.log(data);
         if(data.length != 0){
-            console.log("prepareGridConfig() for table: "+ table);
-            // console.log(data);
+            debug && console.log("prepareGridConfig() for table: "+ table);
+            // debug && console.log(data);
             let headers = []
             data.map(row => headers.push(row.COLUMN_NAME));
 
@@ -401,14 +380,14 @@ export const WorkspaceProvider = (props) => {
                 headers.unshift('TARGET_TABLE');
             }
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
-                // console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
+                // debug && console.log("row contains 'CATALOG_ENTITIES_HASH', removed...");
                 headers.splice(headers.indexOf('CATALOG_ENTITIES_HASH'), 1);
             }
             if(headers.length === 0 )
                 return;
 
 
-            // console.log("header b4 appending: " + headers);
+            // debug && console.log("header b4 appending: " + headers);
             if(table === 'ETLFCALL'){
                 headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
             }else if(table === 'ETLF_CUSTOM_CODE'){
@@ -430,15 +409,15 @@ export const WorkspaceProvider = (props) => {
                 headers.unshift('DOMAIN');
             }
             
-            // console.log("header after appending: " + headers);
+            // debug && console.log("header after appending: " + headers);
             let columns = []; 
             headers.map(header => columns.push({
                 name: header,
                 title: header
             }))
 
-            // console.log(columns);
-            // console.log(headers);
+            // debug && console.log(columns);
+            // debug && console.log(headers);
 
             const columnWidths = headers.map(header => ({
                 columnName: header,
@@ -573,9 +552,9 @@ export const WorkspaceProvider = (props) => {
             .then(response => {
                 // debug && console.log(response.data.rows);
                 const systemConfigs = response.data.rows;
-                console.log(systemConfigs);
+                debug && console.log(systemConfigs);
                 const system_types = systemConfigs.map(value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type.toLowerCase());
-                console.log(systemConfigs);
+                debug && console.log(systemConfigs);
                 let temp_system_configs = {};
 
                 // Create a MASTER system_types object:
@@ -703,7 +682,7 @@ export const WorkspaceProvider = (props) => {
                     
                 })
 
-                console.log(routeConfigs);
+                debug && console.log(routeConfigs);
                 setRouteConfigs(routeConfigs);
             })
             .catch(err => debug && console.log("error from loading ETLF_EXTRACT_CONFIG_REQUIREMENTS:", err.message))
@@ -771,14 +750,14 @@ export const WorkspaceProvider = (props) => {
 
     //for Search All
     const axiosCallToGetCountsAndTableRows = (getCountsSQL, getRowsSQL, primaryKey) => {
-        console.log(getCountsSQL);
-        console.log(getRowsSQL);
+        debug && console.log(getCountsSQL);
+        debug && console.log(getRowsSQL);
         
-        console.log("calling axiosCallToGetTableRows on table: ", table);
+        debug && console.log("calling axiosCallToGetTableRows on table: ", table);
         
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
-        console.log(gridConfigs);
+        debug && console.log(gridConfigs);
 
         const headers =  {
             'type': 'TOKEN',
@@ -828,7 +807,7 @@ export const WorkspaceProvider = (props) => {
                 // returning the data here allows the caller to get it through another .then(...)
                 // console.log('---------GET RESPONSE-----------');
                 const counts = responses[0].data;
-                console.log("COunt for Entities: " + counts[0].COUNT);
+                debug && console.log("COunt for Entities: " + counts[0].COUNT);
                 setAllCounts(counts[0].COUNT);
                 const rows = responses[1].data;
                 
@@ -855,15 +834,18 @@ export const WorkspaceProvider = (props) => {
                 setTableLoading(false);
                 setTableSeaching(false);
                 debug && console.timeEnd("calling API to load table");
+
+                performAuditOperation('SELECT', [], {}, table, getCountsSQL, 'SUCCESS');
+                performAuditOperation('SELECT', primaryKey, rows, table, getRowsSQL, 'SUCCESS');
             });
     }
 
     const axiosCallToGetTableRows = (get_statenent, primaryKey) => {
-        console.log("calling axiosCallToGetTableRows on table: ", table);
+        debug && console.log("calling axiosCallToGetTableRows on table: ", table);
         
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
-        console.log(gridConfigs);
+        debug && console.log(gridConfigs);
 
         debug && console.log(headers);
 
@@ -918,7 +900,7 @@ export const WorkspaceProvider = (props) => {
                 loadTableRows(rows, primaryKey); 
             })
             .catch(error => {
-                debug && console.log(error);
+                debug && debug && console.log(error);
                 setRows([]);
                 setSearchCriteria([]);
                 setTable('');
@@ -928,12 +910,14 @@ export const WorkspaceProvider = (props) => {
                 setTableLoading(false);
                 setTableSeaching(false);
                 debug && console.timeEnd("calling API to load table");
+
+                performAuditOperation('SELECT', primaryKey, rows, table, get_statenent, 'SUCCESS');
             });
     }
 
     const axiosCallToGetTable = ( proposed_get_statenent, primaryKey) => {
 
-        console.log("calling axiosCallToGetTable on table: ", table);
+        debug && console.log("calling axiosCallToGetTable on table: ", table);
 
         if(Object.keys(TABLES_NON_EDITABLE_COLUMNS).indexOf(table) > 0){
             setPrimaryKeys(TABLES_NON_EDITABLE_COLUMNS[table]);
@@ -941,7 +925,7 @@ export const WorkspaceProvider = (props) => {
         }
         setCodeFields(fieldTypesConfigs[table]['codeFields']);
 
-        console.log(gridConfigs);
+        debug && console.log(gridConfigs);
 
         const getURL = TABLESNOWFLAKE_URL;
 
@@ -1081,18 +1065,21 @@ FROM (
             });
     }
 
-    const performAuditOperation = (action, primaryKeys, state, sqlMergeStatement, update_status) => {
+    const performAuditOperation = (action, primaryKeys, state, table, sqlStatement, update_status) => {
         let primaryKeysObj = {}
         primaryKeys.map(key => {
-            primaryKeysObj[key] = state[key]
+            if(key in state){
+                primaryKeysObj[key] = state[key];
+            }
         })
+
         //perform audit Insert
         let auditObj = {
             USERNAME: username,
             ACTION: action,
-            TABLE_NAME: sqlMergeStatement.trim().split(" ")[2],
+            TABLE_NAME: table,
             PRIMARY_KEY: primaryKeysObj,
-            SQL_CODE: sqlMergeStatement.trim(),
+            SQL_CODE: sqlStatement.trim(),
             STATUS: update_status
         }
         // console.log(auditObj);
@@ -1122,7 +1109,7 @@ FROM (
 
         if (window.confirm(userConfirmedMsg)) {
             let insert_status = "FAILURE";
-            console.log(values);
+            debug && console.log(values);
             axios.post(INSERT_URL, data, options)
                 .then(response => {
                     // returning the data here allows the caller to get it through another .then(...)
@@ -1145,7 +1132,7 @@ FROM (
                                     })
                                 }) 
                                 newRows = [...newRows, ...insertedRows];
-                                console.log(insertedRows);
+                                debug && console.log(insertedRows);
                             }
                             else if(table === 'CATALOG_ENTITY_DOMAIN'){
                                 let insertedRows = []
@@ -1156,7 +1143,7 @@ FROM (
                                     })
                                 }) 
                                 newRows = [...newRows, ...insertedRows];
-                                console.log(insertedRows);
+                                debug && console.log(insertedRows);
                             }else{
                                 // if(performReload) setReloadTable(true);
                                 // values['EDITABLE'] = 'YES';       
@@ -1166,7 +1153,7 @@ FROM (
                                     if(isNaN(values[col]))
                                         values[col] = values[col].toUpperCase().trim();
                                 })
-                                console.log(values);
+                                debug && console.log(values);
                                 newRows.push(values);
                             }
                             
@@ -1180,7 +1167,7 @@ FROM (
                         //     setInsertError("Insert Error: App ID ", values.GROUP_ID, " has no WRITE Privilege");
                         // }
                     }else{
-                        console.log("status is not 200");
+                        debug && console.log("status is not 200");
                     }
                 })
                 .catch(err => {
@@ -1189,7 +1176,8 @@ FROM (
                     setInsertError(err.message);
                 })
                 .finally(() => {
-                    performAuditOperation('INSERT', primaryKeys, values, sqlMergeStatement, insert_status);
+                    // action, primaryKeys, state, sqlMergeStatement, update_status
+                    performAuditOperation('INSERT', primaryKeys, values, table, sqlMergeStatement, insert_status);
                     setInserting(false);
                 })
         }else{

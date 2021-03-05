@@ -43,9 +43,9 @@ const DataStewardEditor = ({
     const [inserting, setInserting] = useState(false);
     const [initialStates, setInitialStates] = useState({});
 
-    console.log(fields);
-    console.log(dropdownFields);
-    console.log(dropdownObject);
+    debug && console.log(fields);
+    debug && console.log(dropdownFields);
+    debug && console.log(dropdownObject);
 
     useEffect(()=>{
         let state = {};
@@ -72,7 +72,7 @@ const DataStewardEditor = ({
     }, [initialStates]);
 
     useEffect(() => {
-        console.log('Inserting: ' + inserting);
+        debug && console.log('Inserting: ' + inserting);
         if(!inserting && insertSuccess){
             debug && console.log("insert success");
             setInsertSuccess(false);
@@ -87,7 +87,7 @@ const DataStewardEditor = ({
         values['LASTMODIFIEDDATE'] = "CURRENT_TIMESTAMP::timestamp_ntz";
         
         const primaryKeys = fieldTypesConfigs[table]["primaryKeys"];
-        // console.log(primaryKeys);
+        // debug && console.log(primaryKeys);
         const columns = Object.keys(values);
         const sqlInsertStatement = generateMergeStatement(
             'SHARED_TOOLS_DEV',
@@ -102,27 +102,27 @@ const DataStewardEditor = ({
     }
 
     const handleSubmitCustom = values => {
-        console.log('values: ', values);
-        console.log(dropdownObject);
+        debug && console.log('values: ', values);
+        debug && console.log(dropdownObject);
         let mergeStmt = "";
         let submitedValues = values;
-        console.log(table);
+        debug && console.log(table);
 
         if(table === 'DATA_STEWARD'){
-            console.log("reaching data_Steward table");
+            debug && console.log("reaching data_Steward table");
             mergeStmt = merge_data_steward(values, fields);
-            console.log(values);
+            debug && console.log(values);
 
             // insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }else if(table === 'DATA_DOMAIN'){
-            console.log("reaching data_Steward table");
+            debug && console.log("reaching data_Steward table");
             mergeStmt = merge_data_domain(values, fields);
-            console.log(values);
+            debug && console.log(values);
 
             // insertUsingMergeStatement(mergeStmt, values, setInserting, false);
         }
         else if(table === 'DATA_STEWARD_DOMAIN'){
-            console.log('reach DATA_STEWARD_DOMAIN');
+            debug && console.log('reach DATA_STEWARD_DOMAIN');
 
             let selectedDomainIDs = values.DOMAIN.map(domain => dropdownObject['DOMAIN'][domain]);
 
@@ -130,12 +130,12 @@ const DataStewardEditor = ({
                 'DATA_DOMAIN_ID': selectedDomainIDs,
                 'DATA_STEWARD_ID': dropdownObject['EMAIL'][values['EMAIL']]
             }
-            console.log(submitedValues);
+            debug && console.log(submitedValues);
 
             mergeStmt = merge_data_steward_domain(submitedValues);
             // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
-            console.log(values);
+            debug && console.log(values);
 
             // let submitedValues = {
             //     'DATA_DOMAIN_ID': dropdownObject['DOMAIN'][values['DOMAIN']],
@@ -148,7 +148,7 @@ const DataStewardEditor = ({
                 'DATA_DOMAIN_ID': dropdownObject['DOMAIN'][values['DOMAIN']],
                 'CATALOG_ENTITIES_ID': entitiesID
             }
-            console.log(submitedValues);
+            debug && console.log(submitedValues);
 
             mergeStmt = merge_catalog_entity_domain(submitedValues);
             // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
@@ -167,12 +167,12 @@ const DataStewardEditor = ({
 
             mergeStmt = merge_catalog_entity_lineage(submitedValues, fields);
 
-            console.log(submitedValues);
+            debug && console.log(submitedValues);
             // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);
         }else if(table === 'CATALOG_ITEMS'){
             submitedValues = {...values};
             submitedValues['CATALOG_ENTITIES_ID'] = dropdownObject['CATALOG_ENTITIES'][values['CATALOG_ENTITIES']];
-            // console.log(submitedValues);
+            // debug && console.log(submitedValues);
 
             mergeStmt = merge_catalog_items(submitedValues, fields);
             // insertUsingMergeStatement(mergeStmt, submitedValues, setInserting, false);

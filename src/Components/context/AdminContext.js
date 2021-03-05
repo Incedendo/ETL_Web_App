@@ -40,37 +40,19 @@ export const AdminProvider = (props) => {
                 + username.toUpperCase() + "';";
             const getAllGroupIDsSQL = `select DISTINCT GROUP_ID from "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG";`
 
-            const getAdmin = axios.get(SELECT_URL, {
+            const SQLs = [getAdminSQL, getStewardSQL, getDomainOperatorSQL, getAllGroupIDsSQL];
+
+            const requests = SQLs.map(sql => axios.get(SELECT_URL, {
                 headers,
                 //params maps to event.queryStringParameters in lambda
                 params: {
-                    sqlStatement: getAdminSQL,
+                    sqlStatement: sql,
                 }
-            });
-            const getSteward = axios.get(SELECT_URL, {
-                headers,
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: getStewardSQL,
-                }
-            });
-            const getDomainOperator = axios.get(SELECT_URL, {
-                headers,
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: getDomainOperatorSQL,
-                }
-            });
-            const getAllGroupIDs = axios.get(SELECT_URL, {
-                headers,
-                //params maps to event.queryStringParameters in lambda
-                params: {
-                    sqlStatement: getAllGroupIDsSQL,
-                }
-            })
+            }))
             
             axios
-                .all([getAdmin, getSteward, getDomainOperator, getAllGroupIDs])
+                // .all([getAdmin, getSteward, getDomainOperator, getAllGroupIDs])
+                .all(requests)
                 .then(axios.spread((...responses) => {
                     const responseOne = responses[0];
                     const responseTwo = responses[1];
@@ -105,7 +87,7 @@ export const AdminProvider = (props) => {
                     // react on errors.
                     debug && console.log(errors.response)
                 })
-            }
+        }
         return () => mounted = false;
     }, [authState, username]);
     

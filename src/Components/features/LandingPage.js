@@ -16,7 +16,7 @@ export const LandingPage = (props) => {
     if (isLoading) {
       auth.authenticateUser(username, password, () =>{
         if(auth.isAuthenticated){
-          console.log('authenticated');
+          // console.log('authenticated');
           props.history.push('/home');
         }
         // else{
@@ -32,7 +32,7 @@ export const LandingPage = (props) => {
   }, [isLoading]);
 
   const validateUserInput = () => {
-    console.log('validating input');
+    // console.log('validating input');
     if(username !== '' && password !== '' ){
       setLoading(true);
     }

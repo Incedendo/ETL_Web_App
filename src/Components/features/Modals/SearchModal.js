@@ -39,7 +39,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
     const { isAdmin, isSteward } = useContext(AdminContext);
 
     const [show, setShow] = useState(false);
-    // console.log("search columns: " + searchFieldsFromDropdownArr);
+    // debug && console.log("search columns: " + searchFieldsFromDropdownArr);
     const [remainingColumns, setRemainingColumns] = useState([]);
     const [currentSearchObj, setCurrentSearchObj] = useState({});
     const [options, setOptions] = useState({});
@@ -112,7 +112,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         
         clearLoHi();
         setCurrentSearchCriteria({});
-        console.log(table);
+        debug && console.log(table);
 
         let uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
         let selectAllStmtFirstX = '';
@@ -121,7 +121,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         let bodySQL = ``;
         
         if(ETLF_tables.indexOf(table) >= 0){
-            // console.log("table is in ETLF Framework");
+            // debug && console.log("table is in ETLF Framework");
             bodySQL = select_all_etl_tables_body(username, database, schema, table, groupIDColumn, currentSearchObj);
             selectAllFrom = selectAllFromSQL(username, database, schema, table, groupIDColumn, currentSearchObj);
         }
@@ -136,7 +136,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         selectAllStmtFirstX = selectAllFrom +`
         WHERE RN >= ` + startingLo +` AND RN <= ` + steps;
 
-        console.log(selectAllStmtFirstX);
+        debug && console.log(selectAllStmtFirstX);
         axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
         
         setShow(false);            
@@ -173,7 +173,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
                     // isMulti
                     options={options}
                     onChange={(val)=>{
-                        console.log(val);
+                        debug && console.log(val);
                         handleAddSearchField(val.value);
                     }}
                 />

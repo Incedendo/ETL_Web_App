@@ -21,7 +21,7 @@ const Welcome = () => {
     const { authState, authService } = useOktaAuth();
     
     const logout = async () => {
-        console.log("Redirect URI: " + REDIRECT_URI_HOME);
+        debug && console.log("Redirect URI: " + REDIRECT_URI_HOME);
         const idToken = authState.idToken;
         await authService.logout('/logged_out');
         // oktaAuth.signOut({ postLogoutRedirectUri: window.location.origin + '/' });

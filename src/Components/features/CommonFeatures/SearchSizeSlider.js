@@ -13,7 +13,7 @@ const SearchSizeSlider = () => {
 
     useEffect(()=>{
         if(doneDragging){
-            console.log("done dragging, step = ", localSteps.x);
+            debug && console.log("done dragging, step = ", localSteps.x);
 
             setSteps(localSteps.x);
             setDone(false);

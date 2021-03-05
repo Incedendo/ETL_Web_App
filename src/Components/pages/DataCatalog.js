@@ -8,10 +8,6 @@ const DataCatalog = (props) => {
 
     const { authState, authService } = useOktaAuth();
 
-    const {
-        setTable
-    } = useContext(WorkspaceContext);
-
     const login = async () => {
         // Redirect to '/' after login
         authService.login('/');

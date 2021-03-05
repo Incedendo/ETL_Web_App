@@ -71,28 +71,28 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
 
     useEffect(() =>{
-        console.log(fields);
+        debug && console.log(fields);
     }, [fields]);
 
     useEffect(() =>{
         if(linkState !== undefined){
-            console.log(linkState);
+            debug && console.log(linkState);
             const linkedTable = linkState['table'];
             setUpdatedTable(true);
         }
         
-        console.log(dropdownFields);
+        debug && console.log(dropdownFields);
     }, []);
 
     useEffect(() =>{
-        console.log("dropdown fields: ", dropdownFields);
-        console.log("dropdown object: ", dropdownObject);
+        debug && console.log("dropdown fields: ", dropdownFields);
+        debug && console.log("dropdown object: ", dropdownObject);
     }, [dropdownFields, dropdownObject]);
 
     // Set dropdown for composite tables
     useEffect(() => {
         setLoadedConfig(false);
-        console.log(table);
+        debug && console.log(table);
         if(table === 'DATA_STEWARD_DOMAIN'){
             prepareValuesForCompositeTableInsertInto_DATA_STEWARD_DOMAIN();
         }else if(table === 'CATALOG_ENTITY_DOMAIN'){
@@ -127,7 +127,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
             })//have to setState in .then() due to asynchronous opetaions
             .then(response => {
                 // returning the data here allows the caller to get it through another .then(...)
-                // console.log('---------GET RESPONSE-----------');
+                // debug && console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
 
                 let domainObj = {}
@@ -164,7 +164,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
                 .catch(error => {
                     debug && console.log(error);
                 }).then(()=>{
-                    console.log(dropdownObj);
+                    debug && console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
                         'DATA_DOMAIN': Object.keys(dropdownObj['DATA_DOMAIN']), 
@@ -241,7 +241,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
                 .catch(error => {
                     debug && console.log(error);
                 }).then(()=>{
-                    console.log(dropdownObj);
+                    debug && console.log(dropdownObj);
 
                     let dropdownCompositeFields = {
                         'DATA_DOMAIN': Object.keys(dropdownObj['DATA_DOMAIN']), 
@@ -285,7 +285,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
             })//have to setState in .then() due to asynchronous opetaions
             .then(response => {
                 // returning the data here allows the caller to get it through another .then(...)
-                // console.log('---------GET RESPONSE-----------');
+                // debug && console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
 
                 let domainObj = {}
@@ -311,7 +311,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
 
     const updateDropdownBasedOnTable = () => {
         
-        console.log(table);
+        debug && console.log(table);
 
         const requiredColumns = [
             'EMAIL', 'FNAME', 'LNAME',//DATA_STEWARD
@@ -340,7 +340,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
             let formValidationsInfo = [];
             
             let requiredFields = Object.keys(fieldTypesConfigs[table]["dataTypes"]);
-            console.log(requiredFields);
+            debug && console.log(requiredFields);
             requiredFields.map(col => {
                 let custom_config = {};
                 custom_config.id = col;
@@ -380,7 +380,7 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
     useEffect(()=>{
         // if(linkState !== undefined){
         if(loadedConfig){
-            console.log("use search statement to fetch only target value");
+            debug && console.log("use search statement to fetch only target value");
 
             // let searchStmt = 
             // `SELECT ec.*, 'READ ONLY' AS PRIVILEGE
@@ -390,8 +390,8 @@ const DatCat_ControlPanelLinked = ({ linkState } ) => {
 
             const searchStmt = linkState['searchStmt'];
             const primaryKey = fieldTypesConfigs[table]['primaryKeys'];
-            console.log(searchStmt);
-            console.log(primaryKey);
+            debug && console.log(searchStmt);
+            debug && console.log(primaryKey);
             axiosCallToGetTableRows(searchStmt, primaryKey);
         }
     }, [loadedConfig]);

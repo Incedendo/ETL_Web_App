@@ -67,7 +67,7 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  customCodeDataTypeObj, setS
     //         })
     //         //have to setState in .then() due to asynchronous opetaions
     //         .then(response => {
-    //             console.log('dataTypeObj: ', response.data);
+    //             debug && console.log('dataTypeObj: ', response.data);
     //             const columnsInfo = response.data;
     //             let dataTypeObj = {}
     //             for (let id in columnsInfo) {
@@ -229,7 +229,7 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  customCodeDataTypeObj, setS
 
                     //destructure the action obj into {setSubmitting}
                     onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
-                        console.log('values: ', values);
+                        debug && console.log('values: ', values);
                         insertCustomCode(values);
                         setValidating(true);
                         // setShow(false);

@@ -5,13 +5,17 @@ import ReactMultiSelectCheckboxes from 'react-multiselect-checkboxes';
 
 const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, touched, errors }) => {
 
+    const {
+        debug
+    } = useContext(WorkspaceContext);
+
     useEffect(() => {
         let mounted = true;
-        console.log(dropdownFields);
+        debug && console.log(dropdownFields);
         let selectOptions = [];
         if(isDatCatForm){
             dropdownFields[field].map(field =>{
-                // console.log(field);
+                // debug && console.log(field);
                 selectOptions.push({
                     'label': field,
                     'value': field,
@@ -20,14 +24,14 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, to
         }
         else{
             dropdownFields.map(field =>{
-                // console.log(field);
+                // debug && console.log(field);
                 selectOptions.push({
                     'label': field,
                     'value': field,
                 });
             }) 
         }
-        // console.log(selectOptions);
+        // debug && console.log(selectOptions);
         if(mounted) 
             setOptions(selectOptions);
 
@@ -37,11 +41,11 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, to
     const [options, setOptions] = useState([]);
 
     const printChange = (values, setFieldValue, field) =>{
-        console.log(errors);
+        debug && console.log(errors);
         let selectedOptions = [];
         values.map(option => selectedOptions.push(option['label']));
 
-        console.log(`Field ${field} is: ${selectedOptions}`);
+        debug && console.log(`Field ${field} is: ${selectedOptions}`);
         setFieldValue(field, selectedOptions);
 
     }
@@ -55,7 +59,7 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, to
                 "textAlign": "left"
             }}
             onChange={()=>{
-                console.log('changing groupID dropdown');
+                debug && console.log('changing groupID dropdown');
             }}
         >
             {({ field: { value }, form: { setFieldValue } }) => (

@@ -30,7 +30,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     debug && console.log("route code: ", tableName);
     debug && console.log("route: ", route);
 
-    console.log(tableName);
+    debug && console.log(tableName);
 
     debug && console.log("%c prop data: ", "color: red; font-weight: bold");
     // debug && console.log(privilege);
@@ -372,7 +372,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
 
         if (window.confirm(userConfirmedMsg)) {
             let insert_status = "FAILURE";
-            console.log(values);
+            debug && console.log(values);
             axios.post(INSERT_URL, data, options)
                 .then(response => {
                     // returning the data here allows the caller to get it through another .then(...)
@@ -385,9 +385,9 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
 
                             let newRows = [...rows];
                             
-                            console.log('----B4 adding extra fields');
-                            console.log(rows);
-                            console.log(newRows);
+                            debug && console.log('----B4 adding extra fields');
+                            debug && console.log(rows);
+                            debug && console.log(newRows);
                             
                             // if(performReload) setReloadTable(true);
                             values['PRIVILEGE'] = 'READ/WRITE';                            
@@ -405,10 +405,10 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                                 
                             }
 
-                            console.log('----after modifying values to newRows...');
-                            console.log(values);
+                            debug && console.log('----after modifying values to newRows...');
+                            debug && console.log(values);
                             newRows.push(values);
-                            console.log(newRows);
+                            debug && console.log(newRows);
                             
                             // setRows([]);
                             // setRows(newRows);
@@ -431,7 +431,7 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                 })
                 .finally(() => {
                     // axiosCallToGetTable(sqlGetStmt);
-                    performAuditOperation('INSERT', primaryKeys, values, sqlMergeStatement, insert_status)
+                    performAuditOperation('INSERT', primaryKeys, values, table, sqlMergeStatement, insert_status)
                 })
         }else{
             setValidating(false);

@@ -37,10 +37,10 @@ const FormField = ({
     
     let fieldType = getFieldType2(field, codeFields, dropdownFields, multiSelectArr);
 
-    // console.log("Field type for " + field + ": " + fieldType);
-    // console.log(codeFields);
-    // console.log(values);
-    // console.log("field: " + field + " , has value: "+ dropdownFields[field]);
+    // debug && console.log("Field type for " + field + ": " + fieldType);
+    // debug && console.log(codeFields);
+    // debug && console.log(values);
+    // debug && console.log("field: " + field + " , has value: "+ dropdownFields[field]);
 
     // let dropdownOptions = ['Select an item'];
     // if(field in dropdownFields){
@@ -58,7 +58,7 @@ const FormField = ({
         }));
     }
     
-    // if (field === 'ROUTE_ID' || field === 'ACTION_ID') console.log("RouteID: ", values[field])
+    // if (field === 'ROUTE_ID' || field === 'ACTION_ID') debug && console.log("RouteID: ", values[field])
 
     return (
         // <Row>
@@ -97,9 +97,9 @@ const FormField = ({
                             name={field}
                             value={values[field]}
                             onChange={(e) => {
-                                console.log(e.target.value);
-                                console.log(dropdownOptions);
-                                console.log(values);
+                                debug && console.log(e.target.value);
+                                debug && console.log(dropdownOptions);
+                                debug && console.log(values);
                                 handleChange(e);
                             }}
                             onBlur={handleBlur}

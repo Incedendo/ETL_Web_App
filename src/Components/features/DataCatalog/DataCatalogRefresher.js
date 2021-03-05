@@ -12,7 +12,10 @@ import {  INSERT_URL } from '../../context/URLs';
 
 const DataCatalogRefresher = () => {
 
-    const { debug, columnsLoaded } = useContext(WorkspaceContext);
+    const { 
+        debug, columnsLoaded, performAuditOperation 
+    } = useContext(WorkspaceContext);
+
     const [isRefreshing, setRefreshing] = useState(false);
     const { authState, authService } = useOktaAuth();
     const { accessToken } = authState;
@@ -23,15 +26,14 @@ const DataCatalogRefresher = () => {
         },
     }
 
-    function simulateNetworkRequest() {
-        return new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
     //refresh 3 tables in Data Catalog
     useEffect(() => {
         let mounted = true;
         
         if (isRefreshing) {
+
+            let insert_status = 'FAILURE';
+
             const updateEntity = axios.post(INSERT_URL, {
                 'sqlStatement': mergeUpdateCatalogEntitiesFromView
             } , options);
@@ -45,9 +47,9 @@ const DataCatalogRefresher = () => {
                 } , options);
             
                 debug && console.log("Refreshing the Datacatalog now....")
-            simulateNetworkRequest().then(() => {
-                setRefreshing(false);
-            });
+            // simulateNetworkRequest().then(() => {
+            //     setRefreshing(false);
+            // });
 
             axios.all([updateEntity, updateItem, updateLineage]
             ).then(axios.spread((...responses) => {
@@ -58,12 +60,19 @@ const DataCatalogRefresher = () => {
                 debug && console.log(responseOne);
                 debug && console.log(responseTwo);
                 debug && console.log(responesThree);
+
+                insert_status = 'SUCCESS';
                 // use/access the results 
             })).catch(errors => {
                 // react on errors.
                 debug && console.log(errors.response)
             }).finally(() =>{
                 setRefreshing(false);
+
+                performAuditOperation('REFRESH', [], {}, 'CATALOG_ENTITIES', mergeUpdateCatalogEntitiesFromView, insert_status);
+                performAuditOperation('REFRESH', [], {}, 'CATALOG_ITEMS', mergeUpdateCatalogItemsFromView, insert_status);
+                performAuditOperation('REFRESH', [], {}, 'CATALOG_ENTITY_LINEAGE', mergeUpdateCatalogEntityLineageFromView, insert_status);
+
             })
         }
 

@@ -56,7 +56,7 @@ const GenericRowExpansion = ({ row, ...rest }) => {
         if(key !== 'metaData') row_without_metadata[key] = row[key];
     })
 
-    console.log(row_without_metadata)
+    debug && console.log(row_without_metadata)
     
     const [state, setState] = useState(row_without_metadata);
     const [changed, setChanged] = useState(false)
@@ -215,7 +215,7 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                         if(reloadOnSuccess){
                             // axiosCallToGetTable(sqlGetStmt);
                         }
-                        performAuditOperation('UPDATE', primaryKeys, state, sqlMergeStatement, update_status)
+                        performAuditOperation('UPDATE', primaryKeys, state, table, sqlMergeStatement, update_status)
                     } else {
                         return null;
                     }
@@ -251,24 +251,24 @@ const GenericRowExpansion = ({ row, ...rest }) => {
 
     const renderFieldByType = () => {
 
-        console.log("renderFieldByType for NON ETLF EXTRACT CONFIG")
+        debug && console.log("renderFieldByType for NON ETLF EXTRACT CONFIG")
         let primaryGroups = {};
         let dropdownGroups = {};
         let codeGroups = {};
         let allDisplayedKeys = [];
 
-        console.log(nonEditableColumns);
-        // console.log(codeFields);
-        // console.log(dropdownFields);
+        debug && console.log(nonEditableColumns);
+        // debug && console.log(codeFields);
+        // debug && console.log(dropdownFields);
         
-        console.log(row);
+        debug && console.log(row);
         Object.entries(row).map((key, index) =>{
-            console.log(key);
+            debug && console.log(key);
             const field = key[0];
             if ( excludedFields.indexOf(field) < 0) {
                 
                 const fieldType = getFieldType(field, Object.keys(codeFields), Object.keys(unmodifiedDropdownFields));
-                console.log(field + ": " + fieldType);
+                debug && console.log(field + ": " + fieldType);
 
                 if(nonEditableColumns.indexOf(field) >= 0){
                     primaryGroups[field] = key[1];
@@ -291,9 +291,9 @@ const GenericRowExpansion = ({ row, ...rest }) => {
         Object.fromEntries(Object.entries(dropdownGroups).sort());
         Object.fromEntries(Object.entries(codeGroups).sort());
 
-        console.log(primaryGroups);
-        // console.log(dropdownGroups);
-        // console.log(codeGroups);
+        debug && console.log(primaryGroups);
+        // debug && console.log(dropdownGroups);
+        // debug && console.log(codeGroups);
 
         return(
             <>

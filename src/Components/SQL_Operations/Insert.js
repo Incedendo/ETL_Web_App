@@ -292,7 +292,7 @@ export const generateAuditStmt = values => {
     const find = "'";
     const re = new RegExp(find, 'g');
 
-    let stmt = `INSERT INTO SHARED_TOOLS_DEV.ETL.ETLF_AUDIT 
+    let stmt = `INSERT INTO SHARED_TOOLS_DEV.ETL.ETL_AUDIT 
 (USERNAME, ACTION, TABLE_NAME, PRIMARY_KEY, SQL_CODE, STATUS )
 SELECT `+ 
         "UPPER(TRIM('" + values.USERNAME +"')), " +

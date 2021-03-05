@@ -31,22 +31,22 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
         ELSE 'READ ONLY'
     END AS PRIVILEGE`;
 
-    console.log(table);
+    debug && console.log(table);
     const uniqueKeysToSeparateRows = fieldTypesConfigs[table]['primaryKeys'];
 
 
     const getSingleSearchObj = (currentSearchObj) => {
-        console.log(table);
+        debug && console.log(table);
         let bodySQL = ``;
         let selectCriteria = ``;
 
-        console.log(currentSearchObj);
+        debug && console.log(currentSearchObj);
         // return;
 
         
         let multiSearchSqlStatement = '';
         if(ETLF_tables.indexOf(table) >= 0){
-            // console.log("table is in ETLF Framework");
+            // debug && console.log("table is in ETLF Framework");
             const groupIDColumn = table === "ETLF_EXTRACT_CONFIG" ? 'GROUP_ID' : 'WORK_GROUP_ID'
             if(table === 'ETLF_CUSTOM_CODE'){
                 bodySQL = `
@@ -179,7 +179,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
             
             
             const criteria_length = (Object.keys(currentSearchCriteria)).length;
-            console.log(index, col);
+            debug && console.log(index, col);
             if(index === criteria_length-1)
                 return <SearchFilterItem key={col}
                     col={col}

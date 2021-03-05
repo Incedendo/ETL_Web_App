@@ -107,10 +107,10 @@ const RowExpansion = React.memo(({ row }) => {
             //have to setState in .then() due to asynchronous opetaions
             .then(response => {
                 if(response.data.length > 1){
-                    console.log("MORE THAN 1 TABLE for this RECORD!!!!!!")
+                    debug && console.log("MORE THAN 1 TABLE for this RECORD!!!!!!")
                     return;
                 }
-                console.log(response.data);
+                debug && console.log(response.data);
                 const table = response.data[0].TARGET_TABLE;
                 if(privilegeTables.indexOf(table) >= 0 && mounted){
                     setEditable(true);
@@ -131,12 +131,12 @@ const RowExpansion = React.memo(({ row }) => {
                 return;
             }
 
-            console.log(privilegeTables);
+            debug && console.log(privilegeTables);
 
             if(table === 'CATALOG_ENTITIES'){
                 const table = row.TARGET_TABLE;
                 if(privilegeTables.indexOf(table) >= 0){
-                    console.log("table: ", table);
+                    debug && console.log("table: ", table);
                     setEditable(true);
                 }
             }
@@ -164,8 +164,8 @@ const RowExpansion = React.memo(({ row }) => {
             if(table === 'DATA_DOMAIN'){
                 const domain = row.DOMAIN;
 
-                console.log(authorizedDomains);
-                console.log(domain);
+                debug && console.log(authorizedDomains);
+                debug && console.log(domain);
                 
                 if(authorizedDomains.indexOf(domain) >= 0){
                     
@@ -225,7 +225,7 @@ const RowExpansion = React.memo(({ row }) => {
         debug && console.log(dropdownFields);
     }, [dropdownFields]);
 
-    // console.log("Imported DropdownFields from Context: ", dropdownFields);
+    // debug && console.log("Imported DropdownFields from Context: ", dropdownFields);
 
     useEffect(() => {
         if(table === 'ETLF_EXTRACT_CONFIG'){
@@ -437,7 +437,7 @@ const RowExpansion = React.memo(({ row }) => {
                         setLoading(false);
                         setChanged(false);
 
-                        performAuditOperation('UPDATE', primaryKeys, state, sqlMergeStatement, update_status)
+                        performAuditOperation('UPDATE', primaryKeys, state, table, sqlMergeStatement, update_status)
                     } else {
                         return null;
                     }
@@ -532,7 +532,7 @@ const RowExpansion = React.memo(({ row }) => {
                     setLoading(false);
                     setChanged(false);
 
-                    performAuditOperation('UPDATE', primaryKeys, state, sqlMergeStatement, update_status)
+                    performAuditOperation('UPDATE', primaryKeys, state, table, sqlMergeStatement, update_status)
                     
                 });
         } else {
@@ -568,7 +568,7 @@ const RowExpansion = React.memo(({ row }) => {
         let codeGroups = {};
 
         Object.entries(modifiedRowBasedOnRouteAndAction).map((key, index) =>{
-            console.log(key);
+            debug && console.log(key);
             const field = key[0];
             if (HIDDEN_FIELDS_IN_ROW_EXPANSION.indexOf(field) < 0) {
                 
@@ -594,7 +594,7 @@ const RowExpansion = React.memo(({ row }) => {
         dropdownGroups = Object.fromEntries(Object.entries(dropdownGroups).sort());
         codeGroups = Object.fromEntries(Object.entries(codeGroups).sort());
 
-        // Object.entries(dropdownGroups).map((key, index) => console.log(key));
+        // Object.entries(dropdownGroups).map((key, index) => debug && console.log(key));
 
         return(
             <div>

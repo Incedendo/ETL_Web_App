@@ -23,13 +23,13 @@ const WrapperField = ({
 
 
     //perform on the spot type validation for each field
-    console.log("[type: " + type + "] key: " + field);
-    console.log(row);
+    debug && console.log("[type: " + type + "] key: " + field);
+    debug && console.log(row);
 
     const fieldsWithLinks = Object.keys(fieldTypesConfigs[table]['links'])
 
     const linksArr = fieldTypesConfigs[table]['links'][field];
-    console.log(linksArr);
+    debug && console.log(linksArr);
 
     return(
         <div style={{

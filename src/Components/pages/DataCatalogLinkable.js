@@ -10,7 +10,7 @@ import DatCat_ControlPanelLinked from '../features/DataCatalog/DatCat_ControlPan
 
 
 const DataCatalogLinkable = (props) => {
-    console.log(props);
+    
     const ISSUER =`https://devaigtech.oktapreview.com/oauth2/default`;
     const REDIRECT_URI = `${window.location.origin}/logged_out`;
 
@@ -19,12 +19,15 @@ const DataCatalogLinkable = (props) => {
     // const [tableList, setTableList] = useState([]);
 
     const {
+        debug,
         table, tableLoading,
         tableLoaded
     } = useContext(WorkspaceContext);
 
+    debug && console.log(props);
+
     useEffect(()=>{
-        tableLoaded && console.log("table " + table + " has loaded");
+        tableLoaded && debug && console.log("table " + table + " has loaded");
     }, [tableLoaded]);
 
     const login = async () => {

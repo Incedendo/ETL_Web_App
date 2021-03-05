@@ -48,7 +48,7 @@ const SearchNextXrows = () => {
     }, [fetching]);
 
     const getPrevLoHi = () => {
-        console.log(`steps back= ${steps}`);
+        debug && console.log(`steps back= ${steps}`);
         const newHi = lo - 1 > 0 ? lo - 1 : 1
         setHi(newHi);
 
@@ -59,7 +59,7 @@ const SearchNextXrows = () => {
     }
 
     const getNextLoHi = () => {
-        console.log(`steps up = ${steps}`);
+        debug && console.log(`steps up = ${steps}`);
         const newLo = hi + 1 < selectAllCounts ? hi + 1 : selectAllCounts
         setLo(newLo);
 
@@ -83,7 +83,7 @@ const SearchNextXrows = () => {
         let getNextXRowsSQL = selectAllStmtEveryX + `
         WHERE RN >= ` + lo + ` AND RN <= ` + hi;
 
-        console.log(getNextXRowsSQL);
+        debug && console.log(getNextXRowsSQL);
 
         //DO NOT reset COUNTALLS
         axiosCallToGetTableRows( getNextXRowsSQL , uniqueKeysToSeparateRows );
