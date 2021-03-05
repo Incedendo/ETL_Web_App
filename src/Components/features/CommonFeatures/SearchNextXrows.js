@@ -34,7 +34,9 @@ const SearchNextXrows = () => {
 
     useEffect(() => {
         debug && console.log(`StartingLo = ${lo}, StartingHi = ${hi}`);
-    })
+
+        debug && console.log(selectAllStmtEveryX);
+    }, [])
 
     useEffect(()=>{
         mounted.current = true;
@@ -80,6 +82,8 @@ const SearchNextXrows = () => {
             privilegeLogic = caseOperator;
         }
 
+        console.log("Fetching: " + selectAllStmtEveryX);
+
         let getNextXRowsSQL = selectAllStmtEveryX + `
         WHERE RN >= ` + lo + ` AND RN <= ` + hi;
 
@@ -102,6 +106,8 @@ const SearchNextXrows = () => {
             </span>
 
             {hi < selectAllCounts && <a className="button-link" onClick={getNextLoHi}>(Next {steps})</a>}
+
+        
         </div>
     );
 }

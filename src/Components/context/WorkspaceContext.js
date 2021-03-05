@@ -1018,26 +1018,30 @@ FROM (
     SELECT *`;
 
         const multiSearchSQLObj = getMultiSearchObj(isAdmin, isSteward, username, database, schema, table, groupIDColumn, currentSearchObj);
-        const bodySQL = multiSearchSQLObj.bodySQL;
         const selectCriteria = multiSearchSQLObj.selectCriteria;
-
+        const bodySQL = multiSearchSQLObj.bodySQL;
+        
+        if(debug){
+            console.log(selectCriteria);
+            console.log(bodySQL);
+        }
         //------------------------new logic with X rows---------------------------------------------
         //
         getRowsCount = selectCount + bodySQL + `
         )`;
         multiSearchSqlStatement = `SELECT * FROM (
-            ` + selectCriteria + `
-            ` + bodySQL + `    
-        )
-        `;
+            ` + selectCriteria + bodySQL + `)`;
+
+        console.log("Saving: " + multiSearchSqlStatement);
+
         setSelectAllStmtEveryX(multiSearchSqlStatement);
         multiSearchSqlStatementFirstX = multiSearchSqlStatement +`
         WHERE RN >= ` + startingLo +` AND RN <= ` + steps;
-        
+
         if(debug){
-            console.log(table);
-            console.log(currentSearchObj);
-            console.log(getRowsCount);
+            // console.log(table);
+            // console.log(currentSearchObj);
+            // console.log(getRowsCount);
             console.log(multiSearchSqlStatementFirstX);
         }
 

@@ -76,14 +76,8 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                 bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj);
             }
         }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
-            // if(isAdmin){
-            //     privilegeLogic = caseAdmin;
-            // }else if(isSteward){
-            //     privilegeLogic = caseSteward;
-            // }else{
-            //     privilegeLogic = caseOperator;
-            // }
-            selectCriteria =`SELECT *`
+            const key = table === 'CATALOG_ITEMS' ? 'CATALOG_ITEMS_ID' : 'CATALOG_ENTITY_LINEAGE_ID';
+            selectCriteria =`SELECT *, row_number() OVER(ORDER BY ` + key + ` ASC) RN`;
             bodySQL = search_ItemsLineage(table, currentSearchObj); 
         }else if(table === 'DATA_STEWARD_DOMAIN'){
             selectCriteria = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.DATA_STEWARD_ID ASC) RN`;
@@ -99,7 +93,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
             // }else{
             //     privilegeLogic = caseOperator;
             // }
-            selectCriteria = `SELECT *`;
+            selectCriteria = `SELECT *, row_number() OVER(ORDER BY CATALOG_ENTITIES_ID ASC) RN`;
             bodySQL = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
         }else if(table === 'DATA_STEWARD'){
             // if(isAdmin){
@@ -111,7 +105,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
             //         ELSE 'READ ONLY'
             //     END AS PRIVILEGE`;
             // }
-            selectCriteria = `SELECT *`;
+            selectCriteria = `SELECT *, row_number() OVER(ORDER BY DATA_STEWARD_ID ASC) RN`;
             bodySQL = search_multi_field_catalog_DataSteward(currentSearchObj);
         }else if(table === 'DATA_DOMAIN'){
             // if(isAdmin){
@@ -119,7 +113,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
             // }else{
             //     privilegeLogic = caseSteward;
             // }
-            selectCriteria = `SELECT *`;
+            selectCriteria = `SELECT *, row_number() OVER(ORDER BY DATA_DOMAIN_ID ASC) RN`;
             bodySQL = search_multi_field_catalog_DataDomain(isAdmin, caseSteward, currentSearchObj);
         }
             
@@ -132,7 +126,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
         return res;
     }
 
-    const SearchFilterItem = ({col, singleSearchObj, getRowsCount, singleSearchSqlStatementFirstX, separatorStr}) =>
+    const SearchFilterItem = ({col, singleSearchObj, getRowsCount, singleSearchSqlStatement, singleSearchSqlStatementFirstX, separatorStr}) =>
         (
             <span 
                 key={col}
@@ -145,6 +139,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                         cursor: 'pointer'
                     }}
                     onClick={() =>{
+                        setSelectAllStmtEveryX(singleSearchSqlStatement);
                         setCurrentSearchCriteria(singleSearchObj);
                         axiosCallToGetCountsAndTableRows(getRowsCount, singleSearchSqlStatementFirstX, uniqueKeysToSeparateRows);
         
@@ -173,7 +168,8 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
             const singleSearchSqlStatement = `SELECT * FROM (\n` 
                 + selectCriteria + `\n` 
                 + bodySQL + `\n)`;
-            setSelectAllStmtEveryX(singleSearchSqlStatement);
+
+            // setSelectAllStmtEveryX(singleSearchSqlStatement);
             const singleSearchSqlStatementFirstX = singleSearchSqlStatement +
             `\nWHERE RN >= ` + startingLo +` AND RN <= ` + steps;
             
@@ -185,6 +181,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                     col={col}
                     singleSearchObj={singleSearchObj}
                     getRowsCount={getRowsCount}
+                    singleSearchSqlStatement={singleSearchSqlStatement}
                     singleSearchSqlStatementFirstX={singleSearchSqlStatementFirstX}
                     separatorStr={""}
                 /> 
@@ -193,6 +190,7 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                     col={col}
                     singleSearchObj={singleSearchObj}
                     getRowsCount={getRowsCount}
+                    singleSearchSqlStatement={singleSearchSqlStatement}
                     singleSearchSqlStatementFirstX={singleSearchSqlStatementFirstX}
                     separatorStr={">"}
                 />

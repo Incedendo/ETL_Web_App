@@ -401,6 +401,7 @@ export const getMultiSearchObj = (isAdmin, isSteward, username, database, schema
     let privilegeLogic = '';
     let bodySQL = ``;
     let selectCriteria = ``;
+    let searchSql = ``;
 
     if(ETLF_tables.indexOf(table) >= 0){
         // console.log("table is in ETLF Framework");
@@ -414,6 +415,9 @@ export const getMultiSearchObj = (isAdmin, isSteward, username, database, schema
             WHERE ` + getSearchFieldValue(currentSearchObj);
 
             selectCriteria = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY EC.CUSTOM_CODE_ID ASC) rn`;
+        
+            searchSql = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY EC.CUSTOM_CODE_ID ASC) RN
+            ` + bodySQL;
         }
         else if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
 
@@ -427,35 +431,54 @@ export const getMultiSearchObj = (isAdmin, isSteward, username, database, schema
             bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, newSearchObj);
             selectCriteria = `SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
             row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
+
+            searchSql = `SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN
+            ` + bodySQL;
         }else{
             bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj);
             selectCriteria = `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
+        
+            searchSql = `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN
+            ` + bodySQL;
         }
     }else if(table === 'DATA_STEWARD_DOMAIN'){
         
         bodySQL = search_composite_DATA_STEWARD_DOMAIN(currentSearchObj);
         selectCriteria = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.DATA_STEWARD_ID ASC) RN`;
-    
+        searchSql = `SELECT C1.FNAME, C1.LNAME, C1.EMAIL, C1.DATA_STEWARD_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.DATA_STEWARD_ID ASC) RN
+        ` + bodySQL;
     }else if(table === 'CATALOG_ENTITY_DOMAIN'){
         
         bodySQL = search_composite_CATALOG_ENTITY_DOMAIN(currentSearchObj);
         selectCriteria = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.CATALOG_ENTITIES_ID ASC) RN`;
-    
+        
+        searchSql = `SELECT C1.TARGET_DATABASE, C1.TARGET_SCHEMA, C1.TARGET_TABLE, C1.CATALOG_ENTITIES_ID, C1.DATA_DOMAIN_ID, C.DOMAIN, C.DOMAIN_DESCRIPTIONS, C1.CREATEDDATE, C1.LASTMODIFIEDDATE, row_number() OVER(ORDER BY C1.CATALOG_ENTITIES_ID ASC) RN
+        ` + bodySQL;
     }else if(table === 'DATA_STEWARD'){
         
         bodySQL = search_multi_field_catalog_DataSteward(username, currentSearchObj);
         selectCriteria = `SELECT *, row_number() OVER(ORDER BY DATA_STEWARD_ID ASC) RN`;
+
+        searchSql = `SELECT *, row_number() OVER(ORDER BY DATA_STEWARD_ID ASC) RN
+        ` + bodySQL;
     
     }else if(table === 'DATA_DOMAIN'){
 
         bodySQL = search_multi_field_catalog_DataDomain(isAdmin, caseSteward, currentSearchObj);
         selectCriteria = `SELECT *, row_number() OVER(ORDER BY DATA_DOMAIN_ID ASC) RN`;
 
+        searchSql = `SELECT *, row_number() OVER(ORDER BY DATA_DOMAIN_ID ASC) RN
+        ` + bodySQL;
+
     }else if(table === 'CATALOG_ITEMS' || table === 'CATALOG_ENTITY_LINEAGE'){
 
         bodySQL = search_ItemsLineage(table, currentSearchObj)
         const tableKey = table === 'CATALOG_ITEMS' ? 'CATALOG_ITEMS_ID' : 'CATALOG_ENTITY_LINEAGE_ID'
-        selectCriteria = `SELECT *, row_number() OVER(ORDER BY `+ tableKey +` ASC) RN`;            
+        selectCriteria = `SELECT *, row_number() OVER(ORDER BY `+ tableKey +` ASC) RN`;
+        
+        searchSql = `SELECT *, row_number() OVER(ORDER BY `+ tableKey +` ASC) RN
+        ` + bodySQL;
 
         // multiSearchSqlStatement = search_ItemsLineage_joined_Entity_Domain(privilegeLogic, table, currentSearchObj); 
     }else if(table === 'CATALOG_ENTITIES'){
@@ -463,6 +486,8 @@ export const getMultiSearchObj = (isAdmin, isSteward, username, database, schema
         bodySQL = search_CATALOG_ENTITIES_JOINED_DOMAIN(currentSearchObj);
         selectCriteria = `SELECT *, row_number() OVER(ORDER BY CATALOG_ENTITIES_ID ASC) RN`;
         
+        searchSql = `SELECT *, row_number() OVER(ORDER BY CATALOG_ENTITIES_ID ASC) RN
+        ` + bodySQL;
     }
 
     return {
@@ -471,4 +496,4 @@ export const getMultiSearchObj = (isAdmin, isSteward, username, database, schema
     }
 }
 
-// destinationTable === 'DATA_DOMAIN'
+// destinationTable === 'DATA_DOMAIN'selectAllStmtEveryX

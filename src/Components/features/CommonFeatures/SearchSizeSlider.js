@@ -5,6 +5,7 @@ import Slider from 'react-input-slider';
 const SearchSizeSlider = () => {
 
     const {
+        debug,
         steps, setSteps
     } = useContext(WorkspaceContext);
 
