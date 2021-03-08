@@ -84,17 +84,17 @@ const IDAssignmentForm = ({ setShow }) => {
 
         let sql = `MERGE INTO "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" TT
         USING (
-            select UPPER(TRIM('` + email + `')) AS USERNAME, table1.value as APP_ID, 'READ/WRITE' AS PRIVILEGE
+            select UPPER(TRIM('` + email + `')) AS USERNAME, table1.value as APP_ID
             from table(strtok_split_to_table('`+ groupIDsArr.toString() + `', ',')) as table1
         ) st 
         ON (TT.APP_ID = ST.APP_ID)
         WHEN NOT matched THEN
         INSERT (
-            USERNAME, APP_ID, PRIVILEGE
+            USERNAME, APP_ID
         ) 
         VALUES 
         (
-            st.USERNAME, st.APP_ID, st.PRIVILEGE
+            st.USERNAME, st.APP_ID
         );`
     
         return sql;

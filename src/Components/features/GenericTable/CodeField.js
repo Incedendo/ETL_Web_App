@@ -37,18 +37,7 @@ const CodeField = ({
     const [value, setValue] = useState(checked_val);
 
     // debug && console.log(field, ": ", value)
-    if(field === "ROUTE_ID"){
-        let current_route_id = fieldArray[1];
-        Object.values(routeConfigs).map( route =>{
-            if(current_route_id === route.id.toString()){
-                debug && console.log("Route code: ", route.code);
-                debug && console.log("Route source: ", route.source);
-                debug && console.log("Route target: ", route.target);
-            }
-            return;
-        })
-    }
-
+    
     useEffect(() => {
         setState(prevState => {
             // Object.assign would also work

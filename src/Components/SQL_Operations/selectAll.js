@@ -5,7 +5,7 @@ export const selectAllFromSQL = (username, db, schema, table, groupIDColumn) => 
     if(table === 'ETLFCALL'){
         sql_statement =
         `SELECT * FROM(
-            SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, //COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
             row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN`
             + select_all_etl_tables_body(username, db, schema, table, groupIDColumn) + `
         )`
@@ -14,7 +14,7 @@ export const selectAllFromSQL = (username, db, schema, table, groupIDColumn) => 
     }else{
         sql_statement = 
         `SELECT * FROM(
-            SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+            SELECT ec.*, //COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
             row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) RN`
             + select_all_etl_tables_body(username, db, schema, table, groupIDColumn) + `
         )`
@@ -29,9 +29,9 @@ export const select_all_etl_tables_body = (username, db, schema, table, groupIDC
     // `SELECT * FROM(
     `
     FROM "`+  db + `"."` + schema + `"."` +  table + `" ec
-    LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-    ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
-            + username.toUpperCase() + `'`;
+    // LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
+    // ON ec.` + groupIDColumn + ` = auth.APP_ID AND auth.USERNAME = '`
+    //         + username.toUpperCase() + `'`;
 
     return sql_statement;
 }

@@ -319,12 +319,21 @@ const DatCat_ControlPanel = ({ linkState }) => {
             let dropdownObj = {}
             
             //1
-            const DATA_DOMAIN_SQL = `SELECT DD.DOMAIN, DD.DATA_DOMAIN_ID FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD
-            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD_DOMAIN" DSD
-            ON DD.DATA_DOMAIN_ID = DSD.DATA_DOMAIN_ID
-            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" DS
-            ON DSD.DATA_STEWARD_ID = DS.DATA_STEWARD_ID
-            WHERE DS.EMAIL = UPPER(TRIM('` + username + `'));`;
+            let DATA_DOMAIN_SQL = '';
+            
+            if(isAdmin){
+                DATA_DOMAIN_SQL = `SELECT DD.DOMAIN, DD.DATA_DOMAIN_ID FROM SHARED_TOOLS_DEV.ETL.DATA_DOMAIN DD`;
+            }else{
+                DATA_DOMAIN_SQL = `SELECT DISTINCT A.DOMAIN, A.DATA_DOMAIN_ID FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" A 
+                LEFT OUTER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD_DOMAIN" B
+                ON (A.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID)
+                LEFT OUTER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" C
+                ON (B.DATA_STEWARD_ID = C.DATA_STEWARD_ID)
+                LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION DA
+                ON (DA.DOMAIN = A.DOMAIN)
+                WHERE C.EMAIL = UPPER(TRIM('` + username + `')) OR DA.USERNAME = UPPER(TRIM('` + username + `'));`;
+
+            }
             
             axios.get(SELECT_URL, {
                 headers: {

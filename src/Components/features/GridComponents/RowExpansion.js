@@ -11,7 +11,7 @@ import { generateMergeStatement,
     generateMergeUpdateStatement,
     generateAuditStmt } from '../../SQL_Operations/Insert';
 import '../../../css/rowExpansion.scss';
-import { fieldTypesConfigs, HIDDEN_FIELDS_IN_ROW_EXPANSION, DATA_CATALOG_TABLE } from '../../context/FieldTypesConfig';
+import { fieldTypesConfigs, HIDDEN_FIELDS_IN_ROW_EXPANSION, DATA_CATALOG_TABLE, ETLF_tables } from '../../context/FieldTypesConfig';
 import { 
     merge_update_data_steward,
     merge_update_data_domain,
@@ -80,6 +80,7 @@ const RowExpansion = React.memo(({ row }) => {
     const [route, setRoute] = useState("Route Not in List");
     const [action, setAction] = useState("");
     const [dropdownFields, setDropdownFields] = useState(fieldTypesConfigs[table]['dropdownFields']);
+    const [custom_privilege, setPrivilege] = useState('READ ONLY');
 
     const table_configs = {
         "ETLF_EXTRACT_CONFIG": "GROUP_ID",
@@ -89,6 +90,15 @@ const RowExpansion = React.memo(({ row }) => {
     useEffect(()=> {
         setEditError('');
     }, []);
+
+    useEffect(()=>{
+        if(ETLF_tables.indexOf(table) >= 0 ){
+            if(appIDs.indexOf(row['GROUP_ID']) >= 0) 
+                setPrivilege('READ/WRITE');
+        }else{
+            setPrivilege(row['PRIVILEGE']);
+        }
+    }, [])
 
     const checkIfTableIsPrivileged = (getTableNameSQL, mounted) => {
         const { accessToken } = authState;
@@ -123,8 +133,11 @@ const RowExpansion = React.memo(({ row }) => {
     
         let mounted = true;
         if(['ETLF_EXTRACT_CONFIG', 'ETLFCALL', 'ETLF_CUSTOM_CODE'].indexOf(table) >= 0){
-            if(row.PRIVILEGE === 'READ/WRITE')
-                setEditable(true)
+            // if(row.PRIVILEGE === 'READ/WRITE')
+            //     setEditable(true)
+
+            if(appIDs.indexOf(row['GROUP_ID']) >= 0)
+                setEditable(true);
         }else{
             if(isAdmin){
                 setEditable(true);
@@ -252,7 +265,7 @@ const RowExpansion = React.memo(({ row }) => {
         debug && console.log(routeConfigs);
         if (table === 'ETLF_EXTRACT_CONFIG' 
             && route !== 'Route Not in List' && route !== ''
-            && row.PRIVILEGE === 'READ/WRITE'
+            && appIDs.indexOf(row['GROUP_ID']) >= 0
         ){
             debug && console.log("Route: " + route);
             if (routeConfigs[route].SRC_TECH !== 'File'){
@@ -644,6 +657,8 @@ const RowExpansion = React.memo(({ row }) => {
         )
     }
 
+    
+
     return (
         <>
             <div className="row-expansion-button-div">
@@ -655,7 +670,8 @@ const RowExpansion = React.memo(({ row }) => {
                             tableName={'ETLF_CUSTOM_CODE'}
                             route={route}
                             EXTRACT_CONFIG_ID={row['EXTRACT_CONFIG_ID']}
-                            privilege={row['PRIVILEGE']}
+                            // privilege={row['PRIVILEGE']}
+                            privilege={custom_privilege}
                         />
                     </div>}
 

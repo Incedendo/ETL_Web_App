@@ -16,7 +16,7 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     
     const {
         debug,
-        setTable,
+        table, setTable,
         clearLoHi,
         axiosCallToGetTableRows,
         setSelectAllStmtEveryX,
@@ -28,25 +28,10 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
     const [fontSize, setFontsize] = useState(15);
 
     // useEffect(()=> {
-    //     // setTable('ETLF_CUSTOM_CODE');
-    // }, [])
-
-    // const multiSearch_ETLF_EXTRACT_CONFIG = () => {
-    //     let searchStmt = 
-    //     `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
-    //         row_number() OVER(ORDER BY ec.GROUP_ID ASC) rn,
-    //         COUNT(*) OVER() total_num_rows
-    //         FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" ec
-    //         FULL OUTER JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-    //         ON ec.GROUP_ID = auth.APP_ID AND auth.USERNAME = 'kiet.nguyen@aig.com'
-    //         WHERE EXTRACT_CONFIG_ID IN (
-    //             SELECT EXTRACT_CONFIG_ID FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE"
-    //             WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')
-    //     );`;
-        
-    //     debug && console.log(searchStmt)
-    //     axiosCallToGetTableRows( searchStmt, ['EXTRACT_CONFIG_ID'] );
-    // }
+    //     if(table === 'ETLF_CUSTOM_CODE'){
+    //         multiSearch_CUSTOM_CODE();
+    //     }
+    // }, [table])
 
     const multiSearch_CUSTOM_CODE = () => {
         // setTable('ETLF_CUSTOM_CODE');
@@ -56,22 +41,9 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
             'CUSTOM_CODE': searchValue
         })
 
-        // let searchStmt = `
-        // SELECT A.SOURCE_TABLE, B.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
-        // FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" A
-        // LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-        // ON A.GROUP_ID = auth.APP_ID 
-        // INNER JOIN (
-        //     SELECT * FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE"
-        //     WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')
-        // ) B
-        // ON A.EXTRACT_CONFIG_ID = B.EXTRACT_CONFIG_ID`
-
-        const selectCriteria = `SELECT EEC.SOURCE_TABLE, ECC.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, ROW_NUMBER() OVER(ORDER BY EEC.EXTRACT_CONFIG_ID ASC) RN `;
+        const selectCriteria = `SELECT EEC.SOURCE_TABLE,EEC.GROUP_ID, ECC.*, ROW_NUMBER() OVER(ORDER BY EEC.EXTRACT_CONFIG_ID ASC) RN `;
         const bodySQL = `
         FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EEC
-        LEFT JOIN SHARED_TOOLS_DEV.ETL.ETLF_ACCESS_AUTHORIZATION auth 
-        ON EEC.GROUP_ID = auth.APP_ID 
         INNER JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_CUSTOM_CODE" ECC
         ON EEC.EXTRACT_CONFIG_ID = ECC.EXTRACT_CONFIG_ID
         WHERE UPPER(TRIM(CODE)) LIKE UPPER('%`+ searchValue +`%')`
@@ -85,11 +57,6 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
         setSelectAllStmtEveryX(SearchSqlStatement);
         let SearchSqlStatementFirstX = SearchSqlStatement +`
         WHERE RN >= ` + startingLo +` AND RN <= ` + startingHi;
-        
-        // debug && console.log(searchStmt);
-        
-        //wait till table === 'ETLF_CUSTOM_CODE'
-        // axiosCallToGetTableRows( searchStmt, ['CUSTOM_CODE_ID'] );
 
         axiosCallToGetCountsAndTableRows(getRowsCount, SearchSqlStatementFirstX, ['CUSTOM_CODE_ID']);
         
@@ -160,6 +127,3 @@ const SearchModal_CustomCode = ({ setCurrentSearchCriteria }) => {
 }
 
 export default SearchModal_CustomCode;
-
-
-// res += `AND UPPER(TRIM(' + 'ec.` + item + `)) LIKE UPPER('%` + surroundWithQuotesIfString(currentSearchObj[item]) + `%'`;

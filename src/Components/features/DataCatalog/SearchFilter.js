@@ -57,7 +57,8 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                 ON (EEC.GROUP_ID = EAA.APP_ID)
                 WHERE ` + getSearchFieldValue(currentSearchObj);
 
-                selectCriteria = `SELECT EEC.SOURCE_TABLE, EC.*, COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, , row_number() OVER(ORDER BY EEC.EXTRACT_CONFIG_ID ASC) RN`;
+                selectCriteria = `SELECT EEC.SOURCE_TABLE, EC.*, //COALESCE (EAA.PRIVILEGE, 'READ ONLY') AS PRIVILEGE
+                ,row_number() OVER(ORDER BY EEC.EXTRACT_CONFIG_ID ASC) RN`;
             }
             else if(table === 'ETLFCALL' && ('GROUP_ID' in currentSearchObj) ){
 
@@ -67,11 +68,11 @@ const SearchFilter= ({ currentSearchCriteria, setCurrentSearchCriteria }) =>{
                     ? newSearchObj[col] = currentSearchObj[col]
                     : newSearchObj['WORK_GROUP_ID'] = currentSearchObj[col]
                 )
-                selectCriteria = `SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+                selectCriteria = `SELECT ec.*, ec.WORK_GROUP_ID AS GROUP_ID, //COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
                 row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
                 bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, newSearchObj);
             }else{
-                selectCriteria = `SELECT ec.*, COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
+                selectCriteria = `SELECT ec.*,// COALESCE (auth.PRIVILEGE, 'READ ONLY') AS PRIVILEGE,
                 row_number() OVER(ORDER BY ec.`+ groupIDColumn +` ASC) rn`;
                 bodySQL = search_multi_field(username, database, schema, table, groupIDColumn, currentSearchObj);
             }

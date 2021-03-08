@@ -44,7 +44,7 @@ const DataCatalogModal = ({
                     ( ['DATA_DOMAIN', 'DATA_STEWARD', 'DATA_STEWARD_DOMAIN' ].indexOf(table) >= 0 
                         && !isAdmin)
                     || ( table === 'CATALOG_ENTITY_DOMAIN'
-                         && !isSteward && !isAdmin) 
+                         && !isSteward && !isAdmin && !isDomainOperator) 
                     || (['CATALOG_ENTITIES', 'CATALOG_ENTITY_LINEAGE', 'CATALOG_ITEMS'].indexOf(table) >= 0 
                         && !isDomainOperator && !isSteward && !isAdmin
                     )

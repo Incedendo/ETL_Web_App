@@ -16,6 +16,7 @@ const FormField = ({
 }) => {
 
     const {
+        debug,
         table
     } = useContext(WorkspaceContext);
 

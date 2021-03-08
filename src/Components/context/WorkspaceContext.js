@@ -202,12 +202,14 @@ export const WorkspaceProvider = (props) => {
             ON (DS.DATA_STEWARD_ID = DSD.DATA_STEWARD_ID)
             WHERE DS.EMAIL = '` + username + `' OR AA.USERNAME = '` + username + `';`;
 
-            const getAuthorziedDomainSQL = `SELECT DOMAIN FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" A 
-            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD_DOMAIN" B
+            const getAuthorziedDomainSQL = `SELECT DISTINCT A.DOMAIN FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN" A 
+            LEFT OUTER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD_DOMAIN" B
             ON (A.DATA_DOMAIN_ID = B.DATA_DOMAIN_ID)
-            INNER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" C
+            LEFT OUTER JOIN "SHARED_TOOLS_DEV"."ETL"."DATA_STEWARD" C
             ON (B.DATA_STEWARD_ID = C.DATA_STEWARD_ID)
-            WHERE C.EMAIL = '` + username + `';`;
+            LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.DOMAIN_AUTHORIZATION DA
+            ON (DA.DOMAIN = A.DOMAIN)
+            WHERE C.EMAIL = '` + username + `' OR DA.USERNAME = '` + username + `';`;
 
             const SQLs = [getAppIDsSQL, getRoutesSQL, getTablePrivilegeSQL, getAuthorziedDomainSQL];
             const requests = SQLs.map(sql => axios.get(SELECT_URL, {

@@ -27,13 +27,13 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     + EXTRACT_CONFIG_ID + `;`;
     
     const [show, setShow] = useState(false);
-    debug && console.log("route code: ", tableName);
-    debug && console.log("route: ", route);
+    // debug && console.log("route code: ", tableName);
+    // debug && console.log("route: ", route);
 
-    debug && console.log(tableName);
+    // debug && console.log(tableName);
 
-    debug && console.log("%c prop data: ", "color: red; font-weight: bold");
-    // debug && console.log(privilege);
+    // debug && console.log("%c prop data: ", "color: red; font-weight: bold");
+    debug && console.log(privilege);
     
     const [database, setDatabase] = useState('SHARED_TOOLS_DEV');
     const [schema, setSchema] = useState('ETL');
@@ -307,6 +307,9 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                             PRIVILEGE: privilege === 'READ ONLY'
                                 ? row.PRIVILEGE = "READ ONLY"
                                 : row.PRIVILEGE = "READ/WRITE",
+                            // PRIVILEGE: privilege 
+                            //     ? row.PRIVILEGE = "READ/WRITE"
+                            //     : row.PRIVILEGE = "READ ONLY",
                             route: route
                         };
                     })
