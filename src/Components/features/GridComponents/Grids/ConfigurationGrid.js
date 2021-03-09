@@ -52,7 +52,7 @@ const ConfigurationGrid = () => {
         database, 
         schema, 
 
-        table, setReloadTable,
+        table, 
          
         setInsertSuccess,
         setInsertError,
@@ -196,9 +196,6 @@ const ConfigurationGrid = () => {
                     setInsertSuccess(false);
                     setInsertError(err.message);
                 })
-                .finally(
-                    () => setReloadTable(true)
-                )
         }
     }
 

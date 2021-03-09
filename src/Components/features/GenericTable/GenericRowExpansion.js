@@ -209,7 +209,6 @@ const GenericRowExpansion = ({ row, ...rest }) => {
                 })
                 .finally(() => {
                     if (isSubscribed) {
-                        // setReloadTable(true);
                         setLoading(false);
                         setChanged(false);
                         if(reloadOnSuccess){

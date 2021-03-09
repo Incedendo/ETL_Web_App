@@ -79,7 +79,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
 
         setOptions(colOptions);
         setShow(shown);
-    }, [table, columns]);
+    }, [table, columns, shown]);
 
 
     const handleAddSearchField = value => {

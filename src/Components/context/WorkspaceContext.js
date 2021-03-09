@@ -33,7 +33,6 @@ export const WorkspaceProvider = (props) => {
     const [schema, setSchema] = useState('ETL');
     const [tablelist, setTablelist] = useState([])
 
-    const [reloadTable, setReloadTable] = useState(false)
     const [table, setTable] = useState('ETLF_EXTRACT_CONFIG');
     const [tableLoading, setTableLoading] = useState(false)
     const [tableLoaded, setTableLoaded] = useState(false)
@@ -393,6 +392,7 @@ export const WorkspaceProvider = (props) => {
             if(table === 'ETLFCALL'){
                 headers[headers.indexOf('WORK_GROUP_ID')] = 'GROUP_ID';
             }else if(table === 'ETLF_CUSTOM_CODE'){
+                headers.unshift('GROUP_ID');
                 headers.unshift('SOURCE_TABLE');
             }//add extra columns to the grid for these tables
             else if(table === 'DATA_STEWARD_DOMAIN'){
@@ -978,7 +978,6 @@ export const WorkspaceProvider = (props) => {
                 // console.log('---------GET RESPONSE-----------');
                 debug && console.log(response.data);
                 
-                // if (!reloadTable && !gridConfigs[table]) {
                 if (table in gridConfigs) {
                     reloadGridConfig();
                     loadTableRows(response.data, primaryKey);
@@ -1151,7 +1150,6 @@ FROM (
                                 newRows = [...newRows, ...insertedRows];
                                 debug && console.log(insertedRows);
                             }else{
-                                // if(performReload) setReloadTable(true);
                                 // values['EDITABLE'] = 'YES';       
                                                             
                                 //CONVER ALL NON-NUMERIC VAL TO UPPER CASE B4 SAVING:    
@@ -1215,7 +1213,6 @@ FROM (
                     debug && console.log(response.data)
                     setEditSuccess(true)
                     setEditError('')
-                    if(performReload) setReloadTable(true);
                 }
             })
             .catch(err => {
@@ -1223,9 +1220,6 @@ FROM (
                 setEditError(err.message);
                 setEditSuccess(false)
             })
-            .finally(
-                () => setReloadTable(true)
-            )
     }
 
     // Make the context object:
@@ -1247,7 +1241,6 @@ FROM (
         tableLoading, setTableLoading,
         tableLoaded, setTableLoaded,
         tableSearching, setTableSeaching,
-        setReloadTable,
 
         insertMode, setInsertMode,
         insertSuccess, setInsertSuccess,

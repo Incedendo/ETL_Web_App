@@ -18,12 +18,14 @@ import PhotoModal from '../Modals/PhotoModal';
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
 
-const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
+const WorkTab = ({ id, linkState, 
+    // shownModalUponChangingTable
+ }) => {
     const {
         debug,
         table, 
         columnDataTypes, 
-        tableLoaded, tableLoading, tableSearching, setReloadTable,
+        tableLoaded, tableLoading, tableSearching, 
         primaryKeys, setPrimaryKeys, rows, columnsLoaded,
         insertError, editSuccess, editError, setSteps,
         system_configs
@@ -31,8 +33,26 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
 
     
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
+    const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
+    const [comingFromLink, setCommingFromLink] = useState(false);
 
-    
+    console.log("WorkedTab Clicked, table = " + table);
+
+    useEffect(() =>{
+        if(linkState !== undefined){
+            debug && console.log(linkState);
+            
+            setShownModalUponChangingTable(false);
+            setCommingFromLink(true);
+
+        }else{
+            if(id === table)
+                setShownModalUponChangingTable(true);
+
+        }
+        
+        // debug && console.log(dropdownFields);
+    }, []);
 
     const TableConfigPanel = () => (
         // <div className={"card expanded-height"}>
@@ -95,7 +115,7 @@ const WorkTab = ({ linkState, shownModalUponChangingTable }) => {
     const PrimaryKeysPanel = () => (
         <div className="tableName-SearchBox-Div">
             <div className="table-header bg-dark reloadTable">
-                <a onClick={() => setReloadTable(true)}>
+                <a >
                     {table}
                 </a>
             </div>

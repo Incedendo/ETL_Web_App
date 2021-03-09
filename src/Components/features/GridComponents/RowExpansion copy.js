@@ -90,7 +90,36 @@ const RowExpansion = React.memo(({ row }) => {
         setEditError('');
     }, []);
 
+    const checkIfTableIsPrivileged = (getTableNameSQL, mounted) => {
+        axios.get(SELECT_URL, {
+            headers: {
+                'type': 'TOKEN',
+                'methodArn': ARN_APIGW_GET_SELECT,
+                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                'authorizorToken': accessToken
+            },
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: getTableNameSQL,
+            }
+        })
+            //have to setState in .then() due to asynchronous opetaions
+            .then(response => {
+                if(response.data.length > 1){
+                    console.log("MORE THAN 1 TABLE for this RECORD!!!!!!")
+                    return;
+                }
+                console.log(response.data);
+                const table = response.data[0].TARGET_TABLE;
+                if(privilegeTables.indexOf(table) >= 0 && mounted){
+                    setEditable(true);
+                }
+            })
+            .catch(err => debug && console.log("error from loading", err.message))
+    }
+
     useEffect(() =>{
+        let mounted = true;
         if(['ETLF_EXTRACT_CONFIG', 'ETLFCALL', 'ETLF_CUSTOM_CODE'].indexOf(table) >= 0){
             if(row.PRIVILEGE === 'READ/WRITE')
                 setEditable(true)
@@ -117,29 +146,7 @@ const RowExpansion = React.memo(({ row }) => {
 
                 console.log(getTableNameSQL);
 
-                axios.get(SELECT_URL, {
-                    headers: {
-                        'type': 'TOKEN',
-                        'methodArn': ARN_APIGW_GET_SELECT,
-                        // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                        'authorizorToken': accessToken
-                    },
-                    //params maps to event.queryStringParameters in lambda
-                    params: {
-                        sqlStatement: getTableNameSQL,
-                    }
-                })
-                    //have to setState in .then() due to asynchronous opetaions
-                    .then(response => {
-                        if(response.data.length > 1){
-                            console.log("MORE THAN 1 TABLE for this RECORD!!!!!!")
-                            return;
-                        }
-                        console.log(response.data);
-                        const tables = response.data[0];
-                    })
-                    .catch(err => debug && console.log("error from loading", err.message))
-           
+                checkIfTableIsPrivileged(getTableNameSQL, mounted);
             }
             if(table === 'CATALOG_ENTITY_LINEAGE'){
                 let getTableNameSQL = `SELECT B.TARGET_TABLE FROM
@@ -148,24 +155,7 @@ const RowExpansion = React.memo(({ row }) => {
                 ON(A.CATALOG_ENTITIES_ID = B.CATALOG_ENTITIES_ID)
                 WHERE A.CATALOG_ENTITY_LINEAGE_ID = '` + row.CATALOG_ENTITY_LINEAGE_ID + `';`;
 
-                axios.get(SELECT_URL, {
-                    headers: {
-                        'type': 'TOKEN',
-                        'methodArn': ARN_APIGW_GET_SELECT,
-                        // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-                        'authorizorToken': accessToken
-                    },
-                    //params maps to event.queryStringParameters in lambda
-                    params: {
-                        sqlStatement: getTableNameSQL,
-                    }
-                })
-                    //have to setState in .then() due to asynchronous opetaions
-                    .then(response => {
-
-                    })
-                    .catch(err => debug && console.log("error from loading column list for ETLF_EXTRACT_CONFIG:", err.message))
-           
+                checkIfTableIsPrivileged(getTableNameSQL, mounted);
             }
     
             // if(table === 'DATA_STEWARD'){
@@ -176,6 +166,7 @@ const RowExpansion = React.memo(({ row }) => {
             }
         }
         
+        return () => mounted = false;
     }, [])
 
     // useEffect(()=>{
@@ -434,7 +425,6 @@ const RowExpansion = React.memo(({ row }) => {
                 })
                 .finally(() => {
                     if (isSubscribed) {
-                        // setReloadTable(true);
                         
                         setLoading(false);
                         setChanged(false);
@@ -529,7 +519,6 @@ const RowExpansion = React.memo(({ row }) => {
                     setEditSuccess(false);
                 })
                 .finally(() => {
-                    // setReloadTable(true);
                     
                     setLoading(false);
                     setChanged(false);

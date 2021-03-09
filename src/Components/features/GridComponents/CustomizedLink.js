@@ -18,8 +18,6 @@ const sql_linking_Lineage_To_ETLF_Extract_Config = value => {
 
     const body = `
     FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG" EC
-    LEFT JOIN "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" A
-    ON EC.GROUP_ID = A.APP_ID
     WHERE UPPER(TRIM(EC.EXTRACT_CONFIG_ID)) = UPPER(TRIM('`+ value + `'))`;
 
     return body
@@ -198,7 +196,7 @@ const getBodyAndSelectCriteria = (username, table, destinationTable, value) => {
             body = sql_linking_ItemsLineage_To_CatalogEntities(value);
             //
         }else if(destinationTable === 'ETLF_EXTRACT_CONFIG'){
-            selectCriteria = `SELECT EC.*, COALESCE(A.PRIVILEGE, 'READ ONLY') AS PRIVILEGE, row_number() OVER(ORDER BY EC.EXTRACT_CONFIG_ID ASC) RN`;
+            selectCriteria = `SELECT EC.*, row_number() OVER(ORDER BY EC.EXTRACT_CONFIG_ID ASC) RN`;
             body = sql_linking_Lineage_To_ETLF_Extract_Config(value);
         }
     }

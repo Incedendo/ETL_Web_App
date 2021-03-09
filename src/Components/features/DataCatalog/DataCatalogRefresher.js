@@ -3,6 +3,7 @@ import { useOktaAuth } from '@okta/okta-react';
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import axios from 'axios';
 import Button from 'react-bootstrap/Button';
+import Spinner from 'react-bootstrap/Spinner';
 import { mergeUpdateCatalogEntitiesFromView,
     mergeUpdateCatalogItemsFromView,
     mergeUpdateCatalogEntityLineageFromView
@@ -88,7 +89,17 @@ const DataCatalogRefresher = () => {
                 disabled={isRefreshing || !columnsLoaded}
                 onClick={!isRefreshing ? handleClick : null}
             >
-                {isRefreshing ? 'Refreshing…' : 'Refresh Data Catalog'}
+                {isRefreshing 
+                ? <span>
+                    Refreshing <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                    /> 
+                </span>
+                : 'Refresh Data Catalog'}
             </Button>   
         </div>
     )

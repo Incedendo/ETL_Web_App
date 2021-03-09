@@ -5,6 +5,8 @@ import IDAssignmentModal from '../Modals/IDAssignmentModal';
 
 const AdminTabs = () => {
 
+    console.log("!!! Loaded from the start w/o clicking on Admin tab");
+
     return(
         <div>
             <h4 style={{textAlign: 'left'}}>

@@ -18,7 +18,6 @@ const TableDropdownMenu = () => {
 
     const {
         debug,
-        setReloadTable,
         tableLoading,
         tableSearching,
 
@@ -118,9 +117,6 @@ const TableDropdownMenu = () => {
                     </div>}
             </div>
 
-            <div className="InlineDiv ">
-                <button onClick={() => setReloadTable(true)}>Refresh</button>
-            </div>
         </div>
     );
 }

@@ -252,11 +252,10 @@ const getSelectClause = (rowOjb, columns) => {
 const getUpdateClause = (columns) => {
     let updateClause = '';
     for (let id in columns) {
-        updateClause += 'tt.' + columns[id] + ' = st.' + columns[id] 
-        if (id < columns.length - 1) {
-            updateClause += ', '
-        }
+        updateClause += 'tt.' + columns[id] + ' = st.' + columns[id] + ', \n';
     }
+
+    updateClause += 'tt.LASTMODIFIEDDT = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ';
     return updateClause;
 }
 

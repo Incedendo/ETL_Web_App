@@ -18,7 +18,10 @@ export const merge_update_data_steward = (row, diff) => {
     ON (TT.DATA_STEWARD_ID = ST.DATA_STEWARD_ID)
     WHEN matched THEN
     UPDATE 
-    SET tt.FNAME = st.FNAME, tt.LNAME = st.LNAME
+    SET 
+        tt.FNAME = st.FNAME, 
+        tt.LNAME = st.LNAME, 
+        tt.LASTMODIFIEDDATE = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ
     when not matched then
     insert (
         DATA_STEWARD_ID, FNAME, LNAME, EMAIL
@@ -51,7 +54,8 @@ export const merge_update_data_domain = (row, diff) => {
     ON (TT.DATA_DOMAIN_ID = ST.DATA_DOMAIN_ID)
     WHEN matched THEN
     UPDATE 
-    SET tt.DOMAIN_DESCRIPTIONS = st.DOMAIN_DESCRIPTIONS
+    SET tt.DOMAIN_DESCRIPTIONS = st.DOMAIN_DESCRIPTIONS,
+        tt.LASTMODIFIEDDATE = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ
     WHEN NOT matched THEN
     INSERT (
         DATA_DOMAIN_ID, DOMAIN, DOMAIN_DESCRIPTIONS
@@ -96,7 +100,8 @@ export const merge_update_catalog_items = (row, diff) => {
        SET 
             tt.DATA_TYPE = st.DATA_TYPE,
             tt.PII = st.PII, 
-            tt.COMMENTS = st.COMMENTS  
+            tt.COMMENTS = st.COMMENTS,
+            tt.LASTMODIFIEDDATE = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ
     WHEN NOT matched THEN
       INSERT (
           CATALOG_ITEMS_ID, CATALOG_ENTITIES_ID, COLUMN_NAME, DATA_TYPE, PII, COMMENTS
@@ -135,7 +140,8 @@ export const merge_update_catalog_entities = (row, diff) => {
     WHEN matched THEN
     UPDATE 
     SET 
-        TT.COMMENTS = ST.COMMENTS 
+        TT.COMMENTS = ST.COMMENTS,
+        TT.LASTMODIFIEDDATE = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ
     WHEN NOT matched THEN
     INSERT (
         CATALOG_ENTITIES_ID, TARGET_DATABASE, TARGET_SCHEMA, TARGET_TABLE, COMMENTS
@@ -189,7 +195,8 @@ export const merge_catalog_entity_lineage = (row, diff) => {
             TT.SYSTEM_CONFIG_TYPE = ST.SYSTEM_CONFIG_TYPE, 
             TT.LINEAGE = ST.LINEAGE, 
             TT.NOTIFICATIONEMAILS = ST.NOTIFICATIONEMAILS, 
-            TT.REFRESH_INTERVAL = ST.REFRESH_INTERVAL
+            TT.REFRESH_INTERVAL = ST.REFRESH_INTERVAL,
+            TT.LASTMODIFIEDDATE = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ
     when not matched then
     insert (
         CATALOG_ENTITIES_ID, ORIGIN_INFORMATION, CONFIG_NAME, EXTRACT_CONFIG_ID, SOURCE_TABLE, EXTRACT_SCHEMA, SYSTEM_CONFIG_TYPE, LINEAGE, NOTIFICATIONEMAILS, REFRESH_INTERVAL

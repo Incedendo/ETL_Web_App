@@ -39,68 +39,28 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
     console.log(props);
 
     const { authState, authService } = useOktaAuth();
-    const [loadingAppIDs, setLoadingAppIDs] = useState(false);
-    const [etlTabClicked, setEtlTabClicked] = useState(false);
-    const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
+    // const [loadingAppIDs, setLoadingAppIDs] = useState(false);
+
+    // const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
 
     const login = async () => {
         // Redirect to '/' after login
         authService.login('/');
     }
  
-    useEffect(() => {
-        setLoadingAppIDs(false);
-        debug && console.log('APP IDs', appIDs);
-    }, [appIDs]);
-
-    useEffect(() => {
-        console.log('[ETL Framework] shownModalUponChangingTable: '+ shownModalUponChangingTable);
-    }, [shownModalUponChangingTable]);
+    // useEffect(() => {
+    //     setLoadingAppIDs(false);
+    //     debug && console.log('APP IDs', appIDs);
+    // }, [appIDs]);
 
     useEffect(()=>{
         //upon clicking the ETL Framework Tab, set the table to ETLF by default??????
         setTable("ETLF_EXTRACT_CONFIG");
     }, []);
 
-
-    // useEffect(()=>{
-    //     if(etlTabClicked || props['location']['state'] === undefined){
-    //         setTableLoaded(false);
-    //     }else if(props['location']['state'] !== undefined && !etlTabClicked){
-    //         console.log("COming from Linked Component, what to do now???")
-
-    //         const linkedState = props['location']['state'];
-    //         console.log(linkedState);
-
-    //         setTable(linkedState['table']);
-    //         console.log("use search statement to fetch only target value");
-
-    //         let searchStmt = linkedState['searchStmt'];
-    //         console.log(searchStmt);
-
-    //         axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
-    //     }
-    // }, [etlTabClicked])
-
-    useEffect(()=>{
-        if( props['location']['state'] === undefined){
-            setTable('ETLF_EXTRACT_CONFIG');
-            // setShownModalUponChangingTable(true);
-        }else if(props['location']['state'] !== undefined){
-            console.log("COming from Linked Component, what to do now???")
-            const linkedState = props['location']['state'];
-            setTable(linkedState['table']);
-            console.log("use search statement to fetch only target value");
-        }
-    }, [])
-
     useEffect(() => {
         if(columnsLoaded && props['location']['state'] !== undefined){
             const linkState = props['location']['state'];
-            // console.log(linkedState);
-            // let searchStmt = linkedState['searchStmt'];
-            // console.log(searchStmt);
-            // axiosCallToGetTableRows(searchStmt, ["EXTRACT_CONFIG_ID"])
 
             const countStmt = linkState['countStmt'];
             const searchStmt = linkState['searchStmt'];
@@ -131,23 +91,20 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                             debug && console.log("Configuration Tab");
                             setTable("ETLFCALL");
                         } 
-                        // if(!etlTabClicked){
-                        //     setEtlTabClicked(true);
-                        // }
 
                         setTableLoaded(false);
                     }}
                 >
                     < Tab eventKey = "Configuration" title = "Configuration" disabled = {tableLoading}>
                         <WorkTab
+                            id={'ETLF_EXTRACT_CONFIG'}
                             linkState={props['location']['state']}
-                            shownModalUponChangingTable={shownModalUponChangingTable}
                         />
                     </Tab>
                     <Tab eventKey="Schedule Jobs" title="Schedule Jobs" disabled = {tableLoading}>
                         <WorkTab
+                            id={'ETLFCALL'}
                             linkState={props['location']['state']}
-                            shownModalUponChangingTable={shownModalUponChangingTable}
                         />
                     </Tab>
                     {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>

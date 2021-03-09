@@ -38,7 +38,6 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
     const [database, setDatabase] = useState('SHARED_TOOLS_DEV');
     const [schema, setSchema] = useState('ETL');
     const [table, setTable] = useState(tableName);
-    // const [reloadTable, setReloadTable] = useState(false)
     
     // const [sqlStatement, setSqlStatement] = useState(sqlGetStmt);
     
@@ -392,7 +391,6 @@ const GenericTableModal = ({ modalName, tableName, route, EXTRACT_CONFIG_ID, pri
                             debug && console.log(rows);
                             debug && console.log(newRows);
                             
-                            // if(performReload) setReloadTable(true);
                             values['PRIVILEGE'] = 'READ/WRITE';                            
                             //CONVERT ALL NON-NUMERIC VAL TO UPPER CASE B4 SAVING:    
                             (Object.keys(values)).map(col => {
