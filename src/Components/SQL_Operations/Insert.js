@@ -147,7 +147,7 @@ export const generateMergeStatement = (database, schema, table, primaryKeys, col
 
 export const generateMergeUpdateStatement = (database, schema, table, primaryKeys, columns, rowOjb) => {
     const selectClause = getSelectClause(rowOjb, columns);
-    const updateClause = getUpdateClause(columns);
+    const updateClause = getUpdateClauseWithDates(columns);
 
     // const insertCols = getInsertCols(columns);
     // const insertValues = getInsertValues(columns);
@@ -252,9 +252,25 @@ const getSelectClause = (rowOjb, columns) => {
 const getUpdateClause = (columns) => {
     let updateClause = '';
     for (let id in columns) {
-        updateClause += 'tt.' + columns[id] + ' = st.' + columns[id] + ', \n';
+        if (id < columns.length - 1)
+            updateClause += 'tt.' + columns[id] + ' = st.' + columns[id] + ', \n';
+        else
+            updateClause += 'tt.' + columns[id] + ' = st.' + columns[id] + '\n';
     }
 
+    // if(!('LASTMODIFIEDDT' in columns))
+    //     updateClause += 'tt.LASTMODIFIEDDT = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ';
+    return updateClause;
+}
+
+const getUpdateClauseWithDates = (columns) => {
+    let updateClause = '';
+
+    for (let id in columns) {
+        updateClause += 'tt.' + columns[id] + ' = st.' + columns[id] + ', \n';
+    }
+    
+    // if(!('LASTMODIFIEDDT' in columns))
     updateClause += 'tt.LASTMODIFIEDDT = CURRENT_TIMESTAMP(0)::TIMESTAMP_NTZ';
     return updateClause;
 }

@@ -116,7 +116,7 @@ export const search_ItemsLineage = (table, currentSearchObj) => {
 
     let body = `
     FROM (
-        SELECT I.*, E.TARGET_TABLE
+        SELECT I.*, E.TARGET_TABLE, E.TARGET_SCHEMA
         FROM SHARED_TOOLS_DEV.ETL.` + table + ` I
         LEFT OUTER JOIN SHARED_TOOLS_DEV.ETL.CATALOG_ENTITIES E
         ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)
@@ -329,7 +329,7 @@ export const getSelectAllObjDatCat = (isAdmin, isSteward, username, table) => {
         ON (I.CATALOG_ENTITIES_ID = E.CATALOG_ENTITIES_ID)`;
 
         selectAllFrom = `SELECT * FROM (
-            SELECT I.*, E.TARGET_TABLE, row_number() OVER(ORDER BY `+ tableKey +` ASC) RN`
+            SELECT I.*, E.TARGET_TABLE, E.TARGET_DATABASE, E.TARGET_SCHEMA, row_number() OVER(ORDER BY `+ tableKey +` ASC) RN`
             + bodySQL +`
         )`;
     }

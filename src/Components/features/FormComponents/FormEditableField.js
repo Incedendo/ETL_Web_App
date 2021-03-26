@@ -8,13 +8,13 @@ import { WorkspaceContext } from '../../context/WorkspaceContext';
 
 import '../../../css/CodeEditor.scss';
 
-const FormEditableField = ({ field, value, touched, errors }) => {
+const FormEditableField = ({ field, errors }) => {
 
     const {
         debug
     } = useContext(WorkspaceContext)
 
-    const [code, setCode] = useState(value);
+    const [code, setCode] = useState('');
 
     // useEffect(() => {
     //     console.log('Touched: ', touched[field]);

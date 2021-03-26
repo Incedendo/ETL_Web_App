@@ -132,8 +132,6 @@ const FormField = ({
                     {(fieldType === 'code') &&
                         <FormEditableField
                             field={field}
-                            value={codeFields[field]}
-                            touched={touched}
                             errors={errors}
                         />
                     }

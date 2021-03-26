@@ -76,14 +76,12 @@ const DatCat_ControlPanel = ({ linkState }) => {
         debug,
         username,
         table, setTable,
-        rows, columns, 
+        rows,
         columnsLoaded, setColumnsLoaded,
         tableLoading,
-        tableLoaded,setTableLoaded,
+        tableLoaded,
 
         insertSuccess, insertError, setInsertError,
-
-        axiosCallToGetTableRows,
         axiosCallToGetCountsAndTableRows
     } = useContext(WorkspaceContext);
 
@@ -103,7 +101,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
     const [dropdownObject, setDropdownObject] = useState({});
     const [loadedConfig, setLoadedConfig] = useState(false);
     const [comingFromLink, setCommingFromLink] = useState(false);
-    const [counts, setCounts] = useState(0);
 
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
@@ -123,8 +120,6 @@ const DatCat_ControlPanel = ({ linkState }) => {
     useEffect(() =>{
         if(linkState !== undefined){
             debug && console.log(linkState);
-            setTable(linkState['table']);
-            // setTableLoaded(false);
             setCommingFromLink(true);
             setShownModalUponChangingTable(false);
 
@@ -134,21 +129,9 @@ const DatCat_ControlPanel = ({ linkState }) => {
             setTable('DATA_DOMAIN');
             
             setShownModalUponChangingTable(true);
-            // the first time user clicks on the tab, still needs to enforce false to NOT show the result table
-            // setTableLoaded(false);
             setCommingFromLink(false);
         }
-        
-        // debug && console.log(dropdownFields);
     }, []);
-
-    // useEffect(() => {
-    //     if(DATA_CATALOG_TABLE.indexOf(table) >= 0){
-    //         // debug && console.log("Table: " + table);
-    //         // debug && console.log("only show Search Modal if table is in Data Catalog???")
-    //         setShownModalUponChangingTable(true);
-    //     }
-    // }, [table])
 
     useEffect(()=>{
         if(insertError !== ''){
@@ -158,18 +141,12 @@ const DatCat_ControlPanel = ({ linkState }) => {
         }
     }, [insertError])
 
-    useEffect(()=>{
-        // if(linkState !== undefined){
-        if(loadedConfig ){
-            debug && console.log("Config loaded in Data Control Panels....");           
-        }
-    }, [loadedConfig]);
-
-    useEffect(() => {
-        if(rows.length > 0){
-            setCounts(rows.length);
-        }
-    }, [rows]);
+    // useEffect(()=>{
+    //     // if(linkState !== undefined){
+    //     if(loadedConfig ){
+    //         debug && console.log("Config loaded in Data Control Panels....");           
+    //     }
+    // }, [loadedConfig]);
 
     useEffect(()=>{
         // if(linkState !== undefined){
@@ -190,21 +167,14 @@ const DatCat_ControlPanel = ({ linkState }) => {
         }
     }, [loadedConfig, comingFromLink, columnsLoaded]);
 
-    useEffect(() =>{
-        debug && console.log(fields);
-    }, [fields]);
-
-    useEffect(() =>{
-        debug && console.log(dropdownFields);
-        debug && console.log(dropdownObject);
-    }, [dropdownFields,dropdownObject]);
-
-    
+    // useEffect(() =>{
+    //     debug && console.log(fields);
+    // }, [fields]);
 
     // useEffect(() =>{
-    //     if((Object.keys(currentSearchCriteria)).length == 0)
-    //         setCommingFromLink(false);
-    // }, [currentSearchCriteria]);
+    //     debug && console.log(dropdownFields);
+    //     debug && console.log(dropdownObject);
+    // }, [dropdownFields,dropdownObject]);
 
     // Set dropdown for composite tables
     useEffect(() => {
@@ -636,7 +606,7 @@ const DatCat_ControlPanel = ({ linkState }) => {
                 }
             </div>
 
-            {tableLoading && 
+            {tableLoading &&
                 <div style={{
                     "position":"relative",
                     "display": "inline-block",

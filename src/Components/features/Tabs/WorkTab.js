@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
-import Dropdown from 'react-bootstrap/Dropdown';
-import ButtonGroup from 'react-bootstrap/ButtonGroup'
 
 import { WorkspaceContext } from '../../context/WorkspaceContext';
 import ConfigurationGrid from '../GridComponents/Grids/ConfigurationGrid';
@@ -18,23 +16,20 @@ import PhotoModal from '../Modals/PhotoModal';
 import '../../../css/mymodal.scss';
 import '../../../css/workspace.scss';
 
-const WorkTab = ({ id, linkState, 
-    // shownModalUponChangingTable
- }) => {
+const WorkTab = ({ id, linkState }) => {
     const {
         debug,
         table, 
         columnDataTypes, 
         tableLoaded, tableLoading, tableSearching, 
         primaryKeys, setPrimaryKeys, rows, columnsLoaded,
-        insertError, editSuccess, editError, setSteps,
-        system_configs
+        insertError, system_configs
     } = useContext(WorkspaceContext);
 
     
     const [currentSearchCriteria, setCurrentSearchCriteria] = useState([]);
     const [shownModalUponChangingTable, setShownModalUponChangingTable] = useState(false);
-    const [comingFromLink, setCommingFromLink] = useState(false);
+    // const [comingFromLink, setCommingFromLink] = useState(false);
 
     console.log("WorkedTab Clicked, table = " + table);
 
@@ -42,13 +37,11 @@ const WorkTab = ({ id, linkState,
         if(linkState !== undefined){
             debug && console.log(linkState);
             
-            setShownModalUponChangingTable(false);
-            setCommingFromLink(true);
+            // setShownModalUponChangingTable(false);
+            // setCommingFromLink(true);
 
-        }else{
-            if(id === table)
-                setShownModalUponChangingTable(true);
-
+        }else if(id === table){
+            // setShownModalUponChangingTable(true);
         }
         
         // debug && console.log(dropdownFields);
@@ -103,7 +96,6 @@ const WorkTab = ({ id, linkState,
                     {table === 'ETLF_EXTRACT_CONFIG' &&  <SearchModal_CustomCode  setCurrentSearchCriteria={setCurrentSearchCriteria} />}
                 
                 </div>
-
                 
             </div>
     )

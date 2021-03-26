@@ -41,7 +41,7 @@ export const fieldTypesConfigs = {
     ETLF_CUSTOM_CODE: {
         primaryKeys: ['CUSTOM_CODE_ID'],
         codeFields: {
-            'CODE': 'Enter your code here...',
+            'CODE': '',
         },
         dropdownFields: {
             ACTIVE: ['Y', 'N'],

@@ -214,10 +214,11 @@ const getBodyAndSelectCriteria = (username, table, destinationTable, value) => {
 
 const CustomizedLink = ({ row }) => {
     const {
-        debug, username , table, setSelectAllStmtEveryX
+        debug, username , 
+        table, setTable, setSelectAllStmtEveryX
     } = useContext(WorkspaceContext);
 
-    const { isAdmin, isSteward } = useContext(AdminContext);
+    // const { isAdmin, isSteward } = useContext(AdminContext);
 
     const linkedTablesObject = fieldTypesConfigs[table]['links'];
 
@@ -296,12 +297,11 @@ const CustomizedLink = ({ row }) => {
                 return(
                     <div style={{'marginBottom': '10px'}}>
                         <Link 
+                            onClick={()=>setTable(destinationTable)}
                             to={{
                                 // pathname: '/datacataloglinked',
                                 pathname: DATA_CATALOG_TABLE.indexOf(destinationTable) >= 0 ? '/datacatalog' : '/etlframework',
                                 state: {
-                                    'table': destinationTable,
-                                    // 'searchStmt': searchStmt,
                                     'countStmt': getRowsCountStmt,
                                     'searchStmt': linkingSqlStatementFirstX,
                                     'filterState': {

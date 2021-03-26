@@ -87,7 +87,7 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                         if (eventKey ==="Configuration"){
                             debug && console.log("Config Tab");
                             setTable("ETLF_EXTRACT_CONFIG");
-                        } else if (eventKey === "Schedule Jobs"){
+                        }else if (eventKey === "Schedule Jobs"){
                             debug && console.log("Configuration Tab");
                             setTable("ETLFCALL");
                         } 
@@ -116,7 +116,6 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                             <AdminTabs />
                         </Tab>
                     }
-            
                     
                 </Tabs>
             </>

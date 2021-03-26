@@ -78,8 +78,9 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         }))
 
         setOptions(colOptions);
-        setShow(shown);
-    }, [table, columns, shown]);
+
+        if(shown) setShow(shown);
+    }, [table, columns]);
 
 
     const handleAddSearchField = value => {
@@ -139,8 +140,7 @@ const SearchModal = ({ groupIDColumn, shown, setCurrentSearchCriteria}) => {
         debug && console.log(selectAllStmtFirstX);
         axiosCallToGetCountsAndTableRows(selectCountAllStmt, selectAllStmtFirstX, uniqueKeysToSeparateRows);
         
-        setShow(false);            
-        
+        setShow(false); 
     }
 
     const CriteriaDropdownSelect = () => {

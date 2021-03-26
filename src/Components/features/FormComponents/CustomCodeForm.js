@@ -44,65 +44,6 @@ const CustomCodeForm = ({ table, EXTRACT_CONFIG_ID,  customCodeDataTypeObj, setS
     const [dataTypeObj, setDataTypeObj] = useState(customCodeDataTypeObj);
     const [customCodeID, setCustomCodeID] = useState(null);
 
-    // useEffect(()=>{
-    //     let sql = `SELECT COLUMN_NAME, DATA_TYPE, IS_IDENTITY FROM "SHARED_TOOLS_DEV"."INFORMATION_SCHEMA"."COLUMNS" 
-    //     WHERE 
-    //     //TABLE_SCHEMA = '' AND 
-    //     TABLE_NAME = 'ETLF_CUSTOM_CODE'
-    //     ORDER BY ORDINAL_POSITION;`;
-
-    //     if (authState.isAuthenticated && username !== '') {
-    //         const { accessToken } = authState;
-    //         axios.get(SELECT_URL, {
-    //             headers: {
-    //                 'type': 'TOKEN',
-    //                 'methodArn': ARN_APIGW_GET_SELECT,
-    //                 // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
-    //                 'authorizorToken': accessToken
-    //             },
-    //             //params maps to event.queryStringParameters in lambda
-    //             params: {
-    //                 sqlStatement: sql,
-    //             }
-    //         })
-    //         //have to setState in .then() due to asynchronous opetaions
-    //         .then(response => {
-    //             debug && console.log('dataTypeObj: ', response.data);
-    //             const columnsInfo = response.data;
-    //             let dataTypeObj = {}
-    //             for (let id in columnsInfo) {
-    //                 let column_name = columnsInfo[id].COLUMN_NAME;
-    //                 let column_type = columnsInfo[id].DATA_TYPE;
-    //                 dataTypeObj[column_name] = getDataType(column_type);
-    //             }
-
-    //             setDataTypeObj(dataTypeObj)
-    //         })
-    //     }
-
-    // }, []);
-
-    // const requiredFields = {
-    //     "CODE_DESCRIPTION": "Y",
-    //     "CODE": "Y",
-    //     "EXEC_SEQ": "Y",
-    // }
-
-    // useEffect(() => {
-    //     debug && console.log("open CustomCOdeForm, reset DropdownFields");
-    //     if (routeCode === 'R2A1' || routeCode === 'R12A1'){
-    //         setDropdownFields({ ...dropdownFields,
-    //             ['CODE_TYPE']: ['BLOCK_FORMATION']
-    //         })
-    //         debug && console.log(dropdownFields);
-
-    //         setInitialStates({
-    //             ...initialStates,
-    //             'CODE_TYPE': 'BLOCK_FORMATION'
-    //         })
-    //     }
-    // }, []);
-
     useEffect(() => {
         debug && console.log("customCodeID: " + customCodeID);
         
