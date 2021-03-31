@@ -53,7 +53,7 @@ const IDAssignmentForm = ({ setShow }) => {
     const [options, setOptions] = useState([]);
 
     const schema = yup.object({
-        email: yup.string().email().required(),
+        email: yup.string().required(),
         groupIDs: yup.string().required()
     });
 
@@ -87,7 +87,7 @@ const IDAssignmentForm = ({ setShow }) => {
             select UPPER(TRIM('` + email + `')) AS USERNAME, table1.value as APP_ID
             from table(strtok_split_to_table('`+ groupIDsArr.toString() + `', ',')) as table1
         ) st 
-        ON (TT.APP_ID = ST.APP_ID)
+        ON (TT.APP_ID = ST.APP_ID AND TT.USERNAME = ST.USERNAME)
         WHEN NOT matched THEN
         INSERT (
             USERNAME, APP_ID
@@ -102,39 +102,76 @@ const IDAssignmentForm = ({ setShow }) => {
 
     function assignGroupIDs(values) {
         if (authState.isAuthenticated  && username !== '') {
-            setValidating(true);
+            // setValidating(true);
             const options = {
                 headers: {
                     'Content-Type': 'application/json'
                 },
             }
 
-            const sql = assignGroupsToUserSQL(values.email, values.groupIDs);
-            debug && console.log(sql);
+            const users = values.email.split(",");
+            console.log(users);
 
-            axios.post(INSERT_URL, {
-                'sqlStatement': sql
-            }, options)
-            .then(response => {
-                debug && console.log(response);
+            const sqls = users.map(user => assignGroupsToUserSQL(user.trim(), values.groupIDs));
+            console.log(sqls);
+
+            let postRequests = sqls.map(sql =>
+                axios.post(
+                    INSERT_URL, 
+                    {
+                        'sqlStatement': sql
+                    }, 
+                    options
+                )
+            );
+
+            axios.all(postRequests)
+            .then(axios.spread((...responses) => {
+                // const responseOne = responses[0]
+                // const responseTwo = responses[1]
+                // const responesThree = responses[2]
+                // use/access the results 
                 if(mounted.current) {
                     setInsertMessage("Insert Success");
                     setInsertMessageClassname('successSignal');
                 }
-            })
-            .catch(err => {
-                debug && console.log(err.message);
+            })).catch(errors => {
+                // react on errors.
                 if(mounted.current) {
                     setInsertMessage("Insert Failed");
                     setInsertMessageClassname('errorSignal');
                 }
-            })
-            .finally(() => {
+            }).finally(() => {
                 if(mounted.current) {
                     setValidating(false);
                     // setShow(false);
                 }
             });
+
+            // axios.post(INSERT_URL, {
+            //     'sqlStatement': sql
+            // }, options)
+            // .then(response => {
+            //     debug && console.log(response);
+            //     if(mounted.current) {
+            //         setInsertMessage("Insert Success");
+            //         setInsertMessageClassname('successSignal');
+            //     }
+            // })
+            // .catch(err => {
+            //     debug && console.log(err.message);
+            //     if(mounted.current) {
+            //         setInsertMessage("Insert Failed");
+            //         setInsertMessageClassname('errorSignal');
+            //     }
+            // })
+            // .finally(() => {
+            //     if(mounted.current) {
+            //         setValidating(false);
+            //         // setShow(false);
+            //     }
+            // });
+            
         }
     }
 
@@ -187,7 +224,8 @@ const IDAssignmentForm = ({ setShow }) => {
                                         type="text"
                                         // id={field}
                                         name='email'
-                                        value={values['email']} onChange={handleChange}
+                                        value={values['email']} 
+                                        onChange={handleChange}
                                         // value={email}
                                         // onChange={ e => {
                                         //     handleChange(e);

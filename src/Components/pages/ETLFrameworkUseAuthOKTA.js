@@ -107,15 +107,16 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                             linkState={props['location']['state']}
                         />
                     </Tab>
-                    {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
-                        <PlaygroundTab />
-                    </Tab> */}
-
+                    
                     {isAdmin && 
                         <Tab eventKey="admin" title="Admin" disabled = {tableLoading}>
                             <AdminTabs />
                         </Tab>
                     }
+
+                    <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
+                        <PlaygroundTab />
+                    </Tab>
                     
                 </Tabs>
             </>
