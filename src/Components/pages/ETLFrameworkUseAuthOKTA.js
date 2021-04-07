@@ -114,9 +114,9 @@ const ETLFrameworkUseAuthOKTA = ( props ) => {
                         </Tab>
                     }
 
-                    <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
+                    {/* <Tab eventKey="Test" title="Test" disabled = {tableLoading}>
                         <PlaygroundTab />
-                    </Tab>
+                    </Tab> */}
                     
                 </Tabs>
             </>

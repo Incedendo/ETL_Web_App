@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import { Formik, Field } from 'formik';
 import axios from 'axios';
@@ -13,6 +13,8 @@ import { AdminContext } from '../../../context/AdminContext';
 import { SELECT_URL, ARN_APIGW_GET_SELECT, INSERT_URL } from '../../../context/URLs';
 
 const DomainOperatorForm = ({ }) => {
+
+    const mounted = useRef(true);
     
     const { authState } = useOktaAuth();
 
@@ -33,7 +35,7 @@ const DomainOperatorForm = ({ }) => {
     // const [schema, setSchema] = useState([]);
 
     const schema = yup.object({
-        email: yup.string().email().required(),
+        email: yup.string().required(),
         domains: yup.string().required()
     });
 
@@ -42,7 +44,7 @@ const DomainOperatorForm = ({ }) => {
     const [insertMessageClassname, setInsertMessageClassname] = useState('');
 
     useEffect(()=>{
-        let mounted = true;
+        mounted.current = true;
         if (authState.isAuthenticated && username !== '') {
             const { accessToken } = authState;
             let sql = '';
@@ -85,11 +87,11 @@ const DomainOperatorForm = ({ }) => {
             })
         }
 
-        return ()=> mounted = false;
+        return ()=> mounted.current = false;
     }, [])
 
     useEffect(()=>{
-        let mounted = true;
+        mounted.current = true;
         
         if(insertMessage !== ''){
             setTimeout(()=>{
@@ -98,7 +100,7 @@ const DomainOperatorForm = ({ }) => {
             }, 2000);
         }
 
-        return ()=> mounted = false;
+        return () => mounted.current = false;
     }, [insertMessage]);
 
     useEffect(()=>{
@@ -112,10 +114,12 @@ const DomainOperatorForm = ({ }) => {
         let sql = `MERGE INTO "SHARED_TOOLS_DEV"."ETL"."DOMAIN_AUTHORIZATION" TT
         USING (
             select 
-                ABS(HASH( UPPER(TRIM('` + email + `')),UPPER(TRIM(table1.value)) )) as DOMAIN_AUTHORIZATION_ID,
-                UPPER(TRIM('` + email +`')) AS USERNAME, 
+                ABS(HASH( UPPER(TRIM(table2.value)),UPPER(TRIM(table1.value)) )) as DOMAIN_AUTHORIZATION_ID,
+                UPPER(TRIM(table2.value)) AS USERNAME, 
                 UPPER(TRIM(table1.value)) as DOMAIN
-            from table(strtok_split_to_table('`+ domains +`', ',')) as table1
+            from 
+                table(strtok_split_to_table('`+ domains +`', ',')) as table1,
+                table(strtok_split_to_table('`+ email +`', ',')) as table2
         ) st 
         ON (TT.DOMAIN_AUTHORIZATION_ID = ST.DOMAIN_AUTHORIZATION_ID)
         WHEN NOT matched THEN
@@ -140,9 +144,51 @@ const DomainOperatorForm = ({ }) => {
                 },
             }
 
-            let insert_status = 'FAILURE';
+            // const users = values.email.split(",");
+            // const sqls = users.map(user => assignOperatorToDomainsSQL(user.trim(), values.domains));
+            // console.log(sqls);
+
+            // const postRequests = sqls.map(sql =>
+            //     axios.post(
+            //         INSERT_URL, 
+            //         {
+            //             'sqlStatement': sql
+            //         }, 
+            //         options
+            //     )
+            // );
+
+            // let insert_status = 'FAILURE';
+            // axios.all(postRequests)
+            // .then(axios.spread((...responses) => {
+            //     // const responseOne = responses[0]
+            //     // const responseTwo = responses[1]
+            //     // const responesThree = responses[2]
+            //     // use/access the results 
+                
+            //     if(mounted.current) {
+            //         setInsertMessage("Insert Success");
+            //         setInsertMessageClassname('successSignal');
+            //         insert_status = 'SUCCESS';
+            //     }
+            // })).catch(errors => {
+            //     // react on errors.
+            //     if(mounted.current) {
+            //         setInsertMessage("Insert Failed");
+            //         setInsertMessageClassname('errorSignal');
+            //     }
+            // }).finally(() => {
+            //     if(mounted.current) {
+            //         setValidating(false);
+            //         performAuditOperation('INSERT', ['email', 'domains'], values, 'DOMAIN_AUTHORIZATION', sqlMergeStatement, insert_status);
+            //         // setShow(false);
+            //     }
+            // });
+
+            
             const sqlMergeStatement = assignOperatorToDomainsSQL(values.email, values.domains);
 
+            let insert_status = 'FAILURE';
             axios.post(INSERT_URL, {
                 'sqlStatement': sqlMergeStatement
             }, options)
@@ -261,8 +307,8 @@ const DomainOperatorForm = ({ }) => {
                                     value={values['email']}
                                     onChange={handleChange}
                                     onBlur={handleBlur}
-                                    placeholder={'i.e: john.doe@aig.com'}
-                                    // disabled={disabled}
+                                    placeholder={'i.e: john.doe@aig.com (use "," to separate multiple emails)'}
+                                    disabled={validating}
                                     isValid={touched['email'] && !errors['email']}
                                     isInvalid={errors['email']}
                                 />

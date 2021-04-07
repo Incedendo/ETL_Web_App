@@ -7,10 +7,7 @@ import * as serviceWorker from './serviceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 
-
-
 ReactDOM.render(<App />, document.getElementById('root'));
-
 
 // Optimistic UI 
 // const rootElement = document.getElementById("root");

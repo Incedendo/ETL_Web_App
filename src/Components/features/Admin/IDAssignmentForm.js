@@ -26,7 +26,8 @@ const IDAssignmentForm = ({ setShow }) => {
     const { authState } = useOktaAuth();
 
     const {
-        debug, username
+        debug, username,
+        performAuditOperation
     } = useContext(WorkspaceContext);
 
     const { allGroupIDs } = useContext(AdminContext);
@@ -84,8 +85,12 @@ const IDAssignmentForm = ({ setShow }) => {
 
         let sql = `MERGE INTO "SHARED_TOOLS_DEV"."ETL"."ETLF_ACCESS_AUTHORIZATION" TT
         USING (
-            select UPPER(TRIM('` + email + `')) AS USERNAME, table1.value as APP_ID
-            from table(strtok_split_to_table('`+ groupIDsArr.toString() + `', ',')) as table1
+            select 
+                UPPER(TRIM(TABLE2.value)) AS USERNAME, 
+                TABLE1.value AS APP_ID
+            from 
+                TABLE(STRTOK_SPLIT_TO_TABLE('`+ groupIDsArr.toString() + `', ',')) AS TABLE1,
+                TABLE(STRTOK_SPLIT_TO_TABLE('` + email + `', ',')) AS TABLE2
         ) st 
         ON (TT.APP_ID = ST.APP_ID AND TT.USERNAME = ST.USERNAME)
         WHEN NOT matched THEN
@@ -108,69 +113,76 @@ const IDAssignmentForm = ({ setShow }) => {
                     'Content-Type': 'application/json'
                 },
             }
+            let insert_status = 'FAILURE';
+            
+            // const users = values.email.split(",");
+            // console.log(users);
+            // const sqls = users.map(user => assignGroupsToUserSQL(user.trim(), values.groupIDs));
+            // console.log(sqls);
 
-            const users = values.email.split(",");
-            console.log(users);
+            // const postRequests = sqls.map(sql =>
+            //     axios.post(
+            //         INSERT_URL, 
+            //         {
+            //             'sqlStatement': sql
+            //         }, 
+            //         options
+            //     )
+            // );
 
-            const sqls = users.map(user => assignGroupsToUserSQL(user.trim(), values.groupIDs));
-            console.log(sqls);
-
-            let postRequests = sqls.map(sql =>
-                axios.post(
-                    INSERT_URL, 
-                    {
-                        'sqlStatement': sql
-                    }, 
-                    options
-                )
-            );
-
-            axios.all(postRequests)
-            .then(axios.spread((...responses) => {
-                // const responseOne = responses[0]
-                // const responseTwo = responses[1]
-                // const responesThree = responses[2]
-                // use/access the results 
-                if(mounted.current) {
-                    setInsertMessage("Insert Success");
-                    setInsertMessageClassname('successSignal');
-                }
-            })).catch(errors => {
-                // react on errors.
-                if(mounted.current) {
-                    setInsertMessage("Insert Failed");
-                    setInsertMessageClassname('errorSignal');
-                }
-            }).finally(() => {
-                if(mounted.current) {
-                    setValidating(false);
-                    // setShow(false);
-                }
-            });
-
-            // axios.post(INSERT_URL, {
-            //     'sqlStatement': sql
-            // }, options)
-            // .then(response => {
-            //     debug && console.log(response);
+            // axios.all(postRequests)
+            // .then(axios.spread((...responses) => {
+            //     // const responseOne = responses[0]
+            //     // const responseTwo = responses[1]
+            //     // const responesThree = responses[2]
+            //     // use/access the results 
             //     if(mounted.current) {
+            //         insert_status = 'SUCCESS';
             //         setInsertMessage("Insert Success");
             //         setInsertMessageClassname('successSignal');
             //     }
-            // })
-            // .catch(err => {
-            //     debug && console.log(err.message);
+            // })).catch(errors => {
+            //     // react on errors.
             //     if(mounted.current) {
             //         setInsertMessage("Insert Failed");
             //         setInsertMessageClassname('errorSignal');
             //     }
-            // })
-            // .finally(() => {
+            // }).finally(() => {
             //     if(mounted.current) {
+            //         let sql = '';
+            //         sqls.map(item => sql += item + "\n================================================================\n");
+            //         performAuditOperation('INSERT', [], {}, 'ETLF_ACCESS_AUTHORIZATION', sql, insert_status);
             //         setValidating(false);
             //         // setShow(false);
             //     }
             // });
+
+            const sql = assignGroupsToUserSQL(values.email, values.groupIDs)
+            axios.post(INSERT_URL, {
+                'sqlStatement': sql
+            }, options)
+            .then(response => {
+                debug && console.log(response);
+                if(mounted.current) {
+                    insert_status = 'SUCCESS';
+                    setInsertMessage("Insert Success");
+                    setInsertMessageClassname('successSignal');
+                }
+            })
+            .catch(err => {
+                debug && console.log(err.message);
+                if(mounted.current) {
+                    setInsertMessage("Insert Failed");
+                    setInsertMessageClassname('errorSignal');
+                }
+            })
+            .finally(() => {
+                if(mounted.current) {
+                    setValidating(false);
+                    performAuditOperation('INSERT', ['email', 'IDs'], {'email': values.email, 'IDs': values.groupIDs}, 'ETLF_ACCESS_AUTHORIZATION', sql, insert_status);
+                    // setShow(false);
+                }
+            });
             
         }
     }
@@ -191,6 +203,7 @@ const IDAssignmentForm = ({ setShow }) => {
                 onSubmit={(values, { resetForm }) => {
                     debug && console.log('values: ', values);
                     assignGroupIDs(values);
+                    setValidating(true);
                     resetForm();
                 }}
                 initialValues={{
@@ -219,7 +232,7 @@ const IDAssignmentForm = ({ setShow }) => {
                         >
                             <Form.Row>
                                 <Form.Group as={Col} controlId="formBasicEmail">
-                                    <Form.Label>User Email:</Form.Label>
+                                    <Form.Label>User Email(s):</Form.Label>
                                     <Form.Control
                                         type="text"
                                         // id={field}
@@ -232,7 +245,7 @@ const IDAssignmentForm = ({ setShow }) => {
                                         //     setEmail(e.target.value);
                                         // }}
                                         onBlur={handleBlur}
-                                        placeholder={'i.e: john.doe@aig.com'}
+                                        placeholder={'i.e: john.doe@aig.com (use "," to separate multiple emails)'}
                                         disabled={validating}
                                         isValid={touched['email'] && !errors['email']}
                                         isInvalid={errors['email']}

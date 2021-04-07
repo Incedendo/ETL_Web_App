@@ -43,14 +43,15 @@ const AddAdminForm = () => {
     }, [insertMessage]);
 
     useEffect(()=>{
-        
         debug && console.log(validating);
-    }, [validating])
+    }, [validating]);
 
+
+    //email is a comma-separated string containing multiple emails
     const addAdminSQL = (email) =>{
         let sql = `MERGE INTO "SHARED_TOOLS_DEV"."ETL"."DATCAT_ADMIN" TT
         USING ( 
-            select table1.value as USERNAME
+            select UPPER(TRIM(table1.value)) as USERNAME
             from table(strtok_split_to_table('`+ email + `', ',')) as table1
         ) st 
         ON (TT.USERNAME = ST.USERNAME)
@@ -68,7 +69,7 @@ const AddAdminForm = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-            }
+            };
 
             let insert_status = 'FAILURE';
             const sqlMergeStatement = addAdminSQL(values.email);
@@ -89,7 +90,7 @@ const AddAdminForm = () => {
             })
             .finally(() => {
                 setValidating(false);
-                performAuditOperation('INSERT', ['email'], values, 'DOMAIN_AUTHORIZATION', sqlMergeStatement, insert_status);
+                performAuditOperation('INSERT', ['email'], values, 'DATCAT_ADMIN', sqlMergeStatement, insert_status);
             });
         }
     }
@@ -110,8 +111,8 @@ const AddAdminForm = () => {
                 onSubmit={(values, { resetForm, setErrors, setSubmitting }) => {
                     debug && console.log('values: ', values);
                     addAdmin(values);
-                    resetForm();
                     setValidating(true);
+                    resetForm();
                 }}
                 initialValues={{
                     email: ''

@@ -157,7 +157,15 @@ const RouteForm = ({
 
                     updatedValues["EXTRACT_CONFIG_ID"] = states["EXTRACT_CONFIG_ID"];
                     debug && console.log('updatedValues: ', updatedValues);
-                    test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
+                    if('SOURCE_TABLE' in updatedValues){
+                        test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
+                    }else{
+                        insertUsingMergeStatement(getMergeStatement(values), values, setValidating, true);
+                        if(mounted.current){
+                            setInsertMessage("");
+                            setShow(false);
+                        }
+                    }
                 }}
                 validationSchema={validationSchema}
                 enableReinitialize={true}

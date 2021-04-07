@@ -379,7 +379,7 @@ export const WorkspaceProvider = (props) => {
             // }
             if(["CATALOG_ENTITY_LINEAGE","CATALOG_ITEMS"].indexOf(table) >= 0){
                 headers.unshift('TARGET_SCHEMA');
-                headers.unshift('TARGET_DATABASE');
+                // headers.unshift('TARGET_DATABASE');
                 headers.unshift('TARGET_TABLE');
             }
             if(headers.indexOf('CATALOG_ENTITIES_HASH') > -1 ){
