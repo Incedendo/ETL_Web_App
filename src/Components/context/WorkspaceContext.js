@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import axios from 'axios';
 import { fieldTypesConfigs, TABLES_NON_EDITABLE_COLUMNS, DATA_CATALOG_TABLE } from './FieldTypesConfig';
-import { startingLo, startingHi, selectCount } from '../context/privilege';
+import { startingLo, startingHi, selectCount, default_steps } from '../context/privilege';
 import { generateAuditStmt } from '../SQL_Operations/Insert';
 export const WorkspaceContext = createContext();
 import { SELECT_URL,
@@ -91,10 +91,10 @@ export const WorkspaceProvider = (props) => {
     const [sortingStates, setSortingStates] = useState([{columnName: "GROUP_ID", direction: "asc"}]);    
     
     // Search Info States
-    const [steps, setSteps] = useState(10);
+    const [steps, setSteps] = useState(default_steps);
     const [selectAllCounts, setAllCounts] = useState(0);
     const [lo, setLo] = useState(1);
-    const [hi, setHi] = useState(steps);
+    const [hi, setHi] = useState(default_steps);
     const [selectAllStmtEveryX, setSelectAllStmtEveryX] = useState('');
 
     //Prepare data for the 'Configure Route' Modal in ETLFramework Comp

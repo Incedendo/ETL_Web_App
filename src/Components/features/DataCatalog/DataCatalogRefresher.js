@@ -6,7 +6,9 @@ import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import { mergeUpdateCatalogEntitiesFromView,
     mergeUpdateCatalogItemsFromView,
-    mergeUpdateCatalogEntityLineageFromView
+    mergeUpdateCatalogEntityLineageFromView,
+    mergeUpdateCatalogItemsFromTempTable,
+    mergeUpdateCatalogEntitiesFromTempTable
 } from './datcatsql/refreshDataCatalog';
 
 import {  INSERT_URL } from '../../context/URLs';

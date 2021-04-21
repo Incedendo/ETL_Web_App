@@ -7,9 +7,9 @@ import { Link } from "react-router-dom";
 // import LinkLogo16 from '../../../media/LinkIcon/link16x16.svg';
 import LinkLogo12 from '../../../media/LinkIcon/link12x12.svg';
 import { getSearchFieldValueExact } from '../../sql_statements';
-import { steps } from '../../context/privilege';
+import { default_steps } from '../../context/privilege';
 const startingLo = 1;
-const startingHi = steps;
+const startingHi = default_steps;
 
 const selectCount = `SELECT COUNT(*) as COUNT`;
 const caseAdmin = `'READ/WRITE' as PRIVILEGE`;

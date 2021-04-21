@@ -8,6 +8,6 @@ END AS PRIVILEGE`;
 
 export const selectCount = `SELECT COUNT(*) as COUNT`;
 
-export const steps = 15;
+export const default_steps = 15;
 export const startingLo = 1;
-export const startingHi = steps;
+export const startingHi = default_steps;

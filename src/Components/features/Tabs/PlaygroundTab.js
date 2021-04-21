@@ -1,4 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+
+//---------------Contexts----------------------
+import { WorkspaceContext } from '../../context/WorkspaceContext';
+import { AdminContext } from '../../context/AdminContext';
+
 import { models, Report, Embed, service, Page } from 'powerbi-client';
 import { PowerBIEmbed } from 'powerbi-client-react';
 
@@ -6,6 +11,8 @@ import { useOktaAuth } from '@okta/okta-react';
 import { Formik, Field } from 'formik';
 import axios from 'axios';
 import * as yup from 'yup'; // for everything
+import ReactMultiSelectCheckboxes from 'react-multiselect-checkboxes';
+
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
@@ -13,6 +20,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import '../../../css/forms.scss';
 import * as msal from "@azure/msal-browser";
+import { SELECT_URL, ARN_APIGW_GET_SELECT, } from '../../context/URLs';
+import { readString, CSVReader } from 'react-papaparse';
+
 
 
 const PlaygroundTab = () => {
@@ -28,6 +38,13 @@ const PlaygroundTab = () => {
     const reportId = "2702a5a5-f78e-42e9-9ade-3f2db647904c";
     const scope = "https://analysis.windows.net/powerbi/api";
 //----------------------------------------------
+    const {
+        debug,
+        insertSuccess, insertError, setInsertError,
+        axiosCallToGetCountsAndTableRows
+    } = useContext(WorkspaceContext);
+
+    const { authState, authService } = useOktaAuth();
 
     const [loading, setLoading] = useState(false);
 
@@ -48,6 +65,41 @@ const PlaygroundTab = () => {
     const fields = ["applicationID", "workspaceID", "reportID", "AADAuthorityUrl"];
 
     const [validating, setValidating] = useState(false);
+
+    const [domains, setDomains] = useState([]);
+    const [selectedDomains, setSelectedDomains] = useState([]);
+
+    useEffect(() =>{
+        const { accessToken } = authState;
+        const DATA_DOMAIN_SQL = `SELECT DOMAIN,DATA_DOMAIN_ID  FROM "SHARED_TOOLS_DEV"."ETL"."DATA_DOMAIN";`;
+        
+        axios.get(SELECT_URL, {
+            headers: {
+                'type': 'TOKEN',
+                'methodArn': ARN_APIGW_GET_SELECT,
+                // 'methodArn': 'arn:aws:execute-api:us-east-1:902919223373:jda1ch7sk2/*/GET/select',
+                'authorizorToken': accessToken
+            },
+            //params maps to event.queryStringParameters in lambda
+            params: {
+                sqlStatement: DATA_DOMAIN_SQL,
+            }
+        })//have to setState in .then() due to asynchronous opetaions
+        .then(response => {
+            // returning the data here allows the caller to get it through another .then(...)
+            // console.log('---------GET RESPONSE-----------');
+            
+            
+            const domainObj = response.data.map(item => ({
+                'label': item.DOMAIN,
+                'value': item.DATA_DOMAIN_ID
+            }));
+
+            debug && console.log(domainObj);
+
+            setDomains(domainObj)
+        });
+    }, [])
 
     // const [report, setReport] = useState();
     // const [sampleReportConfig, setReportConfig] = useState({
@@ -114,11 +166,104 @@ const PlaygroundTab = () => {
         }
     }, []);
 
+    const handleOnLoaded = (data) => {
+        console.log("Files loaded....");
+        console.log(data);
+        const headers = data[0].data;
+        console.log(headers);
+
+        const rows = data.slice(1);
+
+        //item[0]: DB, item[1]: schema, item[2]: table_name
+        // const tables = data.filter(item => item.data[3] === "");
+        let tables = [];
+        data.map(item => {
+            if(item.data[3] === "")
+                tables.push(item.data);
+        });
+        addTablesToDomains(tables);
+
+        //item[0]: DB, item[1]: schema, item[2]: table_name, item[3]: column
+        const columns = data.filter(item => item.data[3] !== "");
+
+        // console.log(tables);
+    }
+
+    const addTablesToDomains = (tables) => {
+        console.log(tables);
+        console.log(selectedDomains);
+
+        let catalogEntitiesIDs = '';
+        tables.map(item => 
+            catalogEntitiesIDs += 'ABS(HASH(UPPER(TRIM(\''+ item[0] +'\')), UPPER(TRIM(\''+ item[1] +'\')), UPPER(TRIM(\''+ item[2] +'\')) ));'
+        );
+
+        // const catalogEntitiesIDsSQL = `SELECT * FROM 
+        // table(strtok_split_to_table('` + catalogEntitiesIDs + `', ';')) as table1;`
+
+        // console.log(catalogEntitiesIDsSQL);
+
+        let sql = `MERGE INTO SHARED_TOOLS_DEV.ETL.CATALOG_ENTITY_DOMAIN TT
+        USING (
+            select UPPER(TRIM(table1.value)) as CATALOG_ENTITIES_ID, UPPER(TRIM('` + selectedDomains + `')) AS DATA_DOMAIN_ID
+            from table(strtok_split_to_table('` + catalogEntitiesIDs + `', ';')) as table1
+        ) st 
+        ON (TT.DATA_DOMAIN_ID = ST.DATA_DOMAIN_ID AND TT.CATALOG_ENTITIES_ID = ST.CATALOG_ENTITIES_ID)
+        WHEN NOT matched THEN
+        INSERT (
+            DATA_DOMAIN_ID, CATALOG_ENTITIES_ID
+        ) 
+        VALUES 
+        (
+            st.DATA_DOMAIN_ID, st.CATALOG_ENTITIES_ID
+        );`;
+
+        console.log(sql);
+    }
+
+    const handleOnDrop = () => {
+        console.log("On Drop....");
+    }
+
+    const handleOnRemoveFile = () => {
+        console.log("remove files....");
+    }
+
+    const printChange = (values) =>{
+        let selectedOptions = [];
+        values.map(option => selectedOptions.push(option['value']));;
+
+        console.log(selectedOptions);
+        setSelectedDomains(selectedOptions);
+    }
+
     return(
         <div>
             <h4>Welcome to Playground</h4> 
 
-            <iframe width="800" height="600" src="https://app.powerbi.com/rdlEmbed?reportId=2702a5a5-f78e-42e9-9ade-3f2db647904c&autoAuth=true&ctid=9b893b67-6443-4d66-89db-071299e7a04d" frameborder="0" allowFullScreen="true"></iframe>
+            <ReactMultiSelectCheckboxes
+                placeholderButtonLabel={"hello world"}
+                onChange={values => printChange(values)}
+                options={domains} 
+            />
+
+            {selectedDomains.length > 0 && 
+                <CSVReader 
+                    onFileLoad={
+                        handleOnLoaded
+                    }
+                    // onDrop={handleOnDrop}
+                    // onError={this.handleOnError}
+                    // noDrag
+                    addRemoveButton
+                    onRemoveFile={handleOnRemoveFile}
+                    >
+                    <span>Click to upload.</span>
+                    
+                </CSVReader>
+            }
+
+            {/* <iframe width="800" height="600" src="https://app.powerbi.com/rdlEmbed?reportId=2702a5a5-f78e-42e9-9ade-3f2db647904c&autoAuth=true&ctid=9b893b67-6443-4d66-89db-071299e7a04d" frameborder="0" allowFullScreen="true"></iframe>
 
             <Formik
                 validationSchema={schema}
@@ -194,7 +339,9 @@ const PlaygroundTab = () => {
                             </div>
                         </Form>
                     )}
-                </Formik>
+                </Formik> */}
+
+            
         </div>
     )
 }

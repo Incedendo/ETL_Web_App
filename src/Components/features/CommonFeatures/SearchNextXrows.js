@@ -13,8 +13,8 @@ const SearchNextXrows = () => {
 
         lo, setLo,
         hi, setHi,
-        steps,
         selectAllStmtEveryX,
+        steps,
 
         axiosCallToGetTableRows,
     } = useContext(WorkspaceContext);

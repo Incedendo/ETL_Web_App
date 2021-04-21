@@ -37,6 +37,7 @@
     "react-html-parser": "^2.0.2",
     "react-input-slider": "^6.0.0",
     "react-multiselect-checkboxes": "^0.1.1",
+    "react-papaparse": "^3.12.1",
     "react-password-mask": "^3.3.1",
     "react-progress-button": "^5.1.0",
     "react-router-bootstrap": "^0.25.0",

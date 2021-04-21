@@ -74,7 +74,7 @@ const MultiSelectField = ({ field, isDatCatForm, dropdownFields, placeholder, to
 
                     {/* <div className='custom-invalid-feedback'> */}
                     <div className='custom-invalid-feedback'>
-                        {errors[field] !== '' && errors[field]}
+                        {field in errors && errors[field] !== '' && errors[field]}
                     </div>
                     
                 </>
