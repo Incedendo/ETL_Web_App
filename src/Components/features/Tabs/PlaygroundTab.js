@@ -241,7 +241,7 @@ const PlaygroundTab = () => {
         <div>
             <h4>Welcome to Playground</h4> 
 
-            <ReactMultiSelectCheckboxes
+            {/* <ReactMultiSelectCheckboxes
                 placeholderButtonLabel={"hello world"}
                 onChange={values => printChange(values)}
                 options={domains} 
@@ -261,9 +261,9 @@ const PlaygroundTab = () => {
                     <span>Click to upload.</span>
                     
                 </CSVReader>
-            }
+            } */}
 
-            {/* <iframe width="800" height="600" src="https://app.powerbi.com/rdlEmbed?reportId=2702a5a5-f78e-42e9-9ade-3f2db647904c&autoAuth=true&ctid=9b893b67-6443-4d66-89db-071299e7a04d" frameborder="0" allowFullScreen="true"></iframe>
+            <iframe width="800" height="600" src="https://app.powerbi.com/rdlEmbed?reportId=2702a5a5-f78e-42e9-9ade-3f2db647904c&autoAuth=true&ctid=9b893b67-6443-4d66-89db-071299e7a04d" frameborder="0" allowFullScreen="true"></iframe>
 
             <Formik
                 validationSchema={schema}
@@ -339,7 +339,7 @@ const PlaygroundTab = () => {
                             </div>
                         </Form>
                     )}
-                </Formik> */}
+                </Formik> 
 
             
         </div>
