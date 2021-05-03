@@ -555,9 +555,10 @@ export const WorkspaceProvider = (props) => {
             //have to setState in .then() due to asynchronous opetaions
             .then(response => {
                 // debug && console.log(response.data.rows);
-                const systemConfigs = response.data.rows;
+                const systemConfigs = response.data.rows.filter(value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type !== undefined);
                 debug && console.log(systemConfigs);
                 const system_types = systemConfigs.map(value => value.SYSTEM_CONFIG_JSON.SOURCE_DATABASE_CONF.type.toLowerCase());
+         
                 debug && console.log(systemConfigs);
                 let temp_system_configs = {};
 

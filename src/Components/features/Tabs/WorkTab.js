@@ -33,19 +33,19 @@ const WorkTab = ({ id, linkState }) => {
 
     console.log("WorkedTab Clicked, table = " + table);
 
-    useEffect(() =>{
-        if(linkState !== undefined){
-            debug && console.log(linkState);
+    // useEffect(() =>{
+    //     if(linkState !== undefined){
+    //         debug && console.log(linkState);
             
-            // setShownModalUponChangingTable(false);
-            // setCommingFromLink(true);
+    //         // setShownModalUponChangingTable(false);
+    //         // setCommingFromLink(true);
 
-        }else if(id === table){
-            // setShownModalUponChangingTable(true);
-        }
+    //     }else if(id === table){
+    //         // setShownModalUponChangingTable(true);
+    //     }
         
-        // debug && console.log(dropdownFields);
-    }, []);
+    //     // debug && console.log(dropdownFields);
+    // }, []);
 
     const TableConfigPanel = () => (
         // <div className={"card expanded-height"}>
