@@ -573,7 +573,7 @@ export const WorkspaceProvider = (props) => {
                 })
 
                 setSystem_configs(temp_system_configs);
-                // debug && console.log(temp_system_configs);
+                debug && console.log(temp_system_configs);
             })
             .catch(err => debug && console.log("error from loading ETLF_SYSTEM_CONFIG:", err.message))
     }

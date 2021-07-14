@@ -239,7 +239,7 @@ const getSelectClause = (rowOjb, columns) => {
     
     let selectClause = ''
     for (let id in columns){
-        let value = isNaN(values[id]) ? values[id].toUpperCase().trim() : values[id];
+        let value = isNaN(values[id]) ? values[id].trim() : values[id];
         selectClause += value + ' as ' + columns[id];
         if (id < columns.length - 1){
             selectClause += `, 
@@ -278,7 +278,7 @@ const getUpdateClauseWithDates = (columns) => {
 const getInsertValues = (columns) => {
     let values = ''
     for (let id in columns){
-        values += 'st.' + isNaN(columns[id]) ? columns[id].toUpperCase().trim() : columns[id]
+        values += 'st.' + isNaN(columns[id]) ? columns[id].trim() : columns[id]
         if (id < columns.length - 1){
             values += ', ';
         }

@@ -34,15 +34,11 @@ const JobForm = ({ data, uniqueCols, dataTypes, setShow }) => {
     //Jobs Configurations
     const [schema, setSchema] = useState([]);
     const [initialStates, setInitialStates] = useState({
-        // ETLFCALL_ID: uuidv4(),
-        // ETLFCALL_ID: 'dummyStr',
         SOURCE_TABLE: '',
         JSON_PARAM: "",
         WAREHOUSE: "WH_GR_GP_XS",
         RUN_MODE: "C",
-        // WORK_GROUP_ID: appIDs[0],
-        GROUP_ID: appIDs[0],
-        // INGESTION_STATUS: 'NOT SCHEDULED'
+        GROUP_ID: appIDs[0]
     });
     const [fields, setFields] = useState([]);
     const [validating, setValidating] = useState(false);

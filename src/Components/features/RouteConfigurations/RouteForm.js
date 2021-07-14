@@ -99,7 +99,7 @@ const RouteForm = ({
             (
                 SELECT COUNT(1) FROM "SHARED_TOOLS_DEV"."ETL"."ETLF_EXTRACT_CONFIG"
                 WHERE GROUP_ID = ` + values['GROUP_ID'] + `
-                AND '` + values['SOURCE_TABLE'] + `' = NVL(SOURCE_TABLE,'')
+                AND UPPER('` + values['SOURCE_TABLE'] + `') = NVL(SOURCE_TABLE,'')
             ) as Combi;`;
 
         debug && console.log('Test sql: ', test_statement);
@@ -157,15 +157,8 @@ const RouteForm = ({
 
                     updatedValues["EXTRACT_CONFIG_ID"] = states["EXTRACT_CONFIG_ID"];
                     debug && console.log('updatedValues: ', updatedValues);
-                    if('SOURCE_TABLE' in updatedValues){
-                        test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
-                    }else{
-                        insertUsingMergeStatement(getMergeStatement(values), values, setValidating, true);
-                        if(mounted.current){
-                            setInsertMessage("");
-                            setShow(false);
-                        }
-                    }
+                    test_UniqueKeys_For_Insert_ETLF_EXTRACT_CONFIG(updatedValues);
+                    
                 }}
                 validationSchema={validationSchema}
                 enableReinitialize={true}
